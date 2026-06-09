@@ -32,6 +32,12 @@ button:disabled{opacity:.55;cursor:default}
 .nm{flex:1;font-size:13.5px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ix{background:#eef1fb;color:var(--pri);border:0;border-radius:6px;padding:3px 6px;font-size:12px;cursor:pointer;font-weight:700;flex:none}
 .pl{width:42px;text-align:center;font-size:15px;font-weight:800;padding:5px;border:1px solid var(--bd);border-radius:8px;flex:none}
+.pl::-webkit-inner-spin-button,.pl::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.pl{-moz-appearance:textfield}
+.step{display:flex;flex-direction:column;gap:2px;flex:none}
+.su{background:#eef1fb;color:var(--pri);border:0;border-radius:4px;width:18px;height:15px;font-size:8px;line-height:1;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center}
+.su:hover{background:var(--pri);color:#fff}
+.oddh{font-size:8px;font-weight:800;letter-spacing:.5px;color:var(--mut);text-align:right;text-transform:uppercase;line-height:1;margin-bottom:1px}
 .meta{display:flex;flex-direction:column;align-items:flex-end;gap:5px;min-width:130px}
 .data{font-size:11.5px;color:var(--mut);font-weight:700;text-align:right}
 .odds{display:flex;flex-direction:column;gap:1px;align-items:stretch;min-width:66px;margin:3px 0}.odds>span{display:flex;justify-content:space-between;gap:8px;font-size:10.5px;line-height:1.35;color:var(--mut)}.odds i{font-style:normal;font-weight:700}.odds b{color:var(--tx);font-weight:800}.tagrow{display:flex;align-items:center;gap:5px}.o365big{height:17px;width:auto;border-radius:3px;opacity:.95}
@@ -137,11 +143,11 @@ function card(j){
  var enc=j.status==="encerrado";
  var cor=CORES[chaveTab(j)]||"#222838";
  var gtab=j.grupo?('<div class="gtab" style="background:'+cor+'">GRUPO '+esc(j.grupo)+'</div>'):'';
- var od=j.odds?('<div class="odds"><span><i>Casa</i><b>'+(j.odds.casa||"-")+'</b></span><span><i>Emp.</i><b>'+(j.odds.empate||"-")+'</b></span><span><i>Fora</i><b>'+(j.odds.fora||"-")+'</b></span></div>'):'';
+ var od=j.odds?('<div class="odds"><div class="oddh">ODDS</div><span><i>Casa</i><b>'+(j.odds.casa||"-")+'</b></span><span><i>Emp.</i><b>'+(j.odds.empate||"-")+'</b></span><span><i>Fora</i><b>'+(j.odds.fora||"-")+'</b></span></div>'):'';
  var pal=j.palpite?('&#128302; '+esc(j.palpite.pc)+'x'+esc(j.palpite.pv)+(j.palpite.conf!=null?(' ('+esc(j.palpite.conf)+'%)'):'')):'';
  return '<div class="jogo">'+gtab+'<div class="jbody"><div class="times">'
-  +'<div class="lin">'+fl(j.casa.iso)+'<span class="nm">'+esc(j.casa.pt)+'</span><button class="ix" title="Stats e noticias" onclick="info(\\''+esc(j.casa.en)+'\\')">&#128202;</button><input class="pl" id="pc-'+j.id+'" type="number" min="0" max="99" value="'+(j.placar_casa==null?"":j.placar_casa)+'" onchange="salvar('+j.id+')"></div>'
-  +'<div class="lin">'+fl(j.visitante.iso)+'<span class="nm">'+esc(j.visitante.pt)+'</span><button class="ix" title="Stats e noticias" onclick="info(\\''+esc(j.visitante.en)+'\\')">&#128202;</button><input class="pl" id="pv-'+j.id+'" type="number" min="0" max="99" value="'+(j.placar_visitante==null?"":j.placar_visitante)+'" onchange="salvar('+j.id+')"></div>'
+  +'<div class="lin">'+fl(j.casa.iso)+'<span class="nm">'+esc(j.casa.pt)+'</span><button class="ix" title="Stats e noticias" onclick="info(\\''+esc(j.casa.en)+'\\')">&#128202;</button><input class="pl" id="pc-'+j.id+'" type="number" min="0" max="99" value="'+(j.placar_casa==null?"":j.placar_casa)+'" onchange="salvar('+j.id+')"><span class="step"><button class="su" onclick="stp('+j.id+',1,1)">&#9650;</button><button class="su" onclick="stp('+j.id+',1,-1)">&#9660;</button></span></div>'
+  +'<div class="lin">'+fl(j.visitante.iso)+'<span class="nm">'+esc(j.visitante.pt)+'</span><button class="ix" title="Stats e noticias" onclick="info(\\''+esc(j.visitante.en)+'\\')">&#128202;</button><input class="pl" id="pv-'+j.id+'" type="number" min="0" max="99" value="'+(j.placar_visitante==null?"":j.placar_visitante)+'" onchange="salvar('+j.id+')"><span class="step"><button class="su" onclick="stp('+j.id+',0,1)">&#9650;</button><button class="su" onclick="stp('+j.id+',0,-1)">&#9660;</button></span></div>'
   +'</div><div class="meta">'
   +'<span class="data">'+esc(fmtData(j.inicio))+'</span>'
   +(od||"")
@@ -163,6 +169,7 @@ function render(){
  if(aberto)html+='</div>';
  L.innerHTML=html;
 }
+function stp(id,casa,d){var e=document.getElementById((casa?"pc-":"pv-")+id);if(!e)return;var v=(parseInt(e.value)||0)+d;if(v<0)v=0;if(v>99)v=99;e.value=v;salvar(id);}
 async function salvar(id){
  var pc=document.getElementById("pc-"+id).value, pv=document.getElementById("pv-"+id).value;
  var r=await fetch(_b()+"/admin/jogos-placar/placar",{method:"POST",headers:H(),body:JSON.stringify({id:id,placar_casa:pc,placar_visitante:pv})});
