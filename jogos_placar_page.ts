@@ -25,7 +25,7 @@ button:disabled{opacity:.55;cursor:default}
 .jgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .jogo{background:var(--card);border:1px solid var(--bd);border-radius:12px;overflow:hidden;display:flex;align-items:stretch}
 .gtab{writing-mode:vertical-rl;transform:rotate(180deg);background:#222838;color:#fff;font-weight:800;font-size:10px;letter-spacing:2px;padding:8px 6px;display:flex;align-items:center;justify-content:center;text-align:center;flex:none}
-.jbody{flex:1;min-width:0;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-gap:8px;row-gap:9px;padding:10px 12px}
+.jbody{flex:1;min-width:0;display:grid;grid-template-columns:1.4fr auto 0.9fr;align-items:center;column-gap:8px;row-gap:9px;padding:10px 12px}
 .cn{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden}
 .cs{display:flex;align-items:center;gap:7px;justify-self:center}
 .cm{justify-self:end;display:flex;align-items:center}
