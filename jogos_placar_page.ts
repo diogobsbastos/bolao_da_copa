@@ -180,7 +180,7 @@ function card(j){
 }
 
 function odds(id){
- var j=JOGOS.find(function(x){return x.id===id;}); if(!j||!j.odds){toast("sem odds para este jogo","err");return;}
+ var j=JOGOS.find(function(x){return String(x.id)===String(id);}); if(!j||!j.odds){toast("sem odds para este jogo","err");return;}
  var o=j.odds;
  function ro(lbl,v){return '<div class="mr"><span style="flex:1">'+lbl+'</span><b style="font-size:16px">'+esc(v||"-")+'</b></div>';}
  modal('<h3>'+fl(j.casa.iso)+' '+esc(j.casa.pt)+' &times; '+esc(j.visitante.pt)+' '+fl(j.visitante.iso)+'</h3><div class="muted" style="font-size:12px;margin-bottom:8px">Odds 1X2 &middot; '+esc(o.fonte||"")+'</div>'+ro(fl(j.casa.iso)+' '+esc(j.casa.pt)+' (vitória)',o.casa)+ro('Empate',o.empate)+ro(fl(j.visitante.iso)+' '+esc(j.visitante.pt)+' (vitória)',o.fora));
@@ -205,7 +205,7 @@ async function salvar(id){
  var pc=document.getElementById("pc-"+id).value, pv=document.getElementById("pv-"+id).value;
  var r=await fetch(_b()+"/admin/jogos-placar/placar",{method:"POST",headers:H(),body:JSON.stringify({id:id,placar_casa:pc,placar_visitante:pv})});
  var d=await r.json().catch(function(){return{};});
- if(d&&d.ok){toast("Placar salvo","ok");var j=JOGOS.find(function(x){return x.id===id;});if(j){j.placar_casa=pc===""?null:+pc;j.placar_visitante=pv===""?null:+pv;j.status=d.status;}}
+ if(d&&d.ok){toast("Placar salvo","ok");var j=JOGOS.find(function(x){return String(x.id)===String(id);});if(j){j.placar_casa=pc===""?null:+pc;j.placar_visitante=pv===""?null:+pv;j.status=d.status;}}
  else{toast("erro ao salvar","err");}
 }
 async function salvarNewsKey(){
