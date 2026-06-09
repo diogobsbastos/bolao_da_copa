@@ -172,6 +172,13 @@ function card(j){
  return '<div class="jogo">'+gtab+'<div class="jbody">'+rows+meta+'</div></div>';
 }
 
+function odds(id){
+ var j=JOGOS.find(function(x){return x.id===id;}); if(!j||!j.odds){toast("sem odds para este jogo","err");return;}
+ var o=j.odds;
+ function ro(lbl,v){return '<div class="mr"><span style="flex:1">'+lbl+'</span><b style="font-size:16px">'+esc(v||"-")+'</b></div>';}
+ modal('<h3>'+fl(j.casa.iso)+' '+esc(j.casa.pt)+' &times; '+esc(j.visitante.pt)+' '+fl(j.visitante.iso)+'</h3><div class="muted" style="font-size:12px;margin-bottom:8px">Odds 1X2 &middot; '+esc(o.fonte||"")+'</div>'+ro(fl(j.casa.iso)+' '+esc(j.casa.pt)+' (vitória)',o.casa)+ro('Empate',o.empate)+ro(fl(j.visitante.iso)+' '+esc(j.visitante.pt)+' (vitória)',o.fora));
+}
+
 function render(){
  var js=JOGOS.filter(function(j){return chaveTab(j)===ATIVA;});
  document.getElementById("cnt").textContent=js.length+" jogos nesta aba";
