@@ -31,7 +31,7 @@ const TIMES: Record<string, { pt: string; iso: string }> = {
   "Turkey": { pt: "Turquia", iso: "tr" }, "United States": { pt: "Estados Unidos", iso: "us" },
   "Uruguay": { pt: "Uruguai", iso: "uy" }, "Uzbekistan": { pt: "Uzbequistão", iso: "uz" },
 };
-function timePT(en: string) { return TIMES[en] || { pt: en || "?", iso: "" }; }
+export function timePT(en: string) { return TIMES[en] || { pt: en || "?", iso: "" }; }
 
 const FIFA_RANK: Record<string, number> = {
   "Argentina": 1, "Spain": 2, "France": 3, "England": 4, "Brazil": 5, "Portugal": 6, "Netherlands": 7,
@@ -42,7 +42,7 @@ const FIFA_RANK: Record<string, number> = {
   "Algeria": 36, "Ghana": 37, "Iraq": 38, "Cape Verde Islands": 39, "Jordan": 40, "South Africa": 41,
   "Uzbekistan": 42, "Bosnia-Herzegovina": 43, "Congo DR": 44, "Curaçao": 45, "Haiti": 46, "New Zealand": 47,
 };
-function rankOf(en: string): number { return FIFA_RANK[en] || 50; }
+export function rankOf(en: string): number { return FIFA_RANK[en] || 50; }
 const CONF: Record<string, string> = {
   "Argentina": "CONMEBOL", "Brazil": "CONMEBOL", "Uruguay": "CONMEBOL", "Colombia": "CONMEBOL", "Ecuador": "CONMEBOL", "Paraguay": "CONMEBOL",
   "Spain": "UEFA", "France": "UEFA", "England": "UEFA", "Portugal": "UEFA", "Netherlands": "UEFA", "Belgium": "UEFA", "Germany": "UEFA", "Croatia": "UEFA", "Switzerland": "UEFA", "Austria": "UEFA", "Turkey": "UEFA", "Sweden": "UEFA", "Norway": "UEFA", "Scotland": "UEFA", "Czechia": "UEFA", "Bosnia-Herzegovina": "UEFA",
@@ -176,7 +176,7 @@ async function wcSportKey(): Promise<string | null> {
 
 // ===== PALPITE DA CASA (LLM com fallback por ranking) =====
 // Palpite a partir das odds 1X2 (grátis, do banco): favorito = menor odd; margem pela força.
-function palpiteOdds(o: any): any {
+export function palpiteOdds(o: any): any {
   const c = Number(o?.casa), e = Number(o?.empate), f = Number(o?.fora);
   if (!(c > 0) || !(f > 0)) return null;
   const favOdd = Math.min(c, f);
@@ -236,7 +236,7 @@ function mapaGrupos(rows: any[]): Map<string, string> {
   comps.forEach((comp, gi) => { const L = LET[gi] || String(gi + 1); for (const t of comp) mapa.set(t, L); });
   return mapa;
 }
-function calcClassificacao(rows: any[]) {
+export function calcClassificacao(rows: any[]) {
   const mapa = mapaGrupos(rows);
   const porGrupo: Record<string, Record<string, any>> = {};
   for (const [en, L] of mapa) { if (!porGrupo[L]) porGrupo[L] = {}; const p = timePT(en); porGrupo[L][en] = { en, pt: p.pt, iso: p.iso, j: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0, sg: 0, p: 0 }; }

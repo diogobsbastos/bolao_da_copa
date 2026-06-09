@@ -82,7 +82,7 @@ async function cadastrar(){
 function entrou(j,m){
  localStorage.setItem("sessao",j.token);localStorage.setItem("papel",j.papel);
  if(j.papel==="admin"){location.href=BASE+"/admin";}
- else{m.className="msg ok";m.textContent="Bem-vindo, "+(j.nome||"jogador")+"! (area do jogador em breve)";}
+ else{location.href=BASE+"/jogar";}
 }
 async function gcb(resp){
  var m=document.getElementById("l-msg");m.className="msg";m.textContent="entrando com Google...";
