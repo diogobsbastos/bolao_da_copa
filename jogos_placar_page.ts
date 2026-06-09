@@ -208,7 +208,9 @@ async function stats(en){
  html+=jline('Próximo',d.proximo)+jline('Último',d.ultimo);
  var u=d.ultimaCopa||[];
  if(u.length){html+='<div class="muted" style="font-size:12px;margin:10px 0 4px">Copa 2022:</div>'+u.map(function(g){return '<div class="mr"><span class="bdg b'+g.res+'">'+g.res+'</span><b>'+esc(g.placar)+'</b>'+fl(g.adversario.iso)+'<span>'+esc(g.adversario.pt)+'</span><span class="od">'+esc(faseCurta(g.fase))+'</span></div>';}).join("");}
- var el=d.elenco||[];
+ else{html+='<div class="muted" style="font-size:12px;margin:10px 0 4px">Copa 2022:</div><div class="mr"><span class="muted" style="line-height:1.4">Não disputou a Copa de 2022.'+(d.regiao?(' Chega à Copa 2026 via <b>'+esc(d.regiao)+'</b>.'):'')+'</span></div>';}
+ 
+var el=d.elenco||[];
  if(el.length){html+='<div style="display:flex;align-items:center;gap:8px;margin:12px 0 4px"><span class="muted" style="font-size:12px;flex:1">Elenco ('+el.length+')</span><button class="ix" style="padding:5px 9px" onclick="escalacao()">🔮 Escalação provável</button></div><div id="esc-box"></div>'+el.map(linhaJog).join("");}
  modal(html);
 }

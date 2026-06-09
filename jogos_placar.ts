@@ -43,6 +43,17 @@ const FIFA_RANK: Record<string, number> = {
   "Uzbekistan": 42, "Bosnia-Herzegovina": 43, "Congo DR": 44, "Curaçao": 45, "Haiti": 46, "New Zealand": 47,
 };
 function rankOf(en: string): number { return FIFA_RANK[en] || 50; }
+const CONF: Record<string, string> = {
+  "Argentina": "CONMEBOL", "Brazil": "CONMEBOL", "Uruguay": "CONMEBOL", "Colombia": "CONMEBOL", "Ecuador": "CONMEBOL", "Paraguay": "CONMEBOL",
+  "Spain": "UEFA", "France": "UEFA", "England": "UEFA", "Portugal": "UEFA", "Netherlands": "UEFA", "Belgium": "UEFA", "Germany": "UEFA", "Croatia": "UEFA", "Switzerland": "UEFA", "Austria": "UEFA", "Turkey": "UEFA", "Sweden": "UEFA", "Norway": "UEFA", "Scotland": "UEFA", "Czechia": "UEFA", "Bosnia-Herzegovina": "UEFA",
+  "Morocco": "CAF", "Senegal": "CAF", "Egypt": "CAF", "Tunisia": "CAF", "Algeria": "CAF", "Ghana": "CAF", "Ivory Coast": "CAF", "South Africa": "CAF", "Cape Verde Islands": "CAF", "Congo DR": "CAF",
+  "Japan": "AFC", "Iran": "AFC", "South Korea": "AFC", "Australia": "AFC", "Saudi Arabia": "AFC", "Qatar": "AFC", "Iraq": "AFC", "Jordan": "AFC", "Uzbekistan": "AFC",
+  "United States": "CONCACAF", "Mexico": "CONCACAF", "Canada": "CONCACAF", "Panama": "CONCACAF", "Curaçao": "CONCACAF", "Haiti": "CONCACAF",
+  "New Zealand": "OFC",
+};
+const CONF_LABEL: Record<string, string> = { CONMEBOL: "América do Sul (CONMEBOL)", UEFA: "Europa (UEFA)", CAF: "África (CAF)", AFC: "Ásia (AFC)", CONCACAF: "América do Norte/Central (CONCACAF)", OFC: "Oceania (OFC)" };
+function regiaoDe(en: string): string { const c = CONF[en]; return c ? CONF_LABEL[c] : ""; }
+
 
 const norm = (s: string) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z]/g, "");
 const ODDS_ALIAS: Record<string, string> = {
@@ -297,7 +308,7 @@ export async function rotasJogosPlacar(app: FastifyInstance) {
       const prox = fmtJ(jt.find((j) => j.status !== "encerrado"));
       const enc = jt.filter((j) => j.status === "encerrado"); const ultimo = fmtJ(enc[enc.length - 1]);
       const elenco = (await pool.query(`SELECT id, nome, posicao, clube, figurinha FROM jogadores WHERE selecao=$1 AND posicao<>'Coach' ORDER BY posicao NULLS LAST, nome`, [en])).rows as any[];
-      return { ok: true, time: { en, pt: p.pt, iso: p.iso }, ranking: FIFA_RANK[en] || null, ultimaCopa: ult, temFonte2022: ms.length > 0, grupo, proximo: prox, ultimo, elenco };
+      return { ok: true, time: { en, pt: p.pt, iso: p.iso }, ranking: FIFA_RANK[en] || null, ultimaCopa: ult, temFonte2022: ms.length > 0, regiao: regiaoDe(en), grupo, proximo: prox, ultimo, elenco };
     } catch (e: any) { return { ok: false, erro: String(e?.message ?? e).slice(0, 160) }; }
   });
 
