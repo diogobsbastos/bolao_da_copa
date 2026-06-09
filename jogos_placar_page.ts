@@ -48,10 +48,10 @@ button:disabled{opacity:.55;cursor:default}
 .od{margin-left:auto;font-size:11px;color:var(--mut);text-align:right;white-space:nowrap}
 .bdg{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:#fff;flex:none}
 .bV{background:#14794a}.bD{background:#c01f2e}.bE{background:#9a6b00}.b-{background:#9aa0ad}
-.modal{scrollbar-width:thin;scrollbar-color:#cbd2e0 transparent}
+.modal{scrollbar-width:thin;scrollbar-color:var(--sb,#cbd2e0) transparent}
 .modal::-webkit-scrollbar{width:8px}
 .modal::-webkit-scrollbar-track{background:transparent;margin:8px 0}
-.modal::-webkit-scrollbar-thumb{background:#cbd2e0;border-radius:8px;border:2px solid var(--card)}
+.modal::-webkit-scrollbar-thumb{background:var(--sb,#cbd2e0);border-radius:8px;border:2px solid var(--card)}
 .modal::-webkit-scrollbar-thumb:hover{background:#9aa3b6}
 .modal{position:relative}
 .mx{position:absolute;top:9px;right:11px;background:transparent;color:var(--mut);border:0;font-size:24px;line-height:1;cursor:pointer;padding:0 6px;font-weight:700}
@@ -92,7 +92,7 @@ function H(){var h={"content-type":"application/json"};var s=localStorage.getIte
 function toast(m,t){var c=document.getElementById("toast");var d=document.createElement("div");d.textContent=m;d.style.cssText="background:"+(t==="err"?"#c01f2e":(t==="ok"?"#14794a":"#1f2430"))+";color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.25)";c.appendChild(d);setTimeout(function(){if(d.parentNode)d.parentNode.removeChild(d);},4800);}
 function esc(v){return String(v==null?"":v).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function fecha(){document.getElementById("mov").classList.remove("show");}
-function modal(html,foot){document.getElementById("mbody").innerHTML=html;document.getElementById("mfoot").innerHTML=foot||'<button class="sm gh" onclick="fecha()">Fechar</button>';document.getElementById("mov").classList.add("show");}
+function modal(html,foot){document.getElementById("mbody").innerHTML=html;document.getElementById("mfoot").innerHTML=foot||'<button class="sm gh" onclick="fecha()">Fechar</button>';var _m=document.querySelector(".modal");if(_m)_m.style.setProperty("--sb",CORES[ATIVA]||"#cbd2e0");document.getElementById("mov").classList.add("show");}
 function confirmar(titulo,msg){return new Promise(function(res){
  modal('<h3>'+esc(titulo)+'</h3><div class="muted" style="font-size:13px;line-height:1.5">'+msg+'</div>',
   '<button class="sm gh" onclick="fecha();window.__no()">Cancelar</button> <button class="sm am" onclick="fecha();window.__yes()">Confirmar</button>');
