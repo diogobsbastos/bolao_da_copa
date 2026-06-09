@@ -84,23 +84,67 @@ function parseSide(comp: any, byId: Map<number, any>): { formacao: string; confi
   return { formacao: String(lu?.formation || ""), confirmada: !lu?.isProbable, titulares };
 }
 
-// Pega a escalação do lado (home/away) que casa com o nosso nome em inglês (enNome). null = não divulgada / não achou.
-export async function escalacao365(gid: string | number, enNome: string): Promise<{ formacao: string; confirmada: boolean; titulares: any[] } | null> {
+// Busca 1x o jogo e devolve os DOIS lados parseados + nomes (1 fetch por jogo).
+export async function lineupsDoJogo(gid: string | number): Promise<{ home: { name: string; lineup: any }; away: { name: string; lineup: any } } | null> {
   const gj = await s365(`/game?appTypeId=5&langId=1&userCountryId=21&timezoneName=America/Sao_Paulo&gameId=${gid}`);
   const g = gj?.game;
   if (!g) return null;
   const byId = new Map<number, any>();
   for (const m of (Array.isArray(g?.members) ? g.members : [])) byId.set(Number(m?.id), m);
+  return {
+    home: { name: String(g?.homeCompetitor?.name || ""), lineup: parseSide(g?.homeCompetitor, byId) },
+    away: { name: String(g?.awayCompetitor?.name || ""), lineup: parseSide(g?.awayCompetitor, byId) },
+  };
+}
+function casaLado(alvo: string, nome: string): boolean { const a = al(nome); return a === alvo || (!!a && (a.includes(alvo) || alvo.includes(a))); }
+
+// Pega a escalação do lado (home/away) que casa com o nosso nome em inglês (enNome). null = não divulgada / não achou.
+export async function escalacao365(gid: string | number, enNome: string): Promise<{ formacao: string; confirmada: boolean; titulares: any[] } | null> {
+  const x = await lineupsDoJogo(gid);
+  if (!x) return null;
   const alvo = al(enNome);
-  const home = g?.homeCompetitor, away = g?.awayCompetitor;
-  const ah = al(home?.name || ""), aa = al(away?.name || "");
-  let comp: any = null;
-  if (ah === alvo) comp = home;
-  else if (aa === alvo) comp = away;
-  else if (ah && (ah.includes(alvo) || alvo.includes(ah))) comp = home;
-  else if (aa && (aa.includes(alvo) || alvo.includes(aa))) comp = away;
-  if (!comp) return null;
-  return parseSide(comp, byId);
+  if (casaLado(alvo, x.home.name)) return x.home.lineup;
+  if (casaLado(alvo, x.away.name)) return x.away.lineup;
+  return null;
+}
+
+// Puxa a escalação de TODOS os jogos com gid e GRAVA no banco (jogos.lineup_casa/visitante/lineup_em). 1 fetch por jogo.
+export async function syncLineups(): Promise<any> {
+  const jogos = (await pool.query("SELECT id, odds->>'gid' AS gid FROM jogos WHERE odds->>'gid' IS NOT NULL ORDER BY inicio NULLS LAST")).rows as any[];
+  let ok = 0, comLineup = 0;
+  for (const j of jogos) {
+    try {
+      const x = await lineupsDoJogo(j.gid);
+      if (x) {
+        ok++;
+        const lc = x.home.lineup ? JSON.stringify(x.home.lineup) : null;
+        const lv = x.away.lineup ? JSON.stringify(x.away.lineup) : null;
+        if (lc || lv) comLineup++;
+        await pool.query("UPDATE jogos SET lineup_casa=$1, lineup_visitante=$2, lineup_em=now() WHERE id=$3", [lc, lv, j.id]);
+      }
+    } catch {}
+    await sleep(150);
+  }
+  const status = { em: new Date().toISOString(), jogos: jogos.length, ok, comLineup };
+  await setCfg("lineups_status", JSON.stringify(status));
+  return status;
+}
+
+// Refresh diário (guardado por data America/Sao_Paulo): puxa odds + lineups 1x/dia. Tudo grava no banco; jogadores só leem.
+function hojeSP(): string { return new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" }); }
+export async function refreshDiario(force = false): Promise<any> {
+  const hoje = hojeSP();
+  if (!force && (await cfg("last_daily_refresh")) === hoje) return { skip: true, hoje };
+  const odds = await syncOdds().catch((e: any) => ({ erro: String(e?.message ?? e) }));
+  const lineups = await syncLineups().catch((e: any) => ({ erro: String(e?.message ?? e) }));
+  await setCfg("last_daily_refresh", hoje);
+  console.log("[refresh-diario]", hoje, "odds:", (odds?.comOdds ?? JSON.stringify(odds)), "lineups:", (lineups?.comLineup ?? JSON.stringify(lineups)));
+  return { hoje, odds, lineups };
+}
+// Agendador interno (sem crontab do SO): roda no boot se ainda não rodou hoje + checa de hora em hora.
+export function agendadorDiario(): void {
+  setTimeout(() => { refreshDiario(false).catch((e: any) => console.log("[refresh-diario] erro boot", String(e?.message ?? e))); }, 4000);
+  setInterval(() => { refreshDiario(false).catch(() => {}); }, 60 * 60 * 1000);
 }
 
 // Diagnóstico: loga a estrutura crua das lineups de um (ou vários) gid no boot, se config.lineup_probe estiver setado.
@@ -139,6 +183,11 @@ export async function rotasScores365(app: FastifyInstance) {
     try { const r = await escalacao365(gid, en); return { ok: true, gid, en, escalacao: r }; }
     catch (e: any) { return { ok: false, erro: String(e?.message ?? e).slice(0, 160) }; }
   });
+  // Puxa lineups de todos os jogos e grava no banco (manual/teste).
+  app.post("/admin/scores365/lineups", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); return await syncLineups(); });
+  app.get("/admin/scores365/lineups", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); try { return { ok: true, status: JSON.parse((await cfg("lineups_status")) || "{}") }; } catch { return { ok: true, status: {} }; } });
+  // Força o refresh diário agora (odds + lineups).
+  app.post("/admin/scores365/refresh", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); return await refreshDiario(true); });
   // Sonda de boot (verificação): se config.lineup_probe tiver gids (csv), loga a estrutura crua.
   (async () => { try { const g = await cfg("lineup_probe"); if (g) for (const id of g.split(",").map((s) => s.trim()).filter(Boolean)) await probeLineup(id); } catch {} })();
 }

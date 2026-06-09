@@ -108,6 +108,8 @@ ${NAV_CSS}
    <div class="bar">
     <h4>Ferramentas da rodada</h4>
     <div class="acts">
+     <button class="sm" style="background:#14794a;color:#fff;font-weight:800" onclick="palpiteAuto('rodada')">&#127919; Palpite automático (rodada)</button>
+     <button class="sm" style="background:#14794a;color:#fff;font-weight:800" onclick="palpiteAuto('todas')">&#127919; Todas</button>
      <button class="sm gr" onclick="autoOdds('rodada')">&#9889; Odds (rodada)</button>
      <button class="sm gh" onclick="autoOdds('todas')">Odds (todas)</button>
      <button class="sm gr" onclick="oddsS365()">&#127919; Odds 365scores</button>
@@ -295,6 +297,15 @@ async function autoPalpite(escopo){
  var r=await fetch(_b()+"/admin/jogos-placar/auto-palpite",{method:"POST",headers:H(),body:JSON.stringify(escopoBody(escopo))});
  var d=await r.json().catch(function(){return{};});
  if(d&&d.ok){toast(d.preenchidos?("Placar preenchido: "+d.preenchidos+" jogos"):"Nenhum palpite gerado ainda — clique em Gerar palpites IA antes","ok");recarrega();}
+ else{toast("Falhou: "+((d&&d.erro)||"erro"),"err");}
+}
+async function palpiteAuto(escopo){
+ var ok=await confirmar("Palpite automático","Vai preencher o placar dos jogos "+(escopo==="rodada"?"desta rodada":"de TODAS as rodadas")+" pela lógica das <b>odds</b> (favorito + margem) e <b>ranking FIFA</b> onde não houver odds. Você pode editar qualquer placar depois. Continuar?");
+ if(!ok)return;
+ toast("Calculando palpites pelas odds...");
+ var r=await fetch(_b()+"/admin/jogos-placar/palpite-auto",{method:"POST",headers:H(),body:JSON.stringify(escopoBody(escopo))});
+ var d=await r.json().catch(function(){return{};});
+ if(d&&d.ok){toast("Preenchido: "+d.preenchidos+" jogos ("+d.viaOdds+" por odds, "+d.viaRanking+" por ranking)","ok");recarrega();}
  else{toast("Falhou: "+((d&&d.erro)||"erro"),"err");}
 }
 init();

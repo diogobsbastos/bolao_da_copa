@@ -2,7 +2,6 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 import { pool } from "./db.js";
 import { usuarioDaReq } from "./auth.js";
 import { chamarLLM } from "./llm.js";
-import { escalacao365 } from "./scores365.js";
 import { PAGINA_JOGOS } from "./jogos_placar_page.js";
 import { PAGINA_CLASS } from "./classificacao_page.js";
 
@@ -176,6 +175,24 @@ async function wcSportKey(): Promise<string | null> {
 }
 
 // ===== PALPITE DA CASA (LLM com fallback por ranking) =====
+// Palpite a partir das odds 1X2 (grátis, do banco): favorito = menor odd; margem pela força.
+function palpiteOdds(o: any): any {
+  const c = Number(o?.casa), e = Number(o?.empate), f = Number(o?.fora);
+  if (!(c > 0) || !(f > 0)) return null;
+  const favOdd = Math.min(c, f);
+  const empatePerto = e > 0 && e <= favOdd * 1.15;
+  const timesPerto = Math.abs(c - f) / Math.max(c, f) < 0.12;
+  if (empatePerto || timesPerto) { const g = favOdd > 2.6 && e > 3.0 ? 0 : 1; return { pc: g, pv: g, fav: "empate", conf: Math.round(100 / Math.max(e || favOdd, 1)), fonte: "odds" }; }
+  const favCasa = c < f;
+  let golsFav: number, margem: number;
+  if (favOdd <= 1.30) { golsFav = 3; margem = 3; }
+  else if (favOdd <= 1.70) { golsFav = 2; margem = 2; }
+  else if (favOdd <= 2.40) { golsFav = 2; margem = 1; }
+  else { golsFav = 1; margem = 1; }
+  const golsAdv = Math.max(0, golsFav - margem);
+  return { pc: favCasa ? golsFav : golsAdv, pv: favCasa ? golsAdv : golsFav, fav: favCasa ? "casa" : "fora", conf: Math.round(100 / Math.max(favOdd, 1)), fonte: "odds" };
+}
+
 function palpiteDet(rkC: number, rkV: number) {
   const d = rkV - rkC; const ad = Math.abs(d);
   let pc: number, pv: number, fav: string;
@@ -316,35 +333,51 @@ export async function rotasJogosPlacar(app: FastifyInstance) {
     const en = String((req.query as any)?.en ?? "").trim();
     if (!en) return reply.code(400).send({ erro: "time?" });
     const p = timePT(en);
-    // jogos do time com gid do 365 — mais próximos de AGORA primeiro (futuro antes do passado, ignora status fake).
-    // tenta cada um até achar escalação publicada (escalação só sai perto do jogo).
+    // lê do BANCO o lineup já gravado pelo sync diário. Jogo mais próximo de agora primeiro. ZERO chamada externa por jogador.
     let cands: any[] = [];
     try {
       cands = (await pool.query(
-        `SELECT odds->>'gid' AS gid
+        `SELECT (CASE WHEN selecao_casa=$1 THEN lineup_casa ELSE lineup_visitante END) AS lineup
            FROM jogos
           WHERE (selecao_casa=$1 OR selecao_visitante=$1) AND odds->>'gid' IS NOT NULL
           ORDER BY (inicio >= now()) DESC, abs(extract(epoch FROM (inicio - now()))) ASC
-          LIMIT 4`, [en])).rows as any[];
+          LIMIT 5`, [en])).rows as any[];
     } catch {}
-    if (!cands.length) return { ok: true, semLineup: true, time: { en, pt: p.pt, iso: p.iso }, msg: "Jogo ainda não vinculado ao 365scores." };
-    let esc: any = null;
-    for (const c of cands) {
-      try { const r = await escalacao365(c.gid, en); if (r && Array.isArray(r.titulares) && r.titulares.length) { esc = r; break; } } catch {}
-    }
-    if (!esc) {
-      return { ok: true, semLineup: true, time: { en, pt: p.pt, iso: p.iso }, msg: "Escalação ainda não divulgada." };
-    }
+    let lu: any = null;
+    for (const c of cands) { const l = c.lineup; if (l && Array.isArray(l.titulares) && l.titulares.length) { lu = l; break; } }
+    if (!lu) return { ok: true, semLineup: true, time: { en, pt: p.pt, iso: p.iso }, msg: "Escalação provável ainda não divulgada." };
     // cruza nomes do 365 com nosso elenco pra anexar figurinha + id (mantém o thumb)
     const elenco = (await pool.query(`SELECT id, nome, posicao, clube, figurinha FROM jogadores WHERE selecao=$1`, [en])).rows as any[];
     const nn = (x: string) => String(x || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z]/g, "");
     const byN = new Map<string, any>(); for (const j of elenco) byN.set(nn(j.nome), j);
-    const titulares = esc.titulares.map((t: any) => {
+    const titulares = lu.titulares.map((t: any) => {
       let j = byN.get(nn(t.nome));
       if (!j && t.nome) j = elenco.find((e) => { const a = nn(e.nome), b = nn(t.nome); return !!b && (a.includes(b) || b.includes(a)); });
       return { id: j?.id ?? null, nome: t.nome || (j?.nome ?? ""), posicao: t.posicao || (j?.posicao ?? ""), clube: j?.clube ?? "", figurinha: j?.figurinha ?? null, x: t.x ?? null, y: t.y ?? null };
     });
-    return { ok: true, time: { en, pt: p.pt, iso: p.iso }, formacao: esc.formacao, status: esc.confirmada ? "confirmada" : "provavel", fonte: "365scores", titulares };
+    return { ok: true, time: { en, pt: p.pt, iso: p.iso }, formacao: lu.formacao, status: lu.confirmada ? "confirmada" : "provavel", fonte: "365scores", titulares };
+  });
+
+  // PALPITE AUTOMÁTICO (1 clique, grátis): placar das odds (favorito+margem) c/ fallback ranking FIFA. Lê só do banco.
+  app.post("/admin/jogos-placar/palpite-auto", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    const b = (req.body ?? {}) as any;
+    const args: any[] = [];
+    let q = "SELECT id, selecao_casa, selecao_visitante, odds FROM jogos WHERE selecao_casa<>'A definir' AND selecao_visitante<>'A definir'";
+    q += filtroEscopo(b, args);
+    q += " ORDER BY inicio NULLS LAST, id";
+    let jogos: any[] = [];
+    try { jogos = (await pool.query(q, args)).rows as any[]; } catch (e: any) { return { ok: false, erro: String(e?.message ?? e).slice(0, 160) }; }
+    let preenchidos = 0, viaOdds = 0, viaRanking = 0;
+    for (const j of jogos) {
+      let pal: any = palpiteOdds(j.odds);
+      if (pal) viaOdds++;
+      else { const d = palpiteDet(rankOf(j.selecao_casa), rankOf(j.selecao_visitante)); pal = { pc: d.pc, pv: d.pv, fav: d.fav, conf: d.conf, fonte: "ranking" }; viaRanking++; }
+      pal.em = new Date().toISOString();
+      await pool.query("UPDATE jogos SET placar_casa=$1, placar_visitante=$2, status='encerrado', palpite_ia=$3 WHERE id=$4", [pal.pc, pal.pv, JSON.stringify(pal), j.id]);
+      preenchidos++;
+    }
+    return { ok: true, preenchidos, viaOdds, viaRanking };
   });
 
   app.get("/admin/jogos-placar/noticias", async (req, reply) => {

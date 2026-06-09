@@ -17,7 +17,7 @@ import { rotasCartas } from "./cartas.js";
 import { rotasJogosPlacar } from "./jogos_placar.js";
 import { rotasDeploy, runDeployCmd } from "./deploy.js";
 import { rotasApiFootball, syncSeFlag } from "./apifootball.js";
-import { rotasScores365, syncOddsSeFlag } from "./scores365.js";
+import { rotasScores365, syncOddsSeFlag, agendadorDiario } from "./scores365.js";
 import { injetarMenu } from "./ui.js";
 
 const app = Fastify({ logger: true, bodyLimit: 30 * 1024 * 1024 });
@@ -81,6 +81,7 @@ await app.register(rotasScores365);
 await runDeployCmd().catch((e) => app.log.error(e));
 await syncSeFlag().catch((e) => app.log.error(e));
 await syncOddsSeFlag().catch((e) => app.log.error(e));
+agendadorDiario(); // refresh diário interno: odds + lineups -> banco (jogadores só leem)
 
 const port = Number(process.env.PORT ?? 8510);
 const host = process.env.HOST ?? "127.0.0.1";
