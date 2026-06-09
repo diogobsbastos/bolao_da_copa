@@ -307,7 +307,7 @@ export async function rotasJogosPlacar(app: FastifyInstance) {
       const fmtJ = (j: any) => { if (!j) return null; const souCasa = j.selecao_casa === en; const advEn = souCasa ? j.selecao_visitante : j.selecao_casa; const ap = timePT(advEn); const meu = souCasa ? j.placar_casa : j.placar_visitante, dele = souCasa ? j.placar_visitante : j.placar_casa; return { adversario: ap, data: j.inicio, casa: souCasa, placar: (j.placar_casa != null && j.placar_visitante != null) ? (meu + "x" + dele) : null }; };
       const prox = fmtJ(jt.find((j) => j.status !== "encerrado"));
       const enc = jt.filter((j) => j.status === "encerrado"); const ultimo = fmtJ(enc[enc.length - 1]);
-      const elenco = (await pool.query(`SELECT id, nome, posicao, clube, figurinha FROM jogadores WHERE selecao=$1 AND posicao<>'Coach' ORDER BY posicao NULLS LAST, nome`, [en])).rows as any[];
+      const elenco = (await pool.query(`SELECT id, nome, posicao, clube, figurinha FROM jogadores WHERE selecao=$1 AND posicao<>'Coach' ORDER BY CASE WHEN posicao ILIKE '%goal%' THEN 0 WHEN posicao ILIKE '%def%' THEN 1 WHEN posicao ILIKE '%mid%' THEN 2 ELSE 3 END, nome`, [en])).rows as any[];
       return { ok: true, time: { en, pt: p.pt, iso: p.iso }, ranking: FIFA_RANK[en] || null, ultimaCopa: ult, temFonte2022: ms.length > 0, regiao: regiaoDe(en), grupo, proximo: prox, ultimo, elenco };
     } catch (e: any) { return { ok: false, erro: String(e?.message ?? e).slice(0, 160) }; }
   });
