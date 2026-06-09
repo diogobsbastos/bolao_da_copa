@@ -57,6 +57,8 @@ button:disabled{opacity:.55;cursor:default}
 .mx{position:absolute;top:9px;right:11px;background:transparent;color:var(--mut);border:0;font-size:24px;line-height:1;cursor:pointer;padding:0 6px;font-weight:700}
 .mx:hover{color:var(--tx)}
 .pf{width:26px;height:34px;object-fit:cover;border-radius:4px;background:#e6e8f0;flex:none}
+.lkbtn{display:inline-block;background:#eef1fb;color:var(--pri);font-weight:700;font-size:11px;padding:4px 11px;border-radius:999px;text-decoration:none;white-space:nowrap;margin-left:8px;transition:.15s}
+.lkbtn:hover{background:var(--pri);color:#fff}
 ${NAV_CSS}
 </style></head><body>
 <div class="app">
@@ -177,7 +179,7 @@ async function noticias(en){
  var t=d.time,body;
  if(d.semChave){body='<div class="muted">Configure a chave da NewsData.io em <b>Configuracoes &rsaquo; APIs</b> para ver as noticias.</div>';}
  else if(!d.noticias||!d.noticias.length){body='<div class="muted">sem noticias recentes para este time.'+(d.debug?(' <br><small>API: '+esc(d.debug.status)+', total '+esc(d.debug.total)+(d.debug.msg?(' &middot; '+esc(d.debug.msg)):'')+'</small>'):'')+'</div>';}
- else{body=d.noticias.map(function(n){var lk=n.link?('<a href="'+esc(n.link)+'" target="_blank" style="color:var(--pri);font-weight:700;text-decoration:none;white-space:nowrap;margin-left:8px">abrir &#8599;</a>'):'';var meta=[];if(n.data)meta.push(fmtData(n.data));if(n.fonte)meta.push('fonte: '+esc(n.fonte));var src=meta.length?('<div class="muted" style="font-size:11px;margin-top:2px">'+meta.join(' &middot; ')+'</div>'):'';return '<div class="mr" style="align-items:flex-start"><span>&#128240;</span><div style="flex:1;min-width:0"><div>'+esc(n.title)+'</div>'+src+'</div>'+lk+'</div>';}).join("");}
+ else{body=d.noticias.map(function(n){var lk=n.link?('<a class="lkbtn" href="'+esc(n.link)+'" target="_blank">abrir &#8599;</a>'):'';var meta=[];if(n.data)meta.push(fmtData(n.data));if(n.fonte)meta.push('fonte: '+esc(n.fonte));var src=meta.length?('<div class="muted" style="font-size:11px;margin-top:2px">'+meta.join(' &middot; ')+'</div>'):'';return '<div class="mr" style="align-items:flex-start"><span>&#128240;</span><div style="flex:1;min-width:0"><div>'+esc(n.title)+'</div>'+src+'</div>'+lk+'</div>';}).join("");}
  modal('<h3>'+fl(t.iso)+' '+esc(t.pt)+' &mdash; ultimas noticias</h3>'+body);
 }
 var CUR_EN="";
