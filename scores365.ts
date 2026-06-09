@@ -7,12 +7,17 @@ const COMP = 5930; // FIFA World Cup 2026
 const HDRS = { "accept": "application/json", "user-agent": "Mozilla/5.0", "accept-language": "en" };
 
 const norm = (s: string) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z]/g, "");
-const ALIAS: Record<string, string> = { usa: "unitedstates", koreareplublic: "southkorea", korearepublic: "southkorea", ivorycoast: "ivorycoast", czechrepublic: "czechia", turkiye: "turkey" };
-const key = (a: string, b: string) => norm(a) + "|" + norm(b);
+// mapeia o nome do 365scores (normalizado) -> forma normalizada do NOSSO nome em ingles
+const ALIAS: Record<string, string> = {
+  usa: "unitedstates", drcongo: "congodr", capeverde: "capeverdeislands", turkiye: "turkey",
+  cotedivoire: "ivorycoast", korearepublic: "southkorea", czechrepublic: "czechia",
+};
+const al = (n: string) => ALIAS[norm(n)] || norm(n);
 
 async function cfg(k: string): Promise<string> { try { const { rows } = await pool.query("SELECT valor FROM config WHERE chave=$1", [k]); return (rows as any[])[0]?.valor ?? ""; } catch { return ""; } }
 async function setCfg(k: string, v: string): Promise<void> { try { await pool.query("INSERT INTO config (chave,valor) VALUES ($1,$2) ON CONFLICT (chave) DO UPDATE SET valor=$2, atualizado_em=now()", [k, v]); } catch {} }
 async function admOk(req: FastifyRequest): Promise<boolean> { const t = req.headers["x-admin-token"]; const e = process.env.ADMIN_TOKEN ?? ""; if (e && t === e) return true; const u = await usuarioDaReq(req); return u?.papel === "admin"; }
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function s365(path: string): Promise<any> {
   const r = await fetch(S365 + path, { headers: HDRS });
@@ -25,29 +30,32 @@ function odds1x2(g: any): any {
   const dec = (nm: string) => { const o = line.options.find((o: any) => String(o?.name) === nm); return o?.rate?.decimal ?? null; };
   const casa = dec("1"), empate = dec("X"), fora = dec("2");
   if (casa == null && empate == null && fora == null) return null;
-  return { casa, empate, fora, fonte: "mercado (365scores)", casas: 1, em: new Date().toISOString() };
+  return { casa, empate, fora, fonte: "mercado (365scores)", em: new Date().toISOString() };
 }
 
 export async function syncOdds(): Promise<any> {
-  const data = await s365(`/games/?appTypeId=5&langId=1&timezoneName=America/Sao_Paulo&userCountryId=21&competitions=${COMP}`);
-  const games: any[] = Array.isArray(data?.games) ? data.games : [];
-  const meus = (await pool.query("SELECT id, selecao_casa, selecao_visitante FROM jogos WHERE selecao_casa<>'A definir' AND selecao_visitante<>'A definir'")).rows as any[];
+  const data = await s365(`/games/fixtures/?appTypeId=5&langId=1&timezoneName=America/Sao_Paulo&userCountryId=21&competitions=${COMP}&startDate=11/06/2026&endDate=19/07/2026`);
+  const games: any[] = Array.isArray(data?.games) ? data.games : (Array.isArray(data?.fixtures) ? data.fixtures : []);
+  const meus = (await pool.query("SELECT id, selecao_casa, selecao_visitante, status FROM jogos WHERE selecao_casa<>'A definir' AND selecao_visitante<>'A definir'")).rows as any[];
   const byKey = new Map<string, any>();
-  for (const m of meus) byKey.set(key(m.selecao_casa, m.selecao_visitante), m);
-  const al = (n: string) => ALIAS[norm(n)] || norm(n);
-  let casados = 0, comOdds = 0, atualizados = 0;
+  for (const m of meus) byKey.set(norm(m.selecao_casa) + "|" + norm(m.selecao_visitante), m);
+  const matched: { jogoId: number; gameId: number; invert: boolean }[] = [];
   for (const g of games) {
-    const hn = g?.homeCompetitor?.name || "", an = g?.awayCompetitor?.name || "";
-    let m = byKey.get(al(hn) + "|" + al(an)); let invert = false;
-    if (!m) { m = byKey.get(al(an) + "|" + al(hn)); invert = !!m; }
-    if (!m) continue; casados++;
-    const od = odds1x2(g);
-    if (!od) continue; comOdds++;
-    const odd = invert ? { ...od, casa: od.fora, fora: od.casa } : od;
-    await pool.query("UPDATE jogos SET odds=$1 WHERE id=$2", [JSON.stringify(odd), m.id]); atualizados++;
+    const h = al(g?.homeCompetitor?.name || ""), a = al(g?.awayCompetitor?.name || "");
+    let m = byKey.get(h + "|" + a); let invert = false;
+    if (!m) { m = byKey.get(a + "|" + h); invert = !!m; }
+    if (m && g?.id) matched.push({ jogoId: m.id, gameId: g.id, invert });
   }
-  const sample = games.slice(0, 3).map((x: any) => ({ home: x?.homeCompetitor?.name, away: x?.awayCompetitor?.name, odds: !!odds1x2(x) }));
-  const status = { em: new Date().toISOString(), jogos365: games.length, casados, comOdds, atualizados, sample };
+  let comOdds = 0;
+  for (const it of matched) {
+    try {
+      const gj = await s365(`/game?appTypeId=5&langId=1&gameId=${it.gameId}`);
+      const od = odds1x2(gj?.game);
+      if (od) { const odd = it.invert ? { ...od, casa: od.fora, fora: od.casa } : od; await pool.query("UPDATE jogos SET odds=$1 WHERE id=$2", [JSON.stringify(odd), it.jogoId]); comOdds++; }
+    } catch {}
+    await sleep(120);
+  }
+  const status = { em: new Date().toISOString(), jogos365: games.length, casados: matched.length, comOdds };
   await setCfg("scores365_status", JSON.stringify(status));
   return status;
 }
