@@ -316,20 +316,23 @@ export async function rotasJogosPlacar(app: FastifyInstance) {
     const en = String((req.query as any)?.en ?? "").trim();
     if (!en) return reply.code(400).send({ erro: "time?" });
     const p = timePT(en);
-    // jogo do time com gid do 365 — prioriza o próximo (não encerrado), mais cedo primeiro
-    let jg: any = null;
+    // jogos do time com gid do 365 — mais próximos de AGORA primeiro (futuro antes do passado, ignora status fake).
+    // tenta cada um até achar escalação publicada (escalação só sai perto do jogo).
+    let cands: any[] = [];
     try {
-      jg = (await pool.query(
-        `SELECT id, selecao_casa, selecao_visitante, odds->>'gid' AS gid
+      cands = (await pool.query(
+        `SELECT odds->>'gid' AS gid
            FROM jogos
           WHERE (selecao_casa=$1 OR selecao_visitante=$1) AND odds->>'gid' IS NOT NULL
-          ORDER BY (status='encerrado') ASC, inicio ASC NULLS LAST
-          LIMIT 1`, [en])).rows[0] as any;
+          ORDER BY (inicio >= now()) DESC, abs(extract(epoch FROM (inicio - now()))) ASC
+          LIMIT 4`, [en])).rows as any[];
     } catch {}
-    if (!jg?.gid) return { ok: true, semLineup: true, time: { en, pt: p.pt, iso: p.iso }, msg: "Jogo ainda não vinculado ao 365scores." };
+    if (!cands.length) return { ok: true, semLineup: true, time: { en, pt: p.pt, iso: p.iso }, msg: "Jogo ainda não vinculado ao 365scores." };
     let esc: any = null;
-    try { esc = await escalacao365(jg.gid, en); } catch {}
-    if (!esc || !Array.isArray(esc.titulares) || !esc.titulares.length) {
+    for (const c of cands) {
+      try { const r = await escalacao365(c.gid, en); if (r && Array.isArray(r.titulares) && r.titulares.length) { esc = r; break; } } catch {}
+    }
+    if (!esc) {
       return { ok: true, semLineup: true, time: { en, pt: p.pt, iso: p.iso }, msg: "Escalação ainda não divulgada." };
     }
     // cruza nomes do 365 com nosso elenco pra anexar figurinha + id (mantém o thumb)
