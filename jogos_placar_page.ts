@@ -73,6 +73,7 @@ ${NAV_CSS}
     <div class="acts">
      <button class="sm gr" onclick="autoOdds('rodada')">&#9889; Odds (rodada)</button>
      <button class="sm gh" onclick="autoOdds('todas')">Odds (todas)</button>
+     <button class="sm gr" onclick="oddsS365()">&#127919; Odds 365scores</button>
      <button class="sm rx" onclick="gerarPalpites('rodada')">&#128302; Gerar palpites IA (rodada)</button>
      <button class="sm rx" onclick="gerarPalpites('todas')">&#128302; Todas</button>
      <button class="sm am" onclick="autoPalpite('rodada')">&#127922; Preencher placar c/ palpite (rodada)</button>
@@ -132,7 +133,7 @@ function card(j){
  var enc=j.status==="encerrado";
  var cor=CORES[chaveTab(j)]||"#222838";
  var gtab=j.grupo?('<div class="gtab" style="background:'+cor+'">GRUPO '+esc(j.grupo)+'</div>'):'';
- var od=j.odds?('1: <b>'+(j.odds.casa||"-")+'</b> X: <b>'+(j.odds.empate||"-")+'</b> 2: <b>'+(j.odds.fora||"-")+'</b>'):'';
+ var od=j.odds?('1: <b>'+(j.odds.casa||"-")+'</b> X: <b>'+(j.odds.empate||"-")+'</b> 2: <b>'+(j.odds.fora||"-")+'</b>'+(j.odds.fonte?(' <span style="opacity:.6">· '+esc(j.odds.fonte)+'</span>'):'')):'';
  var pal=j.palpite?('&#128302; '+esc(j.palpite.pc)+'x'+esc(j.palpite.pv)+(j.palpite.conf!=null?(' ('+esc(j.palpite.conf)+'%)'):'')):'';
  return '<div class="jogo">'+gtab+'<div class="jbody"><div class="times">'
   +'<div class="lin">'+fl(j.casa.iso)+'<span class="nm">'+esc(j.casa.pt)+'</span><button class="ix" title="Stats" onclick="stats(\\''+esc(j.casa.en)+'\\')">&#128202;</button><button class="ix" title="Noticias" onclick="noticias(\\''+esc(j.casa.en)+'\\')">&#128240;</button><input class="pl" id="pc-'+j.id+'" type="number" min="0" max="99" value="'+(j.placar_casa==null?"":j.placar_casa)+'" onchange="salvar('+j.id+')"></div>'
@@ -221,6 +222,13 @@ async function autoOdds(escopo){
  var r=await fetch(_b()+"/admin/jogos-placar/auto",{method:"POST",headers:H(),body:JSON.stringify(escopoBody(escopo))});
  var d=await r.json().catch(function(){return{};});
  if(d&&d.ok){toast(d.atualizados?("Odds: "+d.atualizados+" jogos"):"Mercado da Copa ainda sem odds (abre mais perto)","ok");recarrega();}
+ else{toast("Falhou: "+((d&&d.erro)||"erro"),"err");}
+}
+async function oddsS365(){
+ toast("Buscando odds de mercado (365scores)... ~15s");
+ var r=await fetch(_b()+"/admin/scores365/odds",{method:"POST",headers:H()});
+ var d=await r.json().catch(function(){return{};});
+ if(d&&d.comOdds!=null){toast("Odds 365scores: "+d.comOdds+" jogos","ok");recarrega();}
  else{toast("Falhou: "+((d&&d.erro)||"erro"),"err");}
 }
 async function gerarPalpites(escopo){
