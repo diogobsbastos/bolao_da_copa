@@ -66,12 +66,6 @@ ${NAV_CSS}
      <button class="sm am" onclick="autoPalpite('rodada')">&#127922; Preencher placar c/ palpite (rodada)</button>
      <button class="sm am" onclick="autoPalpite('todas')">&#127922; Todas</button>
     </div>
-    <div class="nk">
-     <span class="muted" style="font-size:12px">&#128240; Noticias (alimentam o palpite da IA):</span>
-     <input id="newskey" placeholder="cole a API key gratis da NewsData.io">
-     <button class="sm gh" onclick="salvarNewsKey()">Salvar chave</button>
-     <a href="https://newsdata.io/register" target="_blank" style="font-size:12px;color:var(--pri);font-weight:700;text-decoration:none;align-self:center">Criar gratis &#8599;</a>
-    </div>
     <div class="muted" id="cnt" style="margin-top:8px"></div>
    </div>
    <div id="lista"><div class="muted" style="padding:14px">carregando jogos...</div></div>
@@ -129,8 +123,9 @@ function card(j){
  var od=j.odds?('1: <b>'+(j.odds.casa||"-")+'</b> X: <b>'+(j.odds.empate||"-")+'</b> 2: <b>'+(j.odds.fora||"-")+'</b>'):'';
  var pal=j.palpite?('&#128302; '+esc(j.palpite.pc)+'x'+esc(j.palpite.pv)+(j.palpite.conf!=null?(' ('+esc(j.palpite.conf)+'%)'):'')):'';
  return '<div class="jogo">'+gtab+'<div class="jbody"><div class="times">'
-  +'<div class="lin">'+fl(j.casa.iso)+'<span class="nm">'+esc(j.casa.pt)+'</span><button class="ix" title="Stats" onclick="stats(\\''+esc(j.casa.en)+'\\')">&#128202;</button><input class="pl" id="pc-'+j.id+'" type="number" min="0" max="99" value="'+(j.placar_casa==null?"":j.placar_casa)+'" onchange="salvar('+j.id+')"></div>'
-  +'<div class="lin">'+fl(j.visitante.iso)+'<span class="nm">'+esc(j.visitante.pt)+'</span><button class="ix" title="Stats" onclick="stats(\\''+esc(j.visitante.en)+'\\')">&#128202;</button><input class="pl" id="pv-'+j.id+'" type="number" min="0" max="99" value="'+(j.placar_visitante==null?"":j.placar_visitante)+'" onchange="salvar('+j.id+')"></div>'
+  +'<div class="lin">'+fl(j.casa.iso)+'<span class="nm">'+esc(j.casa.pt)+'</span><button class="ix" title="Stats" onclick="stats(\\''+esc(j.casa.en)+'\\')">&#128202;</button><button class="ix" title="Noticias" onclick="noticias(\\''+esc(j.casa.en)+'\\')">&#128240;</button><input class="pl" id="pc-'+j.id+'" type="number" min="0" max="99" value="'+(j.placar_casa==null?"":j.placar_casa)+'" onchange="salvar('+j.id+')"></div>'
+  +'<div class="lin">'+fl(j.visitante.iso)+'<span class="nm">'+esc(j.visitante.pt)+'</span><button class="ix" title="Stats" onclick="stats(\\''+esc(j.visitante.en)+'\\')">&#128202;</button><button class="ix" title="Noticias" onclick="noticias(\\''+esc(j.casa.en)+'\\')">&#128240;</button><button class="ix" title="Noticias" onclick="noticias(\\''+esc(j.casa.en)+'\\')">&#128240;</button><input class="pl" id="pc-'+j.id+'" type="number" min="0" max="99" value="'+(j.placar_casa==null?"":j.placar_casa)+'" onchange="salvar('+j.id+')"></div>'
+  +'<div class="lin">'+fl(j.visitante.iso)+'<span class="nm">'+esc(j.visitante.pt)+'</span><button class="ix" title="Noticias" onclick="noticias(\\''+esc(j.visitante.en)+'\\')">&#128240;</button><input class="pl" id="pv-'+j.id+'" type="number" min="0" max="99" value="'+(j.placar_visitante==null?"":j.placar_visitante)+'" onchange="salvar('+j.id+')"></div>'
   +'</div><div class="meta">'
   +'<span class="data">'+esc(fmtData(j.inicio))+'</span>'
   +(od?'<span class="odds">'+od+'</span>':'')
@@ -165,6 +160,17 @@ async function salvarNewsKey(){
  var r=await fetch(_b()+"/admin/config",{method:"POST",headers:H(),body:JSON.stringify({newsdata_api_key:v})});
  if(r.ok){toast("Chave NewsData salva. Gere os palpites de novo p/ usar as noticias.","ok");document.getElementById("newskey").value="";}
  else{toast("Erro ao salvar a chave","err");}
+}
+async function noticias(en){
+ modal('<div class="muted">buscando noticias...</div>');
+ var r=await fetch(_b()+"/admin/jogos-placar/noticias?en="+encodeURIComponent(en),{headers:H()});
+ var d=await r.json().catch(function(){return{};});
+ if(!d||!d.ok){modal('<h3>Noticias</h3><div class="muted">erro ao buscar</div>');return;}
+ var t=d.time,body;
+ if(d.semChave){body='<div class="muted">Configure a chave da NewsData.io em <b>Configuracoes &rsaquo; APIs</b> para ver as noticias.</div>';}
+ else if(!d.noticias||!d.noticias.length){body='<div class="muted">sem noticias recentes para este time.</div>';}
+ else{body=d.noticias.map(function(n){return '<div class="mr"><span>&#128240;</span><span>'+esc(n)+'</span></div>';}).join("");}
+ modal('<h3>'+fl(t.iso)+' '+esc(t.pt)+' &mdash; ultimas noticias</h3>'+body);
 }
 async function stats(en){
  modal('<div class="muted">carregando '+esc(en)+'...</div>');

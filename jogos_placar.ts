@@ -253,6 +253,17 @@ export async function rotasJogosPlacar(app: FastifyInstance) {
     } catch (e: any) { return { ok: false, erro: String(e?.message ?? e).slice(0, 160) }; }
   });
 
+  app.get("/admin/jogos-placar/noticias", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    const en = String((req.query as any)?.en ?? "").trim();
+    if (!en) return reply.code(400).send({ erro: "time?" });
+    const p = timePT(en);
+    const key = await getCfg("newsdata_api_key");
+    if (!key) return { ok: true, semChave: true, noticias: [], time: { en, pt: p.pt, iso: p.iso } };
+    const linhas = await noticiasTime(p.pt, en);
+    return { ok: true, noticias: linhas.slice(0, 3), time: { en, pt: p.pt, iso: p.iso } };
+  });
+
   // Gera o palpite da casa (LLM + noticias, fallback ranking) e grava em jogos.palpite_ia. Batch (custo so aqui).
   app.post("/admin/jogos-placar/gerar-palpites", async (req, reply) => {
     if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });

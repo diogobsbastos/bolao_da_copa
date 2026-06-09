@@ -68,11 +68,11 @@ ${NAV_CSS}
       <a style="text-decoration:none;background:#eef1fb;color:#4361ee;padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;white-space:nowrap;align-self:flex-start" href="https://www.football-data.org/" target="_blank">Ir ao site &#8599;</a></div>
      <label>Token</label><input id="football_data_token" placeholder="(em branco mantem)">
      <div class="save"><button class="sm" onclick="salvar(['football_data_token'])">Salvar</button></div></div>
-    <div class="card"><div class="cardhead"><div><h3>&#128202; Forma das selecoes &mdash; API-Futebol (BR) <span class="pill local">a configurar</span></h3>
-      <div class="sub">Ultimos jogos das selecoes (forma recente), em portugues. Plano DEV gratis.</div></div>
-      <a style="text-decoration:none;background:#eef1fb;color:#4361ee;padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;white-space:nowrap;align-self:flex-start" href="https://www.api-futebol.com.br/" target="_blank">Ir ao site &#8599;</a></div>
-     <label>Token (Bearer)</label><input id="api_futebol_token" placeholder="(em branco mantem)">
-     <div class="save"><button class="sm" onclick="salvar(['api_futebol_token'])">Salvar</button></div></div>
+    <div class="card"><div class="cardhead"><div><h3>&#128240; Noticias das selecoes &mdash; NewsData.io <span class="pill local">a configurar</span></h3>
+      <div class="sub">Manchetes recentes de cada selecao (lesao, fase, escalacao) que entram no palpite da IA e no botao Noticias dos jogos. Plano free 200/dia, suporta PT.</div></div>
+      <a style="text-decoration:none;background:#eef1fb;color:#4361ee;padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;white-space:nowrap;align-self:flex-start" href="https://newsdata.io/register" target="_blank">Criar chave gratis &#8599;</a></div>
+     <label>API Key</label><input id="newsdata_api_key" placeholder="(em branco mantem)">
+     <div class="save"><button class="sm" onclick="salvar(['newsdata_api_key'])">Salvar</button><button class="sm gh" onclick="pingNews()">&#128268; Testar</button><span id="m-news" class="muted"></span></div></div>
     <div class="card"><div class="cardhead"><div><h3>&#128176; Odds &mdash; The-Odds-API <span class="pill uso">EM USO</span></h3>
       <div class="sub">Cotacoes 1/X/2 do mercado (usado no auto-preencher dos jogos). Plano free.</div></div>
       <a style="text-decoration:none;background:#eef1fb;color:#4361ee;padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;white-space:nowrap;align-self:flex-start" href="https://the-odds-api.com/" target="_blank">Ir ao site &#8599;</a></div>
@@ -170,6 +170,13 @@ async function salvar(keys){
  var r=await fetch(BASE+"/admin/config",{method:"POST",headers:H(),body:JSON.stringify(body)});
  toast(r.ok?"Salvo!":"Erro ao salvar",r.ok?"ok":"err");
  keys.forEach(function(k){var e=document.getElementById(k);if(e&&(""+e.placeholder).indexOf("mantem")>=0)e.value="";});
+}
+async function pingNews(){
+ var m=document.getElementById("m-news");m.textContent="testando...";m.style.color="";
+ var r=await fetch(BASE+"/admin/ping?alvo=noticias",{headers:H()});
+ var j=await r.json().catch(function(){return{};});
+ m.textContent=(j.ok?"OK ":"Falhou ")+(j.detalhe||"");m.style.color=j.ok?"#14794a":"#c01f2e";
+ toast(j.ok?"NewsData respondeu":"NewsData falhou","err".replace("err",j.ok?"ok":"err"));
 }
 async function salvarCorte(){
  var v=(val("corte_grade")||"").trim();var m=document.getElementById("m-corte");

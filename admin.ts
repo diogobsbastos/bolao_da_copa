@@ -90,6 +90,14 @@ export async function rotasAdmin(app: FastifyInstance) {
         const r = await fetch("https://api.the-odds-api.com/v4/sports?apiKey=" + encodeURIComponent(k));
         return { ok: r.ok, detalhe: r.ok ? "ok" : ("http " + r.status) };
       }
+      if (alvo === "noticias") {
+        const k = c["newsdata_api_key"];
+        if (!k) return { ok: false, detalhe: "sem chave" };
+        const r = await fetch("https://newsdata.io/api/1/latest?apikey=" + encodeURIComponent(k) + "&language=pt&q=futebol");
+        const j: any = await r.json().catch(() => ({}));
+        const n = Array.isArray(j?.results) ? j.results.length : 0;
+        return { ok: r.ok && j?.status === "success", detalhe: r.ok ? ("status " + (j?.status || "?") + ", " + n + " noticias") : (j?.results?.message || ("http " + r.status)) };
+      }
       return reply.code(400).send({ ok: false, detalhe: "alvo invalido" });
     } catch (e: any) {
       return { ok: false, detalhe: String(e?.message ?? e) };
