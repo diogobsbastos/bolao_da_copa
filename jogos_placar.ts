@@ -96,7 +96,7 @@ async function newsRaw(nomePT: string): Promise<{ status: string; total: number;
   const key = await getCfg("newsdata_api_key");
   if (!key) return { status: "sem-chave", total: 0, titles: [], msg: "" };
   try {
-    const url = "https://newsdata.io/api/1/latest?apikey=" + encodeURIComponent(key) + "&language=pt&q=" + encodeURIComponent(nomePT);
+    const url = "https://newsdata.io/api/1/latest?apikey=" + encodeURIComponent(key) + "&language=pt&category=sports&q=" + encodeURIComponent('"' + nomePT + '"');
     const r = await fetch(url);
     const j: any = await r.json().catch(() => ({}));
     const arr: any[] = Array.isArray(j?.results) ? j.results : [];
