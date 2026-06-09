@@ -91,10 +91,10 @@ async function copa2022(): Promise<any[]> {
 }
 
 // Noticias das selecoes (NewsData.io) — entram no prompt do palpite. Cache 12h por selecao.
-type NewsItem = { title: string; link: string; fonte: string };
-let CACHE_ESPN: { t: number; arts: { headline: string; desc: string; link: string; source: string }[] } | null = null;
+type NewsItem = { title: string; link: string; fonte: string; data: string };
+let CACHE_ESPN: { t: number; arts: { headline: string; desc: string; link: string; source: string; published: string }[] } | null = null;
 const CACHE_NEWS = new Map<string, { t: number; linhas: string[] }>();
-async function espnFeed(): Promise<{ headline: string; desc: string; link: string; source: string }[]> {
+async function espnFeed(): Promise<{ headline: string; desc: string; link: string; source: string; published: string }[]> {
   if (CACHE_ESPN && Date.now() - CACHE_ESPN.t < 60 * 60 * 1000) return CACHE_ESPN.arts;
   try {
     const r = await fetch("https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/news?lang=pt&region=br&limit=50");
@@ -105,6 +105,7 @@ async function espnFeed(): Promise<{ headline: string; desc: string; link: strin
       desc: String(a?.description || ""),
       link: String(a?.links?.web?.href || a?.links?.mobile?.href || ""),
       source: String(a?.source || "ESPN"),
+      published: String(a?.published || a?.lastModified || ""),
     })).filter((a) => a.headline);
     CACHE_ESPN = { t: Date.now(), arts };
     return arts;
@@ -119,7 +120,7 @@ async function newsRaw(nomePT: string, en: string): Promise<{ status: string; to
     const hay = (a.headline + " " + a.desc).toLowerCase();
     if (!needles.some((x) => hay.includes(x))) continue;
     const k = a.headline.toLowerCase(); if (seen.has(k)) continue; seen.add(k);
-    items.push({ title: a.headline, link: a.link, fonte: a.source });
+    items.push({ title: a.headline, link: a.link, fonte: a.source, data: a.published });
     if (items.length >= 5) break;
   }
   return { status: "ok", total: items.length, items, msg: items.length ? "" : ("nenhuma materia citou " + nomePT + " no feed da Copa (" + arts.length + " materias)") };
