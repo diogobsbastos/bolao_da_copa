@@ -114,7 +114,7 @@ input:focus{border-color:var(--pri);background:rgba(255,255,255,.09);box-shadow:
     <div id="c-msg" class="msg"></div>
    </div>
    <div id="g-block"><div class="ou">ou</div><div class="gbtn"><div id="g-wrap" class="gwrap"></div></div></div>
-   <div class="fineprint">Ambiente fechado &middot; moeda virtual sem valor monet&aacute;rio. Token n&atilde;o compr&aacute;vel, sem saque.</div>
+   <div class="fineprint">Regras e informa&ccedil;&otilde;es em breve.</div>
   </div>
  </div>
 </div>
