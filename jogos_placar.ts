@@ -92,20 +92,26 @@ async function copa2022(): Promise<any[]> {
 
 // Noticias das selecoes (NewsData.io) — entram no prompt do palpite. Cache 12h por selecao.
 const CACHE_NEWS = new Map<string, { t: number; linhas: string[] }>();
-async function noticiasTime(nomePT: string, en: string): Promise<string[]> {
+async function newsRaw(nomePT: string): Promise<{ status: string; total: number; titles: string[]; msg: string }> {
   const key = await getCfg("newsdata_api_key");
-  if (!key) return [];
-  const c = CACHE_NEWS.get(en);
-  if (c && Date.now() - c.t < 12 * 3600 * 1000) return c.linhas;
+  if (!key) return { status: "sem-chave", total: 0, titles: [], msg: "" };
   try {
-    const url = "https://newsdata.io/api/1/latest?apikey=" + encodeURIComponent(key) + "&language=pt&q=" + encodeURIComponent(nomePT + " futebol selecao");
+    const url = "https://newsdata.io/api/1/latest?apikey=" + encodeURIComponent(key) + "&language=pt&q=" + encodeURIComponent(nomePT);
     const r = await fetch(url);
     const j: any = await r.json().catch(() => ({}));
     const arr: any[] = Array.isArray(j?.results) ? j.results : [];
-    const linhas = arr.slice(0, 4).map((a) => String(a?.title || "").trim()).filter(Boolean);
-    CACHE_NEWS.set(en, { t: Date.now(), linhas });
-    return linhas;
-  } catch { return []; }
+    const titles = arr.map((a) => String(a?.title || "").trim()).filter(Boolean).slice(0, 5);
+    const msg = (j?.results && !Array.isArray(j?.results)) ? String(j?.results?.message || "") : String(j?.message || "");
+    return { status: String(j?.status || r.status), total: Number(j?.totalResults || arr.length), titles, msg };
+  } catch (e: any) { return { status: "erro", total: 0, titles: [], msg: String(e?.message ?? e).slice(0, 120) }; }
+}
+async function noticiasTime(nomePT: string, en: string): Promise<string[]> {
+  const c = CACHE_NEWS.get(en);
+  if (c && Date.now() - c.t < 12 * 3600 * 1000) return c.linhas;
+  const d = await newsRaw(nomePT);
+  const linhas = d.titles.slice(0, 4);
+  if (d.titles.length) CACHE_NEWS.set(en, { t: Date.now(), linhas });
+  return linhas;
 }
 
 async function oddsGet(path: string): Promise<{ data: any; rest: string | null }> {
@@ -260,8 +266,8 @@ export async function rotasJogosPlacar(app: FastifyInstance) {
     const p = timePT(en);
     const key = await getCfg("newsdata_api_key");
     if (!key) return { ok: true, semChave: true, noticias: [], time: { en, pt: p.pt, iso: p.iso } };
-    const linhas = await noticiasTime(p.pt, en);
-    return { ok: true, noticias: linhas.slice(0, 3), time: { en, pt: p.pt, iso: p.iso } };
+    const d = await newsRaw(p.pt);
+    return { ok: true, noticias: d.titles.slice(0, 3), time: { en, pt: p.pt, iso: p.iso }, debug: { status: d.status, total: d.total, msg: d.msg } };
   });
 
   // Gera o palpite da casa (LLM + noticias, fallback ranking) e grava em jogos.palpite_ia. Batch (custo so aqui).

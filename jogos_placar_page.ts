@@ -167,7 +167,7 @@ async function noticias(en){
  if(!d||!d.ok){modal('<h3>Noticias</h3><div class="muted">erro ao buscar</div>');return;}
  var t=d.time,body;
  if(d.semChave){body='<div class="muted">Configure a chave da NewsData.io em <b>Configuracoes &rsaquo; APIs</b> para ver as noticias.</div>';}
- else if(!d.noticias||!d.noticias.length){body='<div class="muted">sem noticias recentes para este time.</div>';}
+ else if(!d.noticias||!d.noticias.length){body='<div class="muted">sem noticias recentes para este time.'+(d.debug?(' <br><small>API: '+esc(d.debug.status)+', total '+esc(d.debug.total)+(d.debug.msg?(' &middot; '+esc(d.debug.msg)):'')+'</small>'):'')+'</div>';}
  else{body=d.noticias.map(function(n){return '<div class="mr"><span>&#128240;</span><span>'+esc(n)+'</span></div>';}).join("");}
  modal('<h3>'+fl(t.iso)+' '+esc(t.pt)+' &mdash; ultimas noticias</h3>'+body);
 }
