@@ -228,14 +228,14 @@ function noticiasBody(d){
  if(!d.noticias||!d.noticias.length){return html+'<div class="muted">sem noticias recentes para este time.'+(d.debug?(' <br><small>API: '+esc(d.debug.status)+', total '+esc(d.debug.total)+(d.debug.msg?(' &middot; '+esc(d.debug.msg)):'')+'</small>'):'')+'</div>';}
  return html+d.noticias.map(function(n){var lk=n.link?('<a class="lkbtn" href="'+esc(n.link)+'" target="_blank">abrir &#8599;</a>'):'';var meta=[];if(n.data)meta.push(fmtData(n.data));if(n.fonte)meta.push('fonte: '+esc(n.fonte));var src=meta.length?('<div class="muted" style="font-size:11px;margin-top:2px">'+meta.join(' &middot; ')+'</div>'):'';return '<div class="mr" style="align-items:flex-start"><span>&#128240;</span><div style="flex:1;min-width:0"><div>'+esc(n.title)+'</div>'+src+'</div>'+lk+'</div>';}).join("");
 }
-var CUR_EN="";
+var CUR_EN="";var CUR_ELENCO=[];
 async function escalacao(){
  var box=document.getElementById("esc-box"); if(!box)return;
  box.innerHTML='<div class="muted" style="font-size:12px;padding:6px 0">buscando escalação no 365scores...</div>';
  var r=await fetch(_b()+"/admin/jogos-placar/escalacao?en="+encodeURIComponent(CUR_EN),{headers:H()});
  var d=await r.json().catch(function(){return{};});
  if(!d||!d.ok){box.innerHTML='<div class="muted">'+esc((d&&d.erro)||"erro")+'</div>';return;}
- if(d.semLineup||!d.titulares||!d.titulares.length){box.innerHTML='<div class="muted">'+esc(d.msg||"Escalação ainda não divulgada.")+'</div>';return;}
+ if(d.semLineup||!d.titulares||!d.titulares.length){var fb=(CUR_ELENCO&&CUR_ELENCO.length)?('<div class="muted" style="font-size:12px;margin:8px 0 4px">Elenco ('+CUR_ELENCO.length+')</div>'+CUR_ELENCO.map(linhaJog).join("")):"";box.innerHTML='<div class="muted" style="padding:4px 0">'+esc(d.msg||"Escalação ainda não divulgada.")+'</div>'+fb;return;}
  var conf=d.status==="confirmada";
  var h='<div class="mr" style="background:#f1effb;border-radius:8px;margin-top:4px"><b>Escalação '+(conf?"confirmada":"provável")+'</b><span class="od">'+esc(d.formacao||"")+' · '+(conf?"confirmada":"provável")+' · 365scores</span></div>';
  h+=d.titulares.map(linhaJog).join("");
@@ -251,8 +251,8 @@ function statsBody(d){
  var u=d.ultimaCopa||[];
  if(u.length){html+='<div class="muted" style="font-size:12px;margin:10px 0 4px">Copa 2022:</div>'+u.map(function(g){return '<div class="mr"><span class="bdg b'+g.res+'">'+g.res+'</span><b>'+esc(g.placar)+'</b>'+fl(g.adversario.iso)+'<span>'+esc(g.adversario.pt)+'</span><span class="od">'+esc(faseCurta(g.fase))+'</span></div>';}).join("");}
  else{html+='<div class="muted" style="font-size:12px;margin:10px 0 4px">Copa 2022:</div><div class="mr"><span class="muted" style="line-height:1.4">Não disputou a Copa de 2022.'+(d.regiao?(' Chega via <b>'+esc(d.regiao)+'</b>.'):'')+'</span></div>';}
- var el=d.elenco||[];
- if(el.length){html+='<div style="display:flex;align-items:center;gap:8px;margin:12px 0 4px"><span class="muted" style="font-size:12px;flex:1">Elenco ('+el.length+')</span><button class="ix" style="padding:5px 9px" onclick="escalacao()">🔮 Escalação</button></div><div id="esc-box"></div>'+el.map(linhaJog).join("");}
+ var el=d.elenco||[];CUR_ELENCO=el;
+ if(el.length){html+='<div id="esc-box"><div class="muted" style="font-size:12px;padding:6px 0">buscando escalação no 365scores...</div></div>';}
  return html;
 }
 async function info(en){
@@ -264,6 +264,7 @@ async function info(en){
  var t=(sd&&sd.time)||(nd&&nd.time)||{pt:en,iso:""};
  modal('<h3>'+fl(t.iso)+' '+esc(t.pt)+'</h3><div class="cols"><div class="col">'+statsBody(sd)+'</div><div class="col">'+noticiasBody(nd)+'</div></div>');
  var m=document.querySelector(".modal");if(m)m.style.maxWidth="780px";
+ escalacao();
 }
 function imgFail(el){el.outerHTML='<span class="pf nopf">&#128100;</span>';}
 function linhaJog(p){var av=p.figurinha?('<img class="pf" src="'+_b()+"/fig/"+p.figurinha+'" onerror="imgFail(this)">'):'<span class="pf nopf">&#128100;</span>';return '<div class="mr" style="padding:4px">'+av+'<span style="flex:1;min-width:0">'+esc(p.nome)+'</span><span class="od">'+esc(p.posicao||"")+(p.clube?(' &middot; '+esc(p.clube)):'')+'</span></div>';}
