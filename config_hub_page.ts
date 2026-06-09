@@ -67,7 +67,7 @@ ${NAV_CSS}
       <div class="sub">Importa jogos, elencos e calcula a classificacao da Copa. Plano free.</div></div>
       <a style="text-decoration:none;background:#eef1fb;color:#4361ee;padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;white-space:nowrap;align-self:flex-start" href="https://www.football-data.org/" target="_blank">Ir ao site &#8599;</a></div>
      <label>Token</label><input id="football_data_token" placeholder="(em branco mantem)">
-     <div class="save"><button class="sm" onclick="salvar(['football_data_token'])">Salvar</button></div></div>
+     <div class="save"><button class="sm" onclick="salvar(['football_data_token'])">Salvar</button><button class="sm gh" onclick="pingJogos()">&#128268; Testar</button><span id="m-jogos" class="muted"></span></div></div>
     <div class="card"><div class="cardhead"><div><h3>&#128203; Dados por time &mdash; API-Football <span class="pill local">a configurar</span></h3>
       <div class="sub">Elenco, lesoes/suspensoes, forma recente, escalacao provavel e artilheiros por selecao. Cobre a Copa 2026. Plano free 100 req/dia.</div></div>
       <a style="text-decoration:none;background:#eef1fb;color:#4361ee;padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;white-space:nowrap;align-self:flex-start" href="https://dashboard.api-football.com/register" target="_blank">Criar chave gratis &#8599;</a></div>
@@ -83,7 +83,7 @@ ${NAV_CSS}
       <div class="sub">Cotacoes 1/X/2 do mercado (usado no auto-preencher dos jogos). Plano free.</div></div>
       <a style="text-decoration:none;background:#eef1fb;color:#4361ee;padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;white-space:nowrap;align-self:flex-start" href="https://the-odds-api.com/" target="_blank">Ir ao site &#8599;</a></div>
      <label>Chave</label><input id="odds_api_key" placeholder="(em branco mantem)">
-     <div class="save"><button class="sm" onclick="salvar(['odds_api_key'])">Salvar</button></div></div>
+     <div class="save"><button class="sm" onclick="salvar(['odds_api_key'])">Salvar</button><button class="sm gh" onclick="pingOdds()">&#128268; Testar</button><span id="m-odds" class="muted"></span></div></div>
     <div class="card"><div class="cardhead"><div><h3>&#128274; Login com Google <span class="pill uso">EM USO</span></h3>
       <div class="sub">OAuth do login dos jogadores.</div></div>
       <a style="text-decoration:none;background:#eef1fb;color:#4361ee;padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;white-space:nowrap;align-self:flex-start" href="https://console.cloud.google.com/apis/credentials" target="_blank">Console &#8599;</a></div>
@@ -187,6 +187,18 @@ async function pingNews(){
 async function pingApiFb(){
  var m=document.getElementById("m-apifb");m.textContent="testando...";m.style.color="";
  var r=await fetch(BASE+"/admin/ping?alvo=apifootball",{headers:H()});
+ var j=await r.json().catch(function(){return{};});
+ m.textContent=(j.ok?"OK ":"Falhou ")+(j.detalhe||"");m.style.color=j.ok?"#14794a":"#c01f2e";
+}
+async function pingJogos(){
+ var m=document.getElementById("m-jogos");m.textContent="testando...";m.style.color="";
+ var r=await fetch(BASE+"/admin/ping?alvo=jogos",{headers:H()});
+ var j=await r.json().catch(function(){return{};});
+ m.textContent=(j.ok?"OK ":"Falhou ")+(j.detalhe||"");m.style.color=j.ok?"#14794a":"#c01f2e";
+}
+async function pingOdds(){
+ var m=document.getElementById("m-odds");m.textContent="testando...";m.style.color="";
+ var r=await fetch(BASE+"/admin/ping?alvo=odds",{headers:H()});
  var j=await r.json().catch(function(){return{};});
  m.textContent=(j.ok?"OK ":"Falhou ")+(j.detalhe||"");m.style.color=j.ok?"#14794a":"#c01f2e";
 }
