@@ -113,16 +113,16 @@ async function espnFeed(): Promise<{ headline: string; desc: string; link: strin
 async function newsRaw(nomePT: string, en: string): Promise<{ status: string; total: number; items: NewsItem[]; msg: string }> {
   const arts = await espnFeed();
   if (!arts.length) return { status: "feed-vazio", total: 0, items: [], msg: "feed da Copa (ESPN) sem materias agora" };
-  const needle = en.toLowerCase();
+  const needles = [nomePT, en].map((x) => x.toLowerCase()).filter(Boolean);
   const seen = new Set<string>(); const items: NewsItem[] = [];
   for (const a of arts) {
     const hay = (a.headline + " " + a.desc).toLowerCase();
-    if (!hay.includes(needle)) continue;
+    if (!needles.some((x) => hay.includes(x))) continue;
     const k = a.headline.toLowerCase(); if (seen.has(k)) continue; seen.add(k);
     items.push({ title: a.headline, link: a.link, fonte: a.source });
     if (items.length >= 5) break;
   }
-  return { status: "ok", total: items.length, items, msg: items.length ? "" : ("nenhuma materia citou " + en + " no feed da Copa (" + arts.length + " materias)") };
+  return { status: "ok", total: items.length, items, msg: items.length ? "" : ("nenhuma materia citou " + nomePT + " no feed da Copa (" + arts.length + " materias)") };
 }
 async function noticiasTime(nomePT: string, en: string): Promise<string[]> {
   const c = CACHE_NEWS.get(en);
