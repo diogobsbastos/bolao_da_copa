@@ -3,8 +3,8 @@ import { pool } from "./db.js";
 import { usuarioDaReq } from "./auth.js";
 import { PAGINA } from "./admin_page.js";
 
-const SECRET_KEYS = new Set(["api_football_key", "odds_api_key", "football_data_token", "llm_key"]);
-const ALL_KEYS = ["api_football_base", "api_football_key", "odds_api_key", "football_data_token", "google_client_id", "llm_base", "llm_model", "llm_key", "corte_grade"];
+const SECRET_KEYS = new Set(["api_football_key", "odds_api_key", "football_data_token", "llm_key", "api_futebol_token", "newsdata_api_key"]);
+const ALL_KEYS = ["api_football_base", "api_football_key", "odds_api_key", "football_data_token", "google_client_id", "api_futebol_token", "newsdata_api_key", "llm_base", "llm_model", "llm_key", "corte_grade"];
 
 async function admOk(req: FastifyRequest): Promise<boolean> {
   const t = req.headers["x-admin-token"];

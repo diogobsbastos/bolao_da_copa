@@ -63,13 +63,24 @@ ${NAV_CSS}
   <div class="pad">
 
    <section id="pg-apis">
-    <div class="card"><h3>Fonte de jogos (football-data.org)</h3>
+    <div class="card"><div class="cardhead"><div><h3>&#9917; Jogos / Classificacao &mdash; football-data.org <span class="pill uso">EM USO</span></h3>
+      <div class="sub">Importa jogos, elencos e calcula a classificacao da Copa. Plano free.</div></div>
+      <a style="text-decoration:none;background:#eef1fb;color:#4361ee;padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;white-space:nowrap;align-self:flex-start" href="https://www.football-data.org/" target="_blank">Ir ao site &#8599;</a></div>
      <label>Token</label><input id="football_data_token" placeholder="(em branco mantem)">
      <div class="save"><button class="sm" onclick="salvar(['football_data_token'])">Salvar</button></div></div>
-    <div class="card"><h3>Odds (The-Odds-API)</h3>
+    <div class="card"><div class="cardhead"><div><h3>&#128202; Forma das selecoes &mdash; API-Futebol (BR) <span class="pill local">a configurar</span></h3>
+      <div class="sub">Ultimos jogos das selecoes (forma recente), em portugues. Plano DEV gratis.</div></div>
+      <a style="text-decoration:none;background:#eef1fb;color:#4361ee;padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;white-space:nowrap;align-self:flex-start" href="https://www.api-futebol.com.br/" target="_blank">Ir ao site &#8599;</a></div>
+     <label>Token (Bearer)</label><input id="api_futebol_token" placeholder="(em branco mantem)">
+     <div class="save"><button class="sm" onclick="salvar(['api_futebol_token'])">Salvar</button></div></div>
+    <div class="card"><div class="cardhead"><div><h3>&#128176; Odds &mdash; The-Odds-API <span class="pill uso">EM USO</span></h3>
+      <div class="sub">Cotacoes 1/X/2 do mercado (usado no auto-preencher dos jogos). Plano free.</div></div>
+      <a style="text-decoration:none;background:#eef1fb;color:#4361ee;padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;white-space:nowrap;align-self:flex-start" href="https://the-odds-api.com/" target="_blank">Ir ao site &#8599;</a></div>
      <label>Chave</label><input id="odds_api_key" placeholder="(em branco mantem)">
      <div class="save"><button class="sm" onclick="salvar(['odds_api_key'])">Salvar</button></div></div>
-    <div class="card"><h3>Login com Google</h3>
+    <div class="card"><div class="cardhead"><div><h3>&#128274; Login com Google <span class="pill uso">EM USO</span></h3>
+      <div class="sub">OAuth do login dos jogadores.</div></div>
+      <a style="text-decoration:none;background:#eef1fb;color:#4361ee;padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;white-space:nowrap;align-self:flex-start" href="https://console.cloud.google.com/apis/credentials" target="_blank">Console &#8599;</a></div>
      <label>Google Client ID</label><input id="google_client_id" placeholder="...apps.googleusercontent.com">
      <div class="save"><button class="sm" onclick="salvar(['google_client_id'])">Salvar</button></div></div>
    </section>

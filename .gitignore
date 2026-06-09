@@ -10,6 +10,11 @@ dist/
 *.bak
 *.prebak
 
+# ferramenta temporária de split (já usada)
+_split_tool.ts
+_split_out.json
+_split_cmd.txt
+
 # python
 __pycache__/
 *.pyc
