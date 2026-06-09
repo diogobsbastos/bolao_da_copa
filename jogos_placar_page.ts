@@ -31,11 +31,11 @@ button:disabled{opacity:.55;cursor:default}
 .rows{padding:3px 12px 12px;display:flex;flex-direction:column;gap:9px}
 .oddbtn{cursor:pointer;transition:.15s}.oddbtn:hover{transform:scale(1.12)}
 .times{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;justify-content:center}
-.lin{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px}
+.lin{display:flex;align-items:center;gap:8px}
 .nmw{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden}
 .fl{width:26px;height:19px;object-fit:cover;border-radius:3px;background:#e6e8f0;flex:none}
 .nm{flex:1;font-size:13.5px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.scw{display:flex;align-items:center;gap:7px}
+.scw{display:flex;align-items:center;gap:7px;flex:none}
 .sp{flex:1}
 .ix{background:#eef1fb;color:var(--pri);border:0;border-radius:6px;padding:3px 6px;font-size:12px;cursor:pointer;font-weight:700;flex:none}
 .pl{width:46px;text-align:center;font-size:16px;font-weight:800;padding:6px 5px;border:1px solid var(--bd);border-radius:8px;flex:none}
@@ -166,7 +166,7 @@ function card(j){
  var enc=j.status==="encerrado";
  var cor=CORES[chaveTab(j)]||"#222838";
  var gtab=j.grupo?('<div class="gtab" style="background:'+cor+'">GRUPO '+esc(j.grupo)+'</div>'):'';
- function row(tm,casa,val){var fld=casa?"pc":"pv";return '<div class="lin"><span class="nmw">'+fl(tm.iso)+'<span class="nm">'+esc(tm.pt)+'</span></span><span class="scw"><button class="ix" title="Stats e noticias" onclick="info(\\''+esc(tm.en)+'\\')">&#128202;</button><input class="pl" id="'+fld+'-'+j.id+'" type="number" min="0" max="99" value="'+(val==null?"":val)+'" onchange="salvar('+j.id+')"><span class="step"><button class="su" onclick="stp('+j.id+','+(casa?1:0)+',1)">&#9650;</button><button class="su" onclick="stp('+j.id+','+(casa?1:0)+',-1)">&#9660;</button></span></span></div>';}
+ function row(tm,casa,val){var fld=casa?"pc":"pv";return '<div class="lin">'+fl(tm.iso)+'<span class="nm">'+esc(tm.pt)+'</span><span class="scw"><button class="ix" title="Stats e noticias" onclick="info(\\''+esc(tm.en)+'\\')">&#128202;</button><input class="pl" id="'+fld+'-'+j.id+'" type="number" min="0" max="99" value="'+(val==null?"":val)+'" onchange="salvar('+j.id+')"><span class="step"><button class="su" onclick="stp('+j.id+','+(casa?1:0)+',1)">&#9650;</button><button class="su" onclick="stp('+j.id+','+(casa?1:0)+',-1)">&#9660;</button></span></span><span class="sp"></span></div>';}
  var logo=(j.odds&&/365/.test(j.odds.fonte||""))?('<span class="live365"><img class="o365sm oddbtn" src="'+S365LOGO+'" title="odds ao vivo — mercado 365scores" onclick="odds('+j.id+')"></span>'):'';
  var fav="";
  if(j.odds){var c=parseFloat(j.odds.casa),x=parseFloat(j.odds.empate),f=parseFloat(j.odds.fora);var ar=[["c",c],["e",x],["f",f]].filter(function(a){return !isNaN(a[1]);});if(ar.length){ar.sort(function(a,b){return a[1]-b[1];});var bb=ar[0][0];
