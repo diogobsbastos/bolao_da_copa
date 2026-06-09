@@ -17,6 +17,7 @@ import { rotasCartas } from "./cartas.js";
 import { rotasJogosPlacar } from "./jogos_placar.js";
 import { rotasDeploy, runDeployCmd } from "./deploy.js";
 import { rotasApiFootball, syncSeFlag } from "./apifootball.js";
+import { rotasScores365, syncOddsSeFlag } from "./scores365.js";
 import { injetarMenu } from "./ui.js";
 
 const app = Fastify({ logger: true, bodyLimit: 30 * 1024 * 1024 });
@@ -74,10 +75,12 @@ await app.register(rotasCartas);
 await app.register(rotasJogosPlacar);
 await app.register(rotasDeploy);
 await app.register(rotasApiFootball);
+await app.register(rotasScores365);
 
 // executa comando de deploy pendente (git) gravado em config.deploy_cmd
 await runDeployCmd().catch((e) => app.log.error(e));
 await syncSeFlag().catch((e) => app.log.error(e));
+await syncOddsSeFlag().catch((e) => app.log.error(e));
 
 const port = Number(process.env.PORT ?? 8510);
 const host = process.env.HOST ?? "127.0.0.1";

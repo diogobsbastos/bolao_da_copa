@@ -68,6 +68,10 @@ ${NAV_CSS}
       <a style="text-decoration:none;background:#eef1fb;color:#4361ee;padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;white-space:nowrap;align-self:flex-start" href="https://www.football-data.org/" target="_blank">Ir ao site &#8599;</a></div>
      <label>Token</label><input id="football_data_token" placeholder="(em branco mantem)">
      <div class="save"><button class="sm" onclick="salvar(['football_data_token'])">Salvar</button><button class="sm gh" onclick="pingJogos()">&#128268; Testar</button><span id="m-jogos" class="muted"></span></div></div>
+    <div class="card"><div class="cardhead"><div><h3>&#128202; Odds &amp; dados ao vivo &mdash; 365scores <span class="pill local">sem chave</span></h3>
+      <div class="sub">Odds 1X2 de mercado por jogo (a Copa ja tem odds aqui). API publica, sem chave. Exibida como "mercado (365scores)". Em breve: escalacao/stats.</div></div>
+      <a style="text-decoration:none;background:#eef1fb;color:#4361ee;padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;white-space:nowrap;align-self:flex-start" href="https://www.365scores.com/pt-br/football" target="_blank">Ir ao site &#8599;</a></div>
+     <div class="save"><button class="sm gh" onclick="pingS365()">&#128268; Testar</button><span id="m-s365" class="muted"></span></div></div>
     <div class="card"><div class="cardhead"><div><h3>&#128203; Dados por time &mdash; API-Football <span class="pill ativo">pago p/ 2026</span></h3>
       <div class="sub">Elenco, lesoes, forma, escalacao provavel e artilheiros por selecao. ATENCAO: o plano free so cobre 2022-2024 &mdash; a Copa 2026 exige plano PAGO.</div></div>
       <a style="text-decoration:none;background:#eef1fb;color:#4361ee;padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;white-space:nowrap;align-self:flex-start" href="https://dashboard.api-football.com/register" target="_blank">Criar chave gratis &#8599;</a></div>
@@ -199,6 +203,12 @@ async function pingJogos(){
 async function pingOdds(){
  var m=document.getElementById("m-odds");m.textContent="testando...";m.style.color="";
  var r=await fetch(BASE+"/admin/ping?alvo=odds",{headers:H()});
+ var j=await r.json().catch(function(){return{};});
+ m.textContent=(j.ok?"OK ":"Falhou ")+(j.detalhe||"");m.style.color=j.ok?"#14794a":"#c01f2e";
+}
+async function pingS365(){
+ var m=document.getElementById("m-s365");m.textContent="testando...";m.style.color="";
+ var r=await fetch(BASE+"/admin/scores365/ping",{headers:H()});
  var j=await r.json().catch(function(){return{};});
  m.textContent=(j.ok?"OK ":"Falhou ")+(j.detalhe||"");m.style.color=j.ok?"#14794a":"#c01f2e";
 }
