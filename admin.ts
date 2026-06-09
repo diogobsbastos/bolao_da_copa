@@ -70,6 +70,25 @@ export async function rotasAdmin(app: FastifyInstance) {
     return { db, jogos_fonte: Boolean(c["football_data_token"]), odds_api: Boolean(c["odds_api_key"]), llm: Boolean(c["llm_base"]) };
   });
 
+  app.get("/admin/integracoes", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    const cfg1 = async (k: string) => { try { const { rows } = await pool.query("SELECT valor FROM config WHERE chave=$1", [k]); return (rows as any[])[0]?.valor ?? ""; } catch { return ""; } };
+    const num = async (q: string) => { try { return Number(((await pool.query(q)).rows[0] as any)?.n || 0); } catch { return 0; } };
+    let lineups: any = {}, odds365: any = {};
+    try { lineups = JSON.parse((await cfg1("lineups_status")) || "{}"); } catch {}
+    try { odds365 = JSON.parse((await cfg1("scores365_status")) || "{}"); } catch {}
+    const contagem = {
+      jogos: await num("SELECT count(*) n FROM jogos"),
+      com_times: await num("SELECT count(*) n FROM jogos WHERE selecao_casa<>'A definir' AND selecao_visitante<>'A definir'"),
+      com_odds: await num("SELECT count(*) n FROM jogos WHERE odds->>'casa' IS NOT NULL"),
+      com_lineup: await num("SELECT count(*) n FROM jogos WHERE lineup_casa IS NOT NULL OR lineup_visitante IS NOT NULL"),
+      com_palpite: await num("SELECT count(*) n FROM jogos WHERE palpite_ia IS NOT NULL"),
+    };
+    let pontos: any = {};
+    try { pontos = JSON.parse((await cfg1("pontos_regra")) || "{}"); } catch {}
+    return { ok: true, agora: new Date().toISOString(), ultimo_refresh: await cfg1("last_daily_refresh"), lineups, odds365, contagem, pontos };
+  });
+
   app.get("/admin/ping", async (req, reply) => {
     if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
     const alvo = (req.query as any)?.alvo as string;

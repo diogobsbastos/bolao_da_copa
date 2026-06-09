@@ -70,7 +70,91 @@ ${NAV_CSS}
 
    <section id="pg-rank" class="sec hide"><h2>Ranking</h2><div class="card"><div id="rank-box" class="muted">conecte para carregar.</div></div></section>
 
-   <section id="pg-integ" class="sec hide"><h2>Integra&ccedil;&otilde;es / Crons</h2><div class="card soon">Em breve.</div></section>
+   <section id="pg-integ" class="sec hide">
+    <h2>Integra&ccedil;&otilde;es / Crons</h2>
+
+    <div class="card">
+     <h3>&#128260; Sincroniza&ccedil;&atilde;o autom&aacute;tica (cron interno)</h3>
+     <div class="muted">S&oacute; o servidor puxa das APIs e grava no banco. Os jogadores <b>s&oacute; leem do banco</b> &mdash; nunca chamam API direto, ent&atilde;o nunca estoura o teto.</div>
+     <div id="integ-live" class="muted" style="margin-top:12px">conecte (token/login) para carregar o estado...</div>
+     <div class="save"><button class="sm" onclick="forcarRefresh()">&#9889; For&ccedil;ar atualiza&ccedil;&atilde;o agora</button><span id="integ-msg" class="muted"></span></div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+     <h3>&#9200; Agenda dos jobs</h3>
+     <table><thead><tr><th>Job</th><th>Quando</th><th>O que faz</th><th>Status</th></tr></thead><tbody>
+      <tr><td>Refresh di&aacute;rio</td><td>No boot + 1&times;/dia</td><td>Puxa odds 1X2 + escala&ccedil;&otilde;es do 365scores &rarr; banco</td><td><span class="pill ok">ativo</span></td></tr>
+      <tr><td>Cron 01 &mdash; Resumo IA</td><td>Madrugada</td><td>Resumo de 3 linhas do jogo do dia seguinte</td><td><span class="pill no">a fazer</span></td></tr>
+      <tr><td>Cron 02 &mdash; Trava no apito</td><td>30 min antes</td><td>Trava palpites/apostas no in&iacute;cio do jogo</td><td><span class="pill no">a fazer</span></td></tr>
+      <tr><td>Cron 03 &mdash; Resultado real + pontua&ccedil;&atilde;o</td><td>Ap&oacute;s cada jogo (di&aacute;rio)</td><td>Grava o placar REAL e roda a r&eacute;gua/tabela de pontos &rarr; ranking</td><td><span class="pill no">a fazer</span></td></tr>
+      <tr><td>Cron 04 &mdash; Palpites de longo prazo</td><td>19/jul (final)</td><td>Campe&atilde;o, vice, artilheiro &rarr; ranking</td><td><span class="pill no">a fazer</span></td></tr>
+     </tbody></table>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+     <h3>&#128197; Calend&aacute;rio da Copa 2026 (EUA &middot; Canad&aacute; &middot; M&eacute;xico)</h3>
+     <table><tbody>
+      <tr><th>Abertura</th><td>11/jun/2026</td></tr>
+      <tr><th>Fase de grupos</th><td>11&ndash;28/jun &middot; 12 grupos &middot; 72 jogos &middot; 3 rodadas</td></tr>
+      <tr><th>Mata-mata (32 &rarr; final)</th><td>28/jun &rarr; 19/jul</td></tr>
+      <tr><th>Final</th><td>19/jul/2026</td></tr>
+      <tr><th>Congelamento</th><td>Fim dos grupos: Marketplace fecha e saldo congela</td></tr>
+     </tbody></table>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+     <h3>&#127919; Tabela de pontos (b&oacute;l&atilde;o)</h3>
+     <div class="muted">Quanto cada palpite vale ao comparar com o resultado real. Edit&aacute;vel em <code>config.pontos_regra</code>.</div>
+     <table style="margin-top:8px"><thead><tr><th>Acerto</th><th>Pontos</th></tr></thead><tbody id="pontos-tb">
+      <tr><td>Placar exato (cravou)</td><td><b id="pt-exato">10</b></td></tr>
+      <tr><td>Vencedor + saldo de gols</td><td><b id="pt-vsaldo">7</b></td></tr>
+      <tr><td>S&oacute; o vencedor / empate</td><td><b id="pt-venc">5</b></td></tr>
+      <tr><td>Gols certos de um time (b&ocirc;nus)</td><td><b id="pt-gol">1</b></td></tr>
+     </tbody></table>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+     <h3>&#127922; Regra do palpite autom&aacute;tico (1 clique, gr&aacute;tis)</h3>
+     <div class="muted">Preenche o placar pela l&oacute;gica das odds; sem odds, usa ranking FIFA.</div>
+     <table style="margin-top:8px"><thead><tr><th>Odd do favorito</th><th>Placar sugerido</th></tr></thead><tbody>
+      <tr><td>&le; 1.30 (favorita&ccedil;o)</td><td>3 &times; 0</td></tr>
+      <tr><td>1.31 &ndash; 1.70 (forte)</td><td>2 &times; 0</td></tr>
+      <tr><td>1.71 &ndash; 2.40 (moderado)</td><td>2 &times; 1</td></tr>
+      <tr><td>&gt; 2.40 (magro)</td><td>1 &times; 0</td></tr>
+      <tr><td>Empate prov&aacute;vel / odds parelhas</td><td>1 &times; 1 (ou 0 &times; 0 muito truncado)</td></tr>
+      <tr><td>Sem odds</td><td>Ranking FIFA</td></tr>
+     </tbody></table>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+     <h3>&#128268; Fontes de dados</h3>
+     <table><thead><tr><th>Fonte</th><th>Usa pra</th><th>Custo</th></tr></thead><tbody>
+      <tr><td>365scores</td><td>Odds 1X2 + escala&ccedil;&atilde;o prov&aacute;vel + stats</td><td><span class="pill ok">gr&aacute;tis</span></td></tr>
+      <tr><td>ESPN</td><td>Not&iacute;cias das sele&ccedil;&otilde;es</td><td><span class="pill ok">gr&aacute;tis</span></td></tr>
+      <tr><td>StatsBomb</td><td>Desempenho na Copa 2022</td><td><span class="pill ok">gr&aacute;tis</span></td></tr>
+      <tr><td>football-data.org</td><td>Jogos, elencos, classifica&ccedil;&atilde;o</td><td><span class="pill ok">gr&aacute;tis</span></td></tr>
+     </tbody></table>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+     <h3>&#128202; R&eacute;gua de notas (fantasy / Arena)</h3>
+     <table><tbody>
+      <tr><th>Gol</th><td>+8.0</td><th>Assist&ecirc;ncia</th><td>+5.0</td></tr>
+      <tr><th>Desarme</th><td>+1.5</td><th>Defesa dif&iacute;cil (GK)</th><td>+3.0</td></tr>
+      <tr><th>P&ecirc;nalti defendido</th><td>+7.0</td><th>Cart&atilde;o amarelo</th><td>&minus;2.0</td></tr>
+      <tr><th>Cart&atilde;o vermelho</th><td>&minus;5.0</td><th></th><td></td></tr>
+     </tbody></table>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+     <h3>&#129689; Tokenomics</h3>
+     <table><tbody>
+      <tr><th>Saldo inicial</th><td>500 (Colecionador 200 &middot; Apostas 200 &middot; Arena 100)</td></tr>
+      <tr><th>Recarga por rodada</th><td>+50 (Colecionador +20 &middot; Apostas +20 &middot; Arena +10)</td></tr>
+      <tr><th>Venda de "bagre"</th><td>5 tokens por figurinha duplicada/baixa</td></tr>
+     </tbody></table>
+    </div>
+   </section>
 
   </div>
  </main>
@@ -86,6 +170,7 @@ function nav(pg){
  if(pg==="users")loadUsers();
  if(pg==="rank")loadRank();
  if(pg==="jogos")loadJogos();
+ if(pg==="integ")loadInteg();
 }
 function tok(){return document.getElementById("tok").value.trim();}
 function H(){var t=tok();var h={"content-type":"application/json"};if(t){h["x-admin-token"]=t;}else{var s=localStorage.getItem("sessao");if(s){h["authorization"]="Bearer "+s;}}return h;}
@@ -135,6 +220,28 @@ async function loadRank(){
  var r=await fetch(BASE+"/admin/ranking",{headers:H()});
  if(!r.ok){b.textContent="conecte para ver.";return;}
  b.innerHTML=tabela(await r.json(),["nome","pb","pa"],["Jogador","Pts Bolao","Pts Arena"]);
+}
+async function loadInteg(){
+ var b=document.getElementById("integ-live");if(!b)return;b.textContent="carregando...";
+ var r=await fetch(BASE+"/admin/integracoes",{headers:H()});
+ if(!r.ok){b.textContent="conecte (token/login) para ver o estado.";return;}
+ var d=await r.json();var c=d.contagem||{};var lu=d.lineups||{};var p=d.pontos||{};
+ if(p.exato!=null)document.getElementById("pt-exato").textContent=p.exato;
+ if(p.vencedor_saldo!=null)document.getElementById("pt-vsaldo").textContent=p.vencedor_saldo;
+ if(p.vencedor!=null)document.getElementById("pt-venc").textContent=p.vencedor;
+ if(p.gol_time!=null)document.getElementById("pt-gol").textContent=p.gol_time;
+ b.innerHTML='<table><tbody>'
+  +'<tr><th>&Uacute;ltimo refresh di&aacute;rio</th><td><b>'+esc(d.ultimo_refresh||"\u2014")+'</b></td></tr>'
+  +'<tr><th>Jogos com odds</th><td>'+(c.com_odds||0)+' de '+(c.com_times||0)+'</td></tr>'
+  +'<tr><th>Jogos com escala&ccedil;&atilde;o</th><td>'+(c.com_lineup||0)+'</td></tr>'
+  +'<tr><th>Jogos com palpite preenchido</th><td>'+(c.com_palpite||0)+'</td></tr>'
+  +'<tr><th>&Uacute;ltima sincroniza&ccedil;&atilde;o de escala&ccedil;&otilde;es</th><td>'+esc(String(lu.em||"").replace("T"," ").slice(0,16))+'</td></tr>'
+  +'</tbody></table>';
+}
+async function forcarRefresh(){
+ var m=document.getElementById("integ-msg");if(m)m.textContent="atualizando odds + escala&ccedil;&otilde;es (pode levar ~30s)...";
+ try{var r=await fetch(BASE+"/admin/scores365/refresh",{method:"POST",headers:H()});await r.json().catch(function(){});if(m)m.textContent="pronto.";}catch(e){if(m)m.textContent="falhou.";}
+ loadInteg();
 }
 if(localStorage.getItem("sessao")){conectar();}
 (function(){var q=new URLSearchParams(location.search).get("pg");if(q&&document.getElementById("pg-"+q))nav(q);})();
