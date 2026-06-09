@@ -63,6 +63,57 @@ export async function syncOdds(): Promise<any> {
 }
 export async function syncOddsSeFlag(): Promise<void> { try { if ((await cfg("scores365_sync")) !== "go") return; await syncOdds(); await setCfg("scores365_sync", ""); } catch {} }
 
+// ===== ESCALAÇÃO (lineup) via 365scores — grátis, sem IA =====
+// Estrutura: game.homeCompetitor.lineups / awayCompetitor.lineups -> { formation, isProbable, status, members[] }.
+// members[]: status==1 = titular (11). Cada um: id (cruza com game.members[].id p/ nome), formation.shortName (posição),
+// yardFormation {x,y} (coordenadas do campo, guardadas p/ campo visual futuro).
+function parseSide(comp: any, byId: Map<number, any>): { formacao: string; confirmada: boolean; titulares: any[] } | null {
+  const lu = comp?.lineups;
+  const ms: any[] = Array.isArray(lu?.members) ? lu.members : [];
+  const tit = ms.filter((m: any) => Number(m?.status) === 1);
+  if (!lu || !tit.length) return null;
+  const titulares = tit.map((m: any) => {
+    const gm = byId.get(Number(m?.id)) || {};
+    const yf = m?.yardFormation || m?.position || {};
+    return {
+      nome: String(gm?.name || m?.name || ""),
+      posicao: String(m?.formation?.shortName || m?.position?.name || m?.position?.shortName || ""),
+      x: (yf?.x ?? null), y: (yf?.y ?? null),
+    };
+  });
+  return { formacao: String(lu?.formation || ""), confirmada: !lu?.isProbable, titulares };
+}
+
+// Pega a escalação do lado (home/away) que casa com o nosso nome em inglês (enNome). null = não divulgada / não achou.
+export async function escalacao365(gid: string | number, enNome: string): Promise<{ formacao: string; confirmada: boolean; titulares: any[] } | null> {
+  const gj = await s365(`/game?appTypeId=5&langId=1&userCountryId=21&timezoneName=America/Sao_Paulo&gameId=${gid}`);
+  const g = gj?.game;
+  if (!g) return null;
+  const byId = new Map<number, any>();
+  for (const m of (Array.isArray(g?.members) ? g.members : [])) byId.set(Number(m?.id), m);
+  const alvo = al(enNome);
+  const home = g?.homeCompetitor, away = g?.awayCompetitor;
+  const ah = al(home?.name || ""), aa = al(away?.name || "");
+  let comp: any = null;
+  if (ah === alvo) comp = home;
+  else if (aa === alvo) comp = away;
+  else if (ah && (ah.includes(alvo) || alvo.includes(ah))) comp = home;
+  else if (aa && (aa.includes(alvo) || alvo.includes(aa))) comp = away;
+  if (!comp) return null;
+  return parseSide(comp, byId);
+}
+
+// Diagnóstico: loga a estrutura crua das lineups de um (ou vários) gid no boot, se config.lineup_probe estiver setado.
+export async function probeLineup(gid: string | number): Promise<void> {
+  try {
+    const gj = await s365(`/game?appTypeId=5&langId=1&userCountryId=21&timezoneName=America/Sao_Paulo&gameId=${gid}`);
+    const g = gj?.game;
+    if (!g) { console.log("[lineup-probe] gid", gid, "sem game"); return; }
+    const dump = (c: any) => { const lu = c?.lineups; const ms = Array.isArray(lu?.members) ? lu.members : []; return { name: c?.name, temLineup: !!lu, luKeys: lu ? Object.keys(lu) : [], formation: lu?.formation, isProbable: lu?.isProbable, status: lu?.status, nMembers: ms.length, member0: ms[0] || null }; };
+    console.log("[lineup-probe] gid", gid, "HOME", JSON.stringify(dump(g?.homeCompetitor)), "AWAY", JSON.stringify(dump(g?.awayCompetitor)), "gameMember0", JSON.stringify((Array.isArray(g?.members) ? g.members : [])[0] || null));
+  } catch (e: any) { console.log("[lineup-probe] erro", String(e?.message ?? e).slice(0, 160)); }
+}
+
 export async function rotasScores365(app: FastifyInstance) {
   app.post("/admin/scores365/odds", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); return await syncOdds(); });
   app.get("/admin/scores365/status", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); try { return { ok: true, status: JSON.parse((await cfg("scores365_status")) || "{}") }; } catch { return { ok: true, status: {} }; } });
@@ -75,4 +126,15 @@ export async function rotasScores365(app: FastifyInstance) {
       return { ok: true, detalhe: (g?.homeCompetitor?.name || "?") + " x " + (g?.awayCompetitor?.name || "?") + (od ? (" · odds " + od.casa + "/" + od.empate + "/" + od.fora) : " · sem odds") };
     } catch (e: any) { return { ok: false, detalhe: String(e?.message ?? e).slice(0, 120) }; }
   });
+  // Diagnóstico de escalação: GET /admin/scores365/lineup?gid=4627866&en=Mexico
+  app.get("/admin/scores365/lineup", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    const gid = String((req.query as any)?.gid ?? "").trim();
+    const en = String((req.query as any)?.en ?? "").trim();
+    if (!gid || !en) return reply.code(400).send({ erro: "gid e en?" });
+    try { const r = await escalacao365(gid, en); return { ok: true, gid, en, escalacao: r }; }
+    catch (e: any) { return { ok: false, erro: String(e?.message ?? e).slice(0, 160) }; }
+  });
+  // Sonda de boot (verificação): se config.lineup_probe tiver gids (csv), loga a estrutura crua.
+  (async () => { try { const g = await cfg("lineup_probe"); if (g) for (const id of g.split(",").map((s) => s.trim()).filter(Boolean)) await probeLineup(id); } catch {} })();
 }

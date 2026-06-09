@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 import { pool } from "./db.js";
 import { usuarioDaReq } from "./auth.js";
 import { chamarLLM } from "./llm.js";
+import { escalacao365 } from "./scores365.js";
 import { PAGINA_JOGOS } from "./jogos_placar_page.js";
 import { PAGINA_CLASS } from "./classificacao_page.js";
 
@@ -242,19 +243,6 @@ function filtroEscopo(b: any, args: any[]): string {
   return "";
 }
 
-function escalacaoHeuristica(elenco: any[]): any {
-  const pos = (p: any) => String(p.posicao || "").toLowerCase();
-  const gk = elenco.filter((p) => pos(p).includes("goal"));
-  const df = elenco.filter((p) => pos(p).includes("def"));
-  const md = elenco.filter((p) => pos(p).includes("mid"));
-  const fw = elenco.filter((p) => pos(p).includes("off") || pos(p).includes("forward") || pos(p).includes("att"));
-  const take = (a: any[], n: number) => a.slice(0, n);
-  const xi: any[] = [...take(gk, 1), ...take(df, 4), ...take(md, 3), ...take(fw, 3)];
-  const usados = new Set(xi.map((p) => p.id));
-  for (const p of elenco) { if (xi.length >= 11) break; if (!usados.has(p.id)) { xi.push(p); usados.add(p.id); } }
-  return { formacao: "4-3-3", fonte: "elenco", titulares: xi.slice(0, 11).map((j) => ({ id: j.id, nome: j.nome, posicao: j.posicao, figurinha: j.figurinha })) };
-}
-
 export async function rotasJogosPlacar(app: FastifyInstance) {
   app.get("/admin/jogos-placar", async (_req, reply) => reply.header("cache-control", "no-store").type("text/html").send(PAGINA_JOGOS));
   app.get("/admin/classificacao", async (_req, reply) => reply.header("cache-control", "no-store").type("text/html").send(PAGINA_CLASS));
@@ -322,42 +310,38 @@ export async function rotasJogosPlacar(app: FastifyInstance) {
     } catch (e: any) { return { ok: false, erro: String(e?.message ?? e).slice(0, 160) }; }
   });
 
+  // Escalação via 365scores (grátis, sem IA). Pega o gid do próximo jogo do time -> fetch 365 -> 11 titulares + formação.
   app.get("/admin/jogos-placar/escalacao", async (req, reply) => {
     if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
     const en = String((req.query as any)?.en ?? "").trim();
     if (!en) return reply.code(400).send({ erro: "time?" });
     const p = timePT(en);
-    const elenco = (await pool.query(`SELECT id, nome, posicao, clube, figurinha FROM jogadores WHERE selecao=$1 AND posicao<>'Coach' ORDER BY nome`, [en])).rows as any[];
-    if (!elenco.length) return { ok: true, semElenco: true, time: { en, pt: p.pt, iso: p.iso }, titulares: [] };
-    const ck = "escalacao_" + en;
-    if (String((req.query as any)?.refazer ?? "") !== "1") {
-      const c = await getCfg(ck);
-      if (c) { try { return { ok: true, time: { en, pt: p.pt, iso: p.iso }, cache: true, ...JSON.parse(c) }; } catch {} }
-    }
-    let res: any = null;
+    // jogo do time com gid do 365 — prioriza o próximo (não encerrado), mais cedo primeiro
+    let jg: any = null;
     try {
-      const lista = elenco.map((j) => j.nome + " (" + (j.posicao || "") + ")").join("; ");
-      const prompt = "Voce e um treinador de futebol. Elenco da selecao de " + p.pt + " para a Copa do Mundo 2026: " + lista +
-        ". Monte a escalacao TITULAR mais provavel: exatamente 11 jogadores (1 goleiro + 10 de linha) com formacao tatica coerente. Use os nomes EXATAMENTE como na lista. Responda SOMENTE JSON valido: {\"formacao\":\"4-3-3\",\"titulares\":[\"Nome\"]} com 11 nomes.";
-      const txt = await Promise.race([
-        chamarLLM(prompt, "texto", { origem: "jogos", processo: "escalacao" }),
-        new Promise<string>((_, rej) => setTimeout(() => rej(new Error("timeout")), 15000)),
-      ]);
-      const o = parseBlocoJSON(txt);
-      if (o && Array.isArray(o.titulares) && o.titulares.length) {
-        const nn = (x: string) => String(x || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z]/g, "");
-        const byN = new Map<string, any>(); for (const j of elenco) byN.set(nn(j.nome), j);
-        const titulares = o.titulares.slice(0, 11).map((nm: string) => {
-          let j = byN.get(nn(nm));
-          if (!j) j = elenco.find((e) => { const a = nn(e.nome), b = nn(nm); return !!b && (a.includes(b) || b.includes(a)); });
-          return j ? { id: j.id, nome: j.nome, posicao: j.posicao, figurinha: j.figurinha } : { nome: nm, posicao: "", figurinha: null };
-        });
-        res = { formacao: String(o.formacao || ""), fonte: "ia", titulares };
-      }
-    } catch (e: any) { /* timeout/erro -> heuristico */ }
-    if (!res) res = escalacaoHeuristica(elenco);
-    await setCfg(ck, JSON.stringify(res));
-    return { ok: true, time: { en, pt: p.pt, iso: p.iso }, ...res };
+      jg = (await pool.query(
+        `SELECT id, selecao_casa, selecao_visitante, odds->>'gid' AS gid
+           FROM jogos
+          WHERE (selecao_casa=$1 OR selecao_visitante=$1) AND odds->>'gid' IS NOT NULL
+          ORDER BY (status='encerrado') ASC, inicio ASC NULLS LAST
+          LIMIT 1`, [en])).rows[0] as any;
+    } catch {}
+    if (!jg?.gid) return { ok: true, semLineup: true, time: { en, pt: p.pt, iso: p.iso }, msg: "Jogo ainda não vinculado ao 365scores." };
+    let esc: any = null;
+    try { esc = await escalacao365(jg.gid, en); } catch {}
+    if (!esc || !Array.isArray(esc.titulares) || !esc.titulares.length) {
+      return { ok: true, semLineup: true, time: { en, pt: p.pt, iso: p.iso }, msg: "Escalação ainda não divulgada." };
+    }
+    // cruza nomes do 365 com nosso elenco pra anexar figurinha + id (mantém o thumb)
+    const elenco = (await pool.query(`SELECT id, nome, posicao, clube, figurinha FROM jogadores WHERE selecao=$1`, [en])).rows as any[];
+    const nn = (x: string) => String(x || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z]/g, "");
+    const byN = new Map<string, any>(); for (const j of elenco) byN.set(nn(j.nome), j);
+    const titulares = esc.titulares.map((t: any) => {
+      let j = byN.get(nn(t.nome));
+      if (!j && t.nome) j = elenco.find((e) => { const a = nn(e.nome), b = nn(t.nome); return !!b && (a.includes(b) || b.includes(a)); });
+      return { id: j?.id ?? null, nome: t.nome || (j?.nome ?? ""), posicao: t.posicao || (j?.posicao ?? ""), clube: j?.clube ?? "", figurinha: j?.figurinha ?? null, x: t.x ?? null, y: t.y ?? null };
+    });
+    return { ok: true, time: { en, pt: p.pt, iso: p.iso }, formacao: esc.formacao, status: esc.confirmada ? "confirmada" : "provavel", fonte: "365scores", titulares };
   });
 
   app.get("/admin/jogos-placar/noticias", async (req, reply) => {
