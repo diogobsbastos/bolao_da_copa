@@ -283,9 +283,43 @@ export async function rotasJogosPlacar(app: FastifyInstance) {
       const fmtJ = (j: any) => { if (!j) return null; const souCasa = j.selecao_casa === en; const advEn = souCasa ? j.selecao_visitante : j.selecao_casa; const ap = timePT(advEn); const meu = souCasa ? j.placar_casa : j.placar_visitante, dele = souCasa ? j.placar_visitante : j.placar_casa; return { adversario: ap, data: j.inicio, casa: souCasa, placar: (j.placar_casa != null && j.placar_visitante != null) ? (meu + "x" + dele) : null }; };
       const prox = fmtJ(jt.find((j) => j.status !== "encerrado"));
       const enc = jt.filter((j) => j.status === "encerrado"); const ultimo = fmtJ(enc[enc.length - 1]);
-      const elenco = (await pool.query(`SELECT nome, posicao, clube FROM jogadores WHERE selecao=$1 ORDER BY posicao NULLS LAST, nome`, [en])).rows as any[];
+      const elenco = (await pool.query(`SELECT id, nome, posicao, clube, figurinha FROM jogadores WHERE selecao=$1 AND posicao<>'Coach' ORDER BY posicao NULLS LAST, nome`, [en])).rows as any[];
       return { ok: true, time: { en, pt: p.pt, iso: p.iso }, ranking: FIFA_RANK[en] || null, ultimaCopa: ult, temFonte2022: ms.length > 0, grupo, proximo: prox, ultimo, elenco };
     } catch (e: any) { return { ok: false, erro: String(e?.message ?? e).slice(0, 160) }; }
+  });
+
+  app.get("/admin/jogos-placar/escalacao", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    const en = String((req.query as any)?.en ?? "").trim();
+    if (!en) return reply.code(400).send({ erro: "time?" });
+    const p = timePT(en);
+    const elenco = (await pool.query(`SELECT id, nome, posicao, clube, figurinha FROM jogadores WHERE selecao=$1 AND posicao<>'Coach' ORDER BY nome`, [en])).rows as any[];
+    if (!elenco.length) return { ok: true, semElenco: true, time: { en, pt: p.pt, iso: p.iso }, titulares: [] };
+    const ck = "escalacao_" + en;
+    if (String((req.query as any)?.refazer ?? "") !== "1") {
+      const c = await getCfg(ck);
+      if (c) { try { return { ok: true, time: { en, pt: p.pt, iso: p.iso }, cache: true, ...JSON.parse(c) }; } catch {} }
+    }
+    try {
+      const lista = elenco.map((j) => j.nome + " (" + (j.posicao || "") + ")").join("; ");
+      const prompt = "Voce e um treinador de futebol. Elenco da selecao de " + p.pt + " para a Copa do Mundo 2026: " + lista +
+        ". Monte a escalacao TITULAR mais provavel: exatamente 11 jogadores (1 goleiro + 10 de linha) com uma formacao tatica coerente. Use os nomes EXATAMENTE como na lista. Responda SOMENTE JSON valido: {\"formacao\":\"4-3-3\",\"titulares\":[\"Nome\"]} com 11 nomes.";
+      const txt = await chamarLLM(prompt, "texto", { origem: "jogos", processo: "escalacao" });
+      const o = parseBlocoJSON(txt);
+      if (o && Array.isArray(o.titulares) && o.titulares.length) {
+        const nn = (x: string) => String(x || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z]/g, "");
+        const byN = new Map<string, any>(); for (const j of elenco) byN.set(nn(j.nome), j);
+        const titulares = o.titulares.slice(0, 11).map((nm: string) => {
+          let j = byN.get(nn(nm));
+          if (!j) j = elenco.find((e) => { const a = nn(e.nome), b = nn(nm); return !!b && (a.includes(b) || b.includes(a)); });
+          return j ? { id: j.id, nome: j.nome, posicao: j.posicao, figurinha: j.figurinha } : { nome: nm, posicao: "", figurinha: null };
+        });
+        const res = { formacao: String(o.formacao || ""), titulares };
+        await setCfg(ck, JSON.stringify(res));
+        return { ok: true, time: { en, pt: p.pt, iso: p.iso }, ...res };
+      }
+      return { ok: false, erro: "IA nao retornou escalacao valida" };
+    } catch (e: any) { return { ok: false, erro: String(e?.message ?? e).slice(0, 140) }; }
   });
 
   app.get("/admin/jogos-placar/noticias", async (req, reply) => {

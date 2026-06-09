@@ -53,6 +53,10 @@ button:disabled{opacity:.55;cursor:default}
 .modal::-webkit-scrollbar-track{background:transparent;margin:8px 0}
 .modal::-webkit-scrollbar-thumb{background:#cbd2e0;border-radius:8px;border:2px solid var(--card)}
 .modal::-webkit-scrollbar-thumb:hover{background:#9aa3b6}
+.modal{position:relative}
+.mx{position:absolute;top:9px;right:11px;background:transparent;color:var(--mut);border:0;font-size:24px;line-height:1;cursor:pointer;padding:0 6px;font-weight:700}
+.mx:hover{color:var(--tx)}
+.pf{width:26px;height:34px;object-fit:cover;border-radius:4px;background:#e6e8f0;flex:none}
 ${NAV_CSS}
 </style></head><body>
 <div class="app">
@@ -77,7 +81,7 @@ ${NAV_CSS}
   </div>
  </main>
 </div>
-<div class="mov" id="mov"><div class="modal"><div id="mbody"></div><div id="mfoot" style="margin-top:12px;text-align:right"></div></div></div>
+<div class="mov" id="mov" onclick="if(event.target===this)fecha()"><div class="modal"><button class="mx" onclick="fecha()" title="Fechar">&times;</button><div id="mbody"></div><div id="mfoot" style="margin-top:12px;text-align:right"></div></div></div>
 <div id="toast" style="position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:120;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none"></div>
 <script>
 ${NAV_JS}
@@ -176,7 +180,20 @@ async function noticias(en){
  else{body=d.noticias.map(function(n){var lk=n.link?('<a href="'+esc(n.link)+'" target="_blank" style="color:var(--pri);font-weight:700;text-decoration:none;white-space:nowrap;margin-left:8px">abrir &#8599;</a>'):'';var meta=[];if(n.data)meta.push(fmtData(n.data));if(n.fonte)meta.push('fonte: '+esc(n.fonte));var src=meta.length?('<div class="muted" style="font-size:11px;margin-top:2px">'+meta.join(' &middot; ')+'</div>'):'';return '<div class="mr" style="align-items:flex-start"><span>&#128240;</span><div style="flex:1;min-width:0"><div>'+esc(n.title)+'</div>'+src+'</div>'+lk+'</div>';}).join("");}
  modal('<h3>'+fl(t.iso)+' '+esc(t.pt)+' &mdash; ultimas noticias</h3>'+body);
 }
+var CUR_EN="";
+async function escalacao(){
+ var box=document.getElementById("esc-box"); if(!box)return;
+ box.innerHTML='<div class="muted" style="font-size:12px;padding:6px 0">montando escalação provável (IA)...</div>';
+ var r=await fetch(_b()+"/admin/jogos-placar/escalacao?en="+encodeURIComponent(CUR_EN),{headers:H()});
+ var d=await r.json().catch(function(){return{};});
+ if(!d||!d.ok){box.innerHTML='<div class="muted">'+esc((d&&d.erro)||"erro")+'</div>';return;}
+ if(!d.titulares||!d.titulares.length){box.innerHTML='<div class="muted">sem elenco pra montar.</div>';return;}
+ var h='<div class="mr" style="background:#f1effb;border-radius:8px;margin-top:4px"><b>Escalação provável</b><span class="od">'+esc(d.formacao||"")+'</span></div>';
+ h+=d.titulares.map(linhaJog).join("");
+ box.innerHTML=h;
+}
 async function stats(en){
+ CUR_EN=en;
  modal('<div class="muted">carregando '+esc(en)+'...</div>');
  var r=await fetch(_b()+"/admin/jogos-placar/stats?en="+encodeURIComponent(en),{headers:H()});
  var d=await r.json().catch(function(){return{};});
@@ -190,9 +207,10 @@ async function stats(en){
  var u=d.ultimaCopa||[];
  if(u.length){html+='<div class="muted" style="font-size:12px;margin:10px 0 4px">Copa 2022:</div>'+u.map(function(g){return '<div class="mr"><span class="bdg b'+g.res+'">'+g.res+'</span><b>'+esc(g.placar)+'</b>'+fl(g.adversario.iso)+'<span>'+esc(g.adversario.pt)+'</span><span class="od">'+esc(faseCurta(g.fase))+'</span></div>';}).join("");}
  var el=d.elenco||[];
- if(el.length){html+='<div class="muted" style="font-size:12px;margin:10px 0 4px">Elenco ('+el.length+'):</div>'+el.map(function(p){return '<div class="mr" style="padding:5px 4px"><span style="flex:1;min-width:0">'+esc(p.nome)+'</span><span class="od">'+esc(p.posicao||"")+(p.clube?(' &middot; '+esc(p.clube)):'')+'</span></div>';}).join("");}
+ if(el.length){html+='<div style="display:flex;align-items:center;gap:8px;margin:12px 0 4px"><span class="muted" style="font-size:12px;flex:1">Elenco ('+el.length+')</span><button class="ix" style="padding:5px 9px" onclick="escalacao()">🔮 Escalação provável</button></div><div id="esc-box"></div>'+el.map(linhaJog).join("");}
  modal(html);
 }
+function linhaJog(p){var img=p.figurinha?(_b()+"/fig/"+p.figurinha):"";return '<div class="mr" style="padding:4px"><img class="pf" src="'+img+'" onerror="this.remove()"><span style="flex:1;min-width:0">'+esc(p.nome)+'</span><span class="od">'+esc(p.posicao||"")+(p.clube?(' &middot; '+esc(p.clube)):'')+'</span></div>';}
 async function autoOdds(escopo){
  var r=await fetch(_b()+"/admin/jogos-placar/auto",{method:"POST",headers:H(),body:JSON.stringify(escopoBody(escopo))});
  var d=await r.json().catch(function(){return{};});
