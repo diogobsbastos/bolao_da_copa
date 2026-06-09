@@ -235,7 +235,7 @@ async function escalacao(){
  var r=await fetch(_b()+"/admin/jogos-placar/escalacao?en="+encodeURIComponent(CUR_EN),{headers:H()});
  var d=await r.json().catch(function(){return{};});
  if(!d||!d.ok){box.innerHTML='<div class="muted">'+esc((d&&d.erro)||"erro")+'</div>';return;}
- if(d.semLineup||!d.titulares||!d.titulares.length){var fb=(CUR_ELENCO&&CUR_ELENCO.length)?('<div class="muted" style="font-size:12px;margin:8px 0 4px">Elenco ('+CUR_ELENCO.length+')</div>'+CUR_ELENCO.map(linhaJog).join("")):"";box.innerHTML='<div class="muted" style="padding:4px 0">'+esc(d.msg||"Escalação ainda não divulgada.")+'</div>'+fb;return;}
+ if(d.semLineup||!d.titulares||!d.titulares.length){var fb=(CUR_ELENCO&&CUR_ELENCO.length)?('<div class="muted" style="font-size:12px;margin:8px 0 4px">Elenco ('+CUR_ELENCO.length+')</div>'+CUR_ELENCO.map(linhaJog).join("")):"";box.innerHTML='<div class="mr" style="background:#f1effb;border-radius:8px;margin-top:4px"><b>Escalação provável ainda não divulgada</b><span class="od">365scores</span></div>'+fb;return;}
  var conf=d.status==="confirmada";
  var h='<div class="mr" style="background:#f1effb;border-radius:8px;margin-top:4px"><b>Escalação '+(conf?"confirmada":"provável")+'</b><span class="od">'+esc(d.formacao||"")+' · '+(conf?"confirmada":"provável")+' · 365scores</span></div>';
  h+=d.titulares.map(linhaJog).join("");
