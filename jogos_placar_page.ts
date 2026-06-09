@@ -45,7 +45,14 @@ button:disabled{opacity:.55;cursor:default}
 .foot{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--mut);margin-top:8px;padding-top:7px;border-top:1px dashed var(--bd);flex-wrap:wrap}.foot b{color:var(--tx);font-weight:800}.hora{font-weight:700}.thead{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--mut);margin-bottom:3px}.oem b{color:var(--tx)}
 .su:hover{background:var(--pri);color:#fff}
 .oddh{font-size:8px;font-weight:800;letter-spacing:.5px;color:var(--mut);text-align:right;text-transform:uppercase;line-height:1;margin-bottom:1px}
-.meta{display:flex;flex-direction:column;justify-content:center;align-items:flex-end;min-width:74px}
+.meta{display:flex;flex-direction:column;align-items:flex-end;min-width:94px;gap:4px}
+.mtop{display:flex;align-items:center;gap:6px}
+.fav{display:flex;flex-direction:column;align-items:flex-end;line-height:1.15;cursor:pointer}
+.favl{font-size:8px;font-weight:800;letter-spacing:.5px;color:var(--mut)}
+.favv{font-size:12px;display:flex;align-items:center;gap:4px}
+.favv b{font-size:14px;color:var(--tx)}
+.palp{font-size:12px;font-weight:800;color:#6d28d9}
+.grow{flex:1;min-height:6px}
 .data{font-size:11.5px;color:var(--mut);font-weight:700;text-align:right}
 .odds{display:flex;flex-direction:column;justify-content:space-between;gap:2px;min-width:66px;align-self:stretch;padding:2px 0}.odds>span{display:flex;justify-content:space-between;gap:8px;font-size:10.5px;line-height:1.35;color:var(--mut)}.odds i{font-style:normal;font-weight:700}.odds b{color:var(--tx);font-weight:800}.tagrow{display:flex;align-items:center;gap:5px}.o365big{height:17px;width:auto;border-radius:3px;opacity:.95}
 .pal{font-size:11px;color:#6d28d9;font-weight:700;text-align:right}
@@ -152,24 +159,17 @@ function card(j){
  var cor=CORES[chaveTab(j)]||"#222838";
  var gtab=j.grupo?('<div class="gtab" style="background:'+cor+'">GRUPO '+esc(j.grupo)+'</div>'):'';
  function row(tm,casa,val){var fld=casa?"pc":"pv";return '<div class="lin">'+fl(tm.iso)+'<span class="nm">'+esc(tm.pt)+'</span><button class="ix" title="Stats e noticias" onclick="info(\\''+esc(tm.en)+'\\')">&#128202;</button><input class="pl" id="'+fld+'-'+j.id+'" type="number" min="0" max="99" value="'+(val==null?"":val)+'" onchange="salvar('+j.id+')"><span class="step"><button class="su" onclick="stp('+j.id+','+(casa?1:0)+',1)">&#9650;</button><button class="su" onclick="stp('+j.id+','+(casa?1:0)+',-1)">&#9660;</button></span></div>';}
- var logo="";
- if(j.odds&&/365/.test(j.odds.fonte||"")){
-  var ttl="Odds (mercado 365scores) — "+(j.casa.sigla||"Casa")+" "+(j.odds.casa||"-")+" · Emp "+(j.odds.empate||"-")+" · "+(j.visitante.sigla||"Fora")+" "+(j.odds.fora||"-")+" · clique p/ ver";
-  logo='<img class="o365big oddbtn" src="'+S365LOGO+'" title="'+esc(ttl)+'" onclick="odds('+j.id+')">';
- }
- var chead='<div class="chead">'+(enc?'<span class="tag" style="margin-right:auto">encerrado</span>':'')+'<span class="hora">&#128336; '+esc(fmtHora(j.inicio))+'</span>'+logo+'</div>';
- var rows='<div class="rows">'+row(j.casa,1,j.placar_casa)+row(j.visitante,0,j.placar_visitante)+'</div>';
- return '<div class="jogo">'+gtab+'<div class="ccol">'+chead+rows+'</div></div>';
-}
-function odds(id){
- var j=JOGOS.find(function(x){return x.id===id;}); if(!j||!j.odds)return;
- var o=j.odds;
- function ro(lbl,v){return '<div class="mr"><span style="flex:1">'+lbl+'</span><b style="font-size:16px">'+esc(v||"-")+'</b></div>';}
- modal('<h3>'+fl(j.casa.iso)+' '+esc(j.casa.pt)+' &times; '+esc(j.visitante.pt)+' '+fl(j.visitante.iso)+'</h3>'
-  +'<div class="muted" style="font-size:12px;margin-bottom:8px">Odds 1X2 &middot; '+esc(o.fonte||"")+'</div>'
-  +ro(fl(j.casa.iso)+' '+esc(j.casa.pt)+' (vitória)',o.casa)
-  +ro('Empate',o.empate)
-  +ro(fl(j.visitante.iso)+' '+esc(j.visitante.pt)+' (vitória)',o.fora));
+ var logo=(j.odds&&/365/.test(j.odds.fonte||""))?('<img class="o365big oddbtn" src="'+S365LOGO+'" title="ver odds (mercado 365scores)" onclick="odds('+j.id+')">'):'';
+ var fav="";
+ if(j.odds){var c=parseFloat(j.odds.casa),x=parseFloat(j.odds.empate),f=parseFloat(j.odds.fora);var ar=[["c",c],["e",x],["f",f]].filter(function(a){return !isNaN(a[1]);});if(ar.length){ar.sort(function(a,b){return a[1]-b[1];});var bb=ar[0][0];
+  if(bb==="c")fav='<div class="fav" onclick="odds('+j.id+')"><span class="favl">FAVORITO</span><span class="favv">'+fl(j.casa.iso)+' <b>'+esc(j.odds.casa)+'</b></span></div>';
+  else if(bb==="f")fav='<div class="fav" onclick="odds('+j.id+')"><span class="favl">FAVORITO</span><span class="favv">'+fl(j.visitante.iso)+' <b>'+esc(j.odds.fora)+'</b></span></div>';
+  else fav='<div class="fav" onclick="odds('+j.id+')"><span class="favl">TEND&Ecirc;NCIA</span><span class="favv">Empate <b>'+esc(j.odds.empate)+'</b></span></div>';}}
+ var pal=j.palpite?('<div class="palp" title="palpite da casa (IA)">&#128302; '+esc(j.palpite.pc)+'x'+esc(j.palpite.pv)+'</div>'):'';
+ var tag=enc?'<span class="tag">encerrado</span>':'<span class="tag ag">agendado</span>';
+ var meta='<div class="meta"><div class="mtop"><span class="hora">&#128336; '+esc(fmtHora(j.inicio))+'</span>'+logo+'</div>'+fav+pal+'<div class="grow"></div>'+tag+'</div>';
+ var rows='<div class="times">'+row(j.casa,1,j.placar_casa)+row(j.visitante,0,j.placar_visitante)+'</div>';
+ return '<div class="jogo">'+gtab+'<div class="jbody">'+rows+meta+'</div></div>';
 }
 
 function render(){
