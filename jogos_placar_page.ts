@@ -169,8 +169,8 @@ function card(j){
   if(bb==="c")fav='<span class="fav" onclick="odds('+j.id+')" title="favorito"><i>FAV</i>'+fl(j.casa.iso)+'<b>'+esc(j.odds.casa)+'</b></span>';
   else if(bb==="f")fav='<span class="fav" onclick="odds('+j.id+')" title="favorito"><i>FAV</i>'+fl(j.visitante.iso)+'<b>'+esc(j.odds.fora)+'</b></span>';
   else fav='<span class="fav" onclick="odds('+j.id+')" title="tendencia"><i>EMP</i><b>'+esc(j.odds.empate)+'</b></span>';}}
- var tag=enc?'<span class="tag">encerrado</span>':'<span class="tag ag">agendado</span>';
- var meta='<div class="meta"><div class="mtop"><span class="hora">'+esc(fmtHora(j.inicio))+'</span>'+logo+'</div><div class="mbot">'+fav+tag+'</div></div>';
+ var tag=enc?'<span class="tag">encerrado</span>':'<span class="tag ag">&#128336; '+esc(fmtHora(j.inicio))+'</span>';
+ var meta='<div class="meta"><div class="mtop">'+logo+'</div><div class="mbot">'+fav+tag+'</div></div>';
  var rows='<div class="times">'+row(j.casa,1,j.placar_casa)+row(j.visitante,0,j.placar_visitante)+'</div>';
  return '<div class="jogo">'+gtab+'<div class="jbody">'+rows+meta+'</div></div>';
 }
