@@ -42,6 +42,9 @@ button:disabled{opacity:.55;cursor:default}
 .mov.show{display:flex}
 .modal{background:var(--card);border-radius:16px;padding:18px;max-width:480px;width:100%;box-shadow:0 24px 70px rgba(0,0,0,.3);max-height:84vh;overflow:auto}
 .modal h3{margin:0 0 4px;font-size:16px;display:flex;align-items:center;gap:9px}
+.cols{display:flex;gap:16px;align-items:flex-start}
+.col{flex:1;min-width:0}
+@media(max-width:680px){.cols{flex-direction:column}}
 .rk{display:inline-block;background:#222838;color:#fff;border-radius:8px;padding:2px 9px;font-weight:800;font-size:12px}
 .mr{display:flex;align-items:center;gap:9px;padding:9px 4px;border-bottom:1px solid var(--bd);font-size:13px}
 .mr .fl{width:22px;height:16px}
@@ -95,7 +98,7 @@ function H(){var h={"content-type":"application/json"};var s=localStorage.getIte
 function toast(m,t){var c=document.getElementById("toast");var d=document.createElement("div");d.textContent=m;d.style.cssText="background:"+(t==="err"?"#c01f2e":(t==="ok"?"#14794a":"#1f2430"))+";color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.25)";c.appendChild(d);setTimeout(function(){if(d.parentNode)d.parentNode.removeChild(d);},4800);}
 function esc(v){return String(v==null?"":v).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function fecha(){document.getElementById("mov").classList.remove("show");}
-function modal(html,foot){document.getElementById("mbody").innerHTML=html;document.getElementById("mfoot").innerHTML=foot||'<button class="sm gh" onclick="fecha()">Fechar</button>';var _m=document.querySelector(".modal");if(_m)_m.style.setProperty("--sb",CORES[ATIVA]||"#cbd2e0");document.getElementById("mov").classList.add("show");}
+function modal(html,foot){document.getElementById("mbody").innerHTML=html;document.getElementById("mfoot").innerHTML=foot||'<button class="sm gh" onclick="fecha()">Fechar</button>';var _m=document.querySelector(".modal");if(_m){_m.style.setProperty("--sb",CORES[ATIVA]||"#cbd2e0");_m.style.maxWidth="";}document.getElementById("mov").classList.add("show");}
 function confirmar(titulo,msg){return new Promise(function(res){
  modal('<h3>'+esc(titulo)+'</h3><div class="muted" style="font-size:13px;line-height:1.5">'+msg+'</div>',
   '<button class="sm gh" onclick="fecha();window.__no()">Cancelar</button> <button class="sm am" onclick="fecha();window.__yes()">Confirmar</button>');
@@ -137,8 +140,8 @@ function card(j){
  var src365=(j.odds&&/365/.test(j.odds.fonte||""))?('<img class="o365" src="'+S365LOGO+'" title="'+esc(j.odds.fonte)+'">'):'';var od=j.odds?('<div class="odds">'+src365+'<span><i>1</i><b>'+(j.odds.casa||"-")+'</b></span><span><i>X</i><b>'+(j.odds.empate||"-")+'</b></span><span><i>2</i><b>'+(j.odds.fora||"-")+'</b></span></div>'):'';
  var pal=j.palpite?('&#128302; '+esc(j.palpite.pc)+'x'+esc(j.palpite.pv)+(j.palpite.conf!=null?(' ('+esc(j.palpite.conf)+'%)'):'')):'';
  return '<div class="jogo">'+gtab+'<div class="jbody"><div class="times">'
-  +'<div class="lin">'+fl(j.casa.iso)+'<span class="nm">'+esc(j.casa.pt)+'</span><button class="ix" title="Stats" onclick="stats(\\''+esc(j.casa.en)+'\\')">&#128202;</button><button class="ix" title="Noticias" onclick="noticias(\\''+esc(j.casa.en)+'\\')">&#128240;</button><input class="pl" id="pc-'+j.id+'" type="number" min="0" max="99" value="'+(j.placar_casa==null?"":j.placar_casa)+'" onchange="salvar('+j.id+')"></div>'
-  +'<div class="lin">'+fl(j.visitante.iso)+'<span class="nm">'+esc(j.visitante.pt)+'</span><button class="ix" title="Stats" onclick="stats(\\''+esc(j.visitante.en)+'\\')">&#128202;</button><button class="ix" title="Noticias" onclick="noticias(\\''+esc(j.visitante.en)+'\\')">&#128240;</button><input class="pl" id="pv-'+j.id+'" type="number" min="0" max="99" value="'+(j.placar_visitante==null?"":j.placar_visitante)+'" onchange="salvar('+j.id+')"></div>'
+  +'<div class="lin">'+fl(j.casa.iso)+'<span class="nm">'+esc(j.casa.pt)+'</span><button class="ix" title="Stats e noticias" onclick="info(\\''+esc(j.casa.en)+'\\')">&#8505;&#65039;</button><input class="pl" id="pc-'+j.id+'" type="number" min="0" max="99" value="'+(j.placar_casa==null?"":j.placar_casa)+'" onchange="salvar('+j.id+')"></div>'
+  +'<div class="lin">'+fl(j.visitante.iso)+'<span class="nm">'+esc(j.visitante.pt)+'</span><button class="ix" title="Stats e noticias" onclick="info(\\''+esc(j.visitante.en)+'\\')">&#8505;&#65039;</button><input class="pl" id="pv-'+j.id+'" type="number" min="0" max="99" value="'+(j.placar_visitante==null?"":j.placar_visitante)+'" onchange="salvar('+j.id+')"></div>'
   +'</div><div class="meta">'
   +'<span class="data">'+esc(fmtData(j.inicio))+'</span>'
   +(od||"")
@@ -174,16 +177,12 @@ async function salvarNewsKey(){
  if(r.ok){toast("Chave NewsData salva. Gere os palpites de novo p/ usar as noticias.","ok");document.getElementById("newskey").value="";}
  else{toast("Erro ao salvar a chave","err");}
 }
-async function noticias(en){
- modal('<div class="muted">buscando noticias...</div>');
- var r=await fetch(_b()+"/admin/jogos-placar/noticias?en="+encodeURIComponent(en),{headers:H()});
- var d=await r.json().catch(function(){return{};});
- if(!d||!d.ok){modal('<h3>Noticias</h3><div class="muted">erro ao buscar</div>');return;}
- var t=d.time,body;
- if(d.semChave){body='<div class="muted">Configure a chave da NewsData.io em <b>Configuracoes &rsaquo; APIs</b> para ver as noticias.</div>';}
- else if(!d.noticias||!d.noticias.length){body='<div class="muted">sem noticias recentes para este time.'+(d.debug?(' <br><small>API: '+esc(d.debug.status)+', total '+esc(d.debug.total)+(d.debug.msg?(' &middot; '+esc(d.debug.msg)):'')+'</small>'):'')+'</div>';}
- else{body=d.noticias.map(function(n){var lk=n.link?('<a class="lkbtn" href="'+esc(n.link)+'" target="_blank">abrir &#8599;</a>'):'';var meta=[];if(n.data)meta.push(fmtData(n.data));if(n.fonte)meta.push('fonte: '+esc(n.fonte));var src=meta.length?('<div class="muted" style="font-size:11px;margin-top:2px">'+meta.join(' &middot; ')+'</div>'):'';return '<div class="mr" style="align-items:flex-start"><span>&#128240;</span><div style="flex:1;min-width:0"><div>'+esc(n.title)+'</div>'+src+'</div>'+lk+'</div>';}).join("");}
- modal('<h3>'+fl(t.iso)+' '+esc(t.pt)+' &mdash; ultimas noticias</h3>'+body);
+function noticiasBody(d){
+ var html='<div style="font-size:12px;font-weight:800;color:var(--mut);margin-bottom:6px">&#128240; NOTÍCIAS</div>';
+ if(!d||!d.ok){return html+'<div class="muted">noticias indisponivel</div>';}
+ if(d.semChave){return html+'<div class="muted">noticias nao configuradas.</div>';}
+ if(!d.noticias||!d.noticias.length){return html+'<div class="muted">sem noticias recentes para este time.'+(d.debug?(' <br><small>API: '+esc(d.debug.status)+', total '+esc(d.debug.total)+(d.debug.msg?(' &middot; '+esc(d.debug.msg)):'')+'</small>'):'')+'</div>';}
+ return html+d.noticias.map(function(n){var lk=n.link?('<a class="lkbtn" href="'+esc(n.link)+'" target="_blank">abrir &#8599;</a>'):'';var meta=[];if(n.data)meta.push(fmtData(n.data));if(n.fonte)meta.push('fonte: '+esc(n.fonte));var src=meta.length?('<div class="muted" style="font-size:11px;margin-top:2px">'+meta.join(' &middot; ')+'</div>'):'';return '<div class="mr" style="align-items:flex-start"><span>&#128240;</span><div style="flex:1;min-width:0"><div>'+esc(n.title)+'</div>'+src+'</div>'+lk+'</div>';}).join("");
 }
 var CUR_EN="";
 async function escalacao(){
@@ -197,25 +196,29 @@ async function escalacao(){
  h+=d.titulares.map(linhaJog).join("");
  box.innerHTML=h;
 }
-async function stats(en){
- CUR_EN=en;
- modal('<div class="muted">carregando '+esc(en)+'...</div>');
- var r=await fetch(_b()+"/admin/jogos-placar/stats?en="+encodeURIComponent(en),{headers:H()});
- var d=await r.json().catch(function(){return{};});
- if(!d||!d.ok){modal('<h3>Info</h3><div class="muted">Erro: '+esc((d&&d.erro)||"")+'</div>');return;}
- var t=d.time;
+function statsBody(d){
+ if(!d||!d.ok){return '<div class="muted">dados indisponivel</div>';}
  var rk=d.ranking?('<span class="rk">Ranking FIFA #'+d.ranking+'</span>'):'';
- var html='<h3>'+fl(t.iso)+' '+esc(t.pt)+'</h3><div style="margin:2px 0 10px">'+rk+'</div>';
- if(d.grupo){html+='<div class="mr"><b>Grupo '+esc(String(d.grupo.nome).replace("Grupo ",""))+'</b><span class="od">'+d.grupo.pos+'º lugar &middot; '+d.grupo.pts+' pts ('+d.grupo.v+'V '+d.grupo.e+'E '+d.grupo.d+'D)</span></div>';}
- function jline(lbl,j){if(!j)return '';var dd=j.data?fmtData(j.data):'';var pl=j.placar?(' <b>'+esc(j.placar)+'</b>'):'';return '<div class="mr"><span class="muted" style="width:56px;flex:none">'+lbl+'</span>'+fl(j.adversario.iso)+'<span>'+(j.casa?'vs ':'@ ')+esc(j.adversario.pt)+'</span>'+pl+'<span class="od">'+esc(dd)+'</span></div>';}
+ var html='<div style="font-size:12px;font-weight:800;color:var(--mut);margin-bottom:6px">&#128202; DADOS</div><div style="margin-bottom:8px">'+rk+'</div>';
+ if(d.grupo){html+='<div class="mr"><b>Grupo '+esc(String(d.grupo.nome).replace("Grupo ",""))+'</b><span class="od">'+d.grupo.pos+'º &middot; '+d.grupo.pts+'pts ('+d.grupo.v+'V '+d.grupo.e+'E '+d.grupo.d+'D)</span></div>';}
+ function jline(lbl,j){if(!j)return '';var dd=j.data?fmtData(j.data):'';var pl=j.placar?(' <b>'+esc(j.placar)+'</b>'):'';return '<div class="mr"><span class="muted" style="width:52px;flex:none">'+lbl+'</span>'+fl(j.adversario.iso)+'<span style="flex:1;min-width:0">'+(j.casa?'vs ':'@ ')+esc(j.adversario.pt)+'</span>'+pl+'</div>';}
  html+=jline('Próximo',d.proximo)+jline('Último',d.ultimo);
  var u=d.ultimaCopa||[];
  if(u.length){html+='<div class="muted" style="font-size:12px;margin:10px 0 4px">Copa 2022:</div>'+u.map(function(g){return '<div class="mr"><span class="bdg b'+g.res+'">'+g.res+'</span><b>'+esc(g.placar)+'</b>'+fl(g.adversario.iso)+'<span>'+esc(g.adversario.pt)+'</span><span class="od">'+esc(faseCurta(g.fase))+'</span></div>';}).join("");}
- else{html+='<div class="muted" style="font-size:12px;margin:10px 0 4px">Copa 2022:</div><div class="mr"><span class="muted" style="line-height:1.4">Não disputou a Copa de 2022.'+(d.regiao?(' Chega à Copa 2026 via <b>'+esc(d.regiao)+'</b>.'):'')+'</span></div>';}
- 
-var el=d.elenco||[];
- if(el.length){html+='<div style="display:flex;align-items:center;gap:8px;margin:12px 0 4px"><span class="muted" style="font-size:12px;flex:1">Elenco ('+el.length+')</span><button class="ix" style="padding:5px 9px" onclick="escalacao()">🔮 Escalação provável</button></div><div id="esc-box"></div>'+el.map(linhaJog).join("");}
- modal(html);
+ else{html+='<div class="muted" style="font-size:12px;margin:10px 0 4px">Copa 2022:</div><div class="mr"><span class="muted" style="line-height:1.4">Não disputou a Copa de 2022.'+(d.regiao?(' Chega via <b>'+esc(d.regiao)+'</b>.'):'')+'</span></div>';}
+ var el=d.elenco||[];
+ if(el.length){html+='<div style="display:flex;align-items:center;gap:8px;margin:12px 0 4px"><span class="muted" style="font-size:12px;flex:1">Elenco ('+el.length+')</span><button class="ix" style="padding:5px 9px" onclick="escalacao()">🔮 Escalação</button></div><div id="esc-box"></div>'+el.map(linhaJog).join("");}
+ return html;
+}
+async function info(en){
+ CUR_EN=en;
+ modal('<div class="muted">carregando '+esc(en)+'...</div>');
+ var sd=null,nd=null;
+ try{var sr=await fetch(_b()+"/admin/jogos-placar/stats?en="+encodeURIComponent(en),{headers:H()});sd=await sr.json();}catch(e){}
+ try{var nr=await fetch(_b()+"/admin/jogos-placar/noticias?en="+encodeURIComponent(en),{headers:H()});nd=await nr.json();}catch(e){}
+ var t=(sd&&sd.time)||(nd&&nd.time)||{pt:en,iso:""};
+ modal('<h3>'+fl(t.iso)+' '+esc(t.pt)+'</h3><div class="cols"><div class="col">'+statsBody(sd)+'</div><div class="col">'+noticiasBody(nd)+'</div></div>');
+ var m=document.querySelector(".modal");if(m)m.style.maxWidth="780px";
 }
 function imgFail(el){el.outerHTML='<span class="pf nopf">&#128100;</span>';}
 function linhaJog(p){var av=p.figurinha?('<img class="pf" src="'+_b()+"/fig/"+p.figurinha+'" onerror="imgFail(this)">'):'<span class="pf nopf">&#128100;</span>';return '<div class="mr" style="padding:4px">'+av+'<span style="flex:1;min-width:0">'+esc(p.nome)+'</span><span class="od">'+esc(p.posicao||"")+(p.clube?(' &middot; '+esc(p.clube)):'')+'</span></div>';}
