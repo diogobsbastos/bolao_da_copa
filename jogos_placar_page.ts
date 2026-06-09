@@ -25,8 +25,10 @@ button:disabled{opacity:.55;cursor:default}
 .jgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .jogo{background:var(--card);border:1px solid var(--bd);border-radius:12px;overflow:hidden;display:flex;align-items:stretch}
 .gtab{writing-mode:vertical-rl;transform:rotate(180deg);background:#222838;color:#fff;font-weight:800;font-size:10px;letter-spacing:2px;padding:8px 6px;display:flex;align-items:center;justify-content:center;text-align:center;flex:none}
-.jbody{flex:1;min-width:0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px}
-.times{flex:1;min-width:190px;display:flex;flex-direction:column;gap:8px}
+.jbody{flex:1;min-width:0;display:flex;align-items:stretch;gap:12px;padding:2px 12px 12px}
+.ccol{flex:1;min-width:0;display:flex;flex-direction:column}
+.chead{display:flex;align-items:center;justify-content:flex-end;gap:7px;padding:7px 12px 0;font-size:11px;color:var(--mut)}
+.times{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;justify-content:center}
 .lin{display:flex;align-items:center;gap:8px}
 .fl{width:26px;height:19px;object-fit:cover;border-radius:3px;background:#e6e8f0;flex:none}
 .nm{flex:1;font-size:13.5px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -41,9 +43,9 @@ button:disabled{opacity:.55;cursor:default}
 .foot{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--mut);margin-top:8px;padding-top:7px;border-top:1px dashed var(--bd);flex-wrap:wrap}.foot b{color:var(--tx);font-weight:800}.hora{font-weight:700}.thead{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--mut);margin-bottom:3px}.oem b{color:var(--tx)}
 .su:hover{background:var(--pri);color:#fff}
 .oddh{font-size:8px;font-weight:800;letter-spacing:.5px;color:var(--mut);text-align:right;text-transform:uppercase;line-height:1;margin-bottom:1px}
-.meta{display:flex;flex-direction:column;align-items:flex-end;gap:5px;min-width:130px}
+.meta{display:flex;flex-direction:column;justify-content:center;align-items:flex-end;min-width:74px}
 .data{font-size:11.5px;color:var(--mut);font-weight:700;text-align:right}
-.odds{display:flex;flex-direction:column;gap:1px;align-items:stretch;min-width:66px;margin:3px 0}.odds>span{display:flex;justify-content:space-between;gap:8px;font-size:10.5px;line-height:1.35;color:var(--mut)}.odds i{font-style:normal;font-weight:700}.odds b{color:var(--tx);font-weight:800}.tagrow{display:flex;align-items:center;gap:5px}.o365big{height:17px;width:auto;border-radius:3px;opacity:.95}
+.odds{display:flex;flex-direction:column;justify-content:space-between;gap:2px;min-width:66px;align-self:stretch;padding:2px 0}.odds>span{display:flex;justify-content:space-between;gap:8px;font-size:10.5px;line-height:1.35;color:var(--mut)}.odds i{font-style:normal;font-weight:700}.odds b{color:var(--tx);font-weight:800}.tagrow{display:flex;align-items:center;gap:5px}.o365big{height:17px;width:auto;border-radius:3px;opacity:.95}
 .pal{font-size:11px;color:#6d28d9;font-weight:700;text-align:right}
 .tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;background:#e4f6ec;color:#14794a}
 .tag.ag{background:#eef1fb;color:var(--pri)}
@@ -148,12 +150,12 @@ function card(j){
  var cor=CORES[chaveTab(j)]||"#222838";
  var gtab=j.grupo?('<div class="gtab" style="background:'+cor+'">GRUPO '+esc(j.grupo)+'</div>'):'';
  function row(tm,casa,val){var fld=casa?"pc":"pv";return '<div class="lin">'+fl(tm.iso)+'<span class="nm">'+esc(tm.pt)+'</span><button class="ix" title="Stats e noticias" onclick="info(\\''+esc(tm.en)+'\\')">&#128202;</button><input class="pl" id="'+fld+'-'+j.id+'" type="number" min="0" max="99" value="'+(val==null?"":val)+'" onchange="salvar('+j.id+')"><span class="step"><button class="su" onclick="stp('+j.id+','+(casa?1:0)+',1)">&#9650;</button><button class="su" onclick="stp('+j.id+','+(casa?1:0)+',-1)">&#9660;</button></span></div>';}
- var thead='<div class="thead"><span class="hora">&#128336; '+esc(fmtHora(j.inicio))+'</span>'+(enc?'<span class="tag">encerrado</span>':'')+'</div>';
- var od=j.odds?('<div class="odds"><div class="oddh">ODDS</div><span><i>'+esc(j.casa.sigla||"Casa")+'</i><b>'+(j.odds.casa||"-")+'</b></span><span><i>Emp</i><b>'+(j.odds.empate||"-")+'</b></span><span><i>'+esc(j.visitante.sigla||"Fora")+'</i><b>'+(j.odds.fora||"-")+'</b></span></div>'):'';
  var logo=(j.odds&&/365/.test(j.odds.fonte||""))?('<img class="o365big" src="'+S365LOGO+'" title="odds: mercado (365scores)">'):'';
+ var chead='<div class="chead">'+(enc?'<span class="tag" style="margin-right:auto">encerrado</span>':'')+'<span class="hora">&#128336; '+esc(fmtHora(j.inicio))+'</span>'+logo+'</div>';
+ var od=j.odds?('<div class="odds"><span><i>'+esc(j.casa.sigla||"Casa")+'</i><b>'+(j.odds.casa||"-")+'</b></span><span class="oemp"><i>Emp</i><b>'+(j.odds.empate||"-")+'</b></span><span><i>'+esc(j.visitante.sigla||"Fora")+'</i><b>'+(j.odds.fora||"-")+'</b></span></div>'):'';
  var pal=j.palpite?('<span class="pal">&#128302; '+esc(j.palpite.pc)+'x'+esc(j.palpite.pv)+'</span>'):'';
- var meta='<div class="meta">'+od+(logo||'')+pal+'</div>';
- return '<div class="jogo">'+gtab+'<div class="jbody"><div class="times">'+thead+row(j.casa,1,j.placar_casa)+row(j.visitante,0,j.placar_visitante)+'</div>'+meta+'</div></div>';
+ var jbody='<div class="jbody"><div class="times">'+row(j.casa,1,j.placar_casa)+row(j.visitante,0,j.placar_visitante)+'</div><div class="meta">'+od+pal+'</div></div>';
+ return '<div class="jogo">'+gtab+'<div class="ccol">'+chead+jbody+'</div></div>';
 }
 
 function render(){
