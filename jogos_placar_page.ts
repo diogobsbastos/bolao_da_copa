@@ -25,7 +25,7 @@ button:disabled{opacity:.55;cursor:default}
 .jgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .jogo{background:var(--card);border:1px solid var(--bd);border-radius:12px;overflow:hidden;display:flex;align-items:stretch}
 .gtab{writing-mode:vertical-rl;transform:rotate(180deg);background:#222838;color:#fff;font-weight:800;font-size:10px;letter-spacing:2px;padding:8px 6px;display:flex;align-items:center;justify-content:center;text-align:center;flex:none}
-.jbody{flex:1;min-width:0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px}
+.jbody{flex:1;min-width:0;padding:10px 12px}
 .times{flex:1;min-width:190px;display:flex;flex-direction:column;gap:8px}
 .lin{display:flex;align-items:center;gap:8px}
 .fl{width:26px;height:19px;object-fit:cover;border-radius:3px;background:#e6e8f0;flex:none}
@@ -35,7 +35,10 @@ button:disabled{opacity:.55;cursor:default}
 .pl::-webkit-inner-spin-button,.pl::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 .pl{-moz-appearance:textfield}
 .step{display:flex;flex-direction:column;gap:2px;flex:none}
-.su{background:#eef1fb;color:var(--pri);border:0;border-radius:4px;width:18px;height:15px;font-size:8px;line-height:1;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center}
+.su{color:#fff;border:0;border-radius:4px;width:16px;height:13px;font-size:7px;line-height:1;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;opacity:.85}.su:hover{opacity:1}
+.ib{background:transparent;border:0;cursor:pointer;font-size:16px;padding:0 2px;line-height:1;flex:none;opacity:.85}.ib:hover{opacity:1}
+.od1{font-size:13px;font-weight:800;color:var(--tx);min-width:30px;text-align:right;flex:none}
+.foot{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--mut);margin-top:8px;padding-top:7px;border-top:1px dashed var(--bd);flex-wrap:wrap}.foot b{color:var(--tx);font-weight:800}.hora{font-weight:700}.oem b{color:var(--tx)}
 .su:hover{background:var(--pri);color:#fff}
 .oddh{font-size:8px;font-weight:800;letter-spacing:.5px;color:var(--mut);text-align:right;text-transform:uppercase;line-height:1;margin-bottom:1px}
 .meta{display:flex;flex-direction:column;align-items:flex-end;gap:5px;min-width:130px}
@@ -139,22 +142,20 @@ function renderTabs(){
   return '<div class="tab"'+st+' onclick="ATIVA=\\''+k+'\\';renderTabs();render()">'+lbl+'</div>';
  }).join("");
 }
+function fmtHora(iso){if(!iso)return "";var d=new Date(iso);return ("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);}
 function card(j){
  var enc=j.status==="encerrado";
  var cor=CORES[chaveTab(j)]||"#222838";
  var gtab=j.grupo?('<div class="gtab" style="background:'+cor+'">GRUPO '+esc(j.grupo)+'</div>'):'';
- var od=j.odds?('<div class="odds"><div class="oddh">ODDS</div><span><i>Casa</i><b>'+(j.odds.casa||"-")+'</b></span><span><i>Emp.</i><b>'+(j.odds.empate||"-")+'</b></span><span><i>Fora</i><b>'+(j.odds.fora||"-")+'</b></span></div>'):'';
- var pal=j.palpite?('&#128302; '+esc(j.palpite.pc)+'x'+esc(j.palpite.pv)+(j.palpite.conf!=null?(' ('+esc(j.palpite.conf)+'%)'):'')):'';
- return '<div class="jogo">'+gtab+'<div class="jbody"><div class="times">'
-  +'<div class="lin">'+fl(j.casa.iso)+'<span class="nm">'+esc(j.casa.pt)+'</span><button class="ix" title="Stats e noticias" onclick="info(\\''+esc(j.casa.en)+'\\')">&#128202;</button><input class="pl" id="pc-'+j.id+'" type="number" min="0" max="99" value="'+(j.placar_casa==null?"":j.placar_casa)+'" onchange="salvar('+j.id+')"><span class="step"><button class="su" onclick="stp('+j.id+',1,1)">&#9650;</button><button class="su" onclick="stp('+j.id+',1,-1)">&#9660;</button></span></div>'
-  +'<div class="lin">'+fl(j.visitante.iso)+'<span class="nm">'+esc(j.visitante.pt)+'</span><button class="ix" title="Stats e noticias" onclick="info(\\''+esc(j.visitante.en)+'\\')">&#128202;</button><input class="pl" id="pv-'+j.id+'" type="number" min="0" max="99" value="'+(j.placar_visitante==null?"":j.placar_visitante)+'" onchange="salvar('+j.id+')"><span class="step"><button class="su" onclick="stp('+j.id+',0,1)">&#9650;</button><button class="su" onclick="stp('+j.id+',0,-1)">&#9660;</button></span></div>'
-  +'</div><div class="meta">'
-  +'<span class="data">'+esc(fmtData(j.inicio))+'</span>'
-  +(od||"")
-  +(pal?'<span class="pal">'+pal+'</span>':'')
-  +'<span class="tagrow">'+(enc?'<span class="tag">encerrado</span>':'<span class="tag ag">agendado</span>')+(j.odds&&/365/.test(j.odds.fonte||"")?('<img class="o365big" src="'+S365LOGO+'" title="odds: mercado (365scores)">'):'')+'</span>'
-  +'</div></div></div>';
+ var tag=enc?'<span class="tag">encerrado</span>':'<span class="tag ag">agendado</span>';
+ var logo=(j.odds&&/365/.test(j.odds.fonte||""))?('<img class="o365big" src="'+S365LOGO+'" title="odds: mercado (365scores)">'):'';
+ var pal=j.palpite?('<span title="palpite IA">&#128302; '+esc(j.palpite.pc)+'x'+esc(j.palpite.pv)+'</span>'):'';
+ function row(tm,casa,val,oddv){var fld=casa?"pc":"pv";return '<div class="lin">'+fl(tm.iso)+'<span class="nm">'+esc(tm.pt)+'</span><button class="ib" title="Stats e noticias" onclick="info(\\''+esc(tm.en)+'\\')">&#128202;</button><span class="od1" title="odd vitoria">'+(oddv||"")+'</span><input class="pl" id="'+fld+'-'+j.id+'" type="number" min="0" max="99" value="'+(val==null?"":val)+'" onchange="salvar('+j.id+')"><span class="step"><button class="su" style="background:'+cor+'" onclick="stp('+j.id+','+(casa?1:0)+',1)">&#9650;</button><button class="su" style="background:'+cor+'" onclick="stp('+j.id+','+(casa?1:0)+',-1)">&#9660;</button></span></div>';}
+ var oc=j.odds?(j.odds.casa||""):"", of=j.odds?(j.odds.fora||""):"", ox=j.odds?(j.odds.empate||""):"";
+ var foot='<div class="foot">'+(ox?'<span class="oem" title="odd empate">X <b>'+esc(ox)+'</b></span>':'')+tag+'<span class="hora">&#128336; '+esc(fmtHora(j.inicio))+'</span>'+pal+logo+'</div>';
+ return '<div class="jogo">'+gtab+'<div class="jbody">'+row(j.casa,1,j.placar_casa,oc)+row(j.visitante,0,j.placar_visitante,of)+foot+'</div></div>';
 }
+
 function render(){
  var js=JOGOS.filter(function(j){return chaveTab(j)===ATIVA;});
  document.getElementById("cnt").textContent=js.length+" jogos nesta aba";
