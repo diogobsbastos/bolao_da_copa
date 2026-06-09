@@ -28,6 +28,8 @@ button:disabled{opacity:.55;cursor:default}
 .jbody{flex:1;min-width:0;display:flex;align-items:stretch;gap:12px;padding:2px 12px 12px}
 .ccol{flex:1;min-width:0;display:flex;flex-direction:column}
 .chead{display:flex;align-items:center;justify-content:flex-end;gap:7px;padding:7px 12px 0;font-size:11px;color:var(--mut)}
+.rows{padding:3px 12px 12px;display:flex;flex-direction:column;gap:9px}
+.oddbtn{cursor:pointer;transition:.15s}.oddbtn:hover{transform:scale(1.12)}
 .times{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;justify-content:center}
 .lin{display:flex;align-items:center;gap:8px}
 .fl{width:26px;height:19px;object-fit:cover;border-radius:3px;background:#e6e8f0;flex:none}
@@ -150,12 +152,24 @@ function card(j){
  var cor=CORES[chaveTab(j)]||"#222838";
  var gtab=j.grupo?('<div class="gtab" style="background:'+cor+'">GRUPO '+esc(j.grupo)+'</div>'):'';
  function row(tm,casa,val){var fld=casa?"pc":"pv";return '<div class="lin">'+fl(tm.iso)+'<span class="nm">'+esc(tm.pt)+'</span><button class="ix" title="Stats e noticias" onclick="info(\\''+esc(tm.en)+'\\')">&#128202;</button><input class="pl" id="'+fld+'-'+j.id+'" type="number" min="0" max="99" value="'+(val==null?"":val)+'" onchange="salvar('+j.id+')"><span class="step"><button class="su" onclick="stp('+j.id+','+(casa?1:0)+',1)">&#9650;</button><button class="su" onclick="stp('+j.id+','+(casa?1:0)+',-1)">&#9660;</button></span></div>';}
- var logo=(j.odds&&/365/.test(j.odds.fonte||""))?('<img class="o365big" src="'+S365LOGO+'" title="odds: mercado (365scores)">'):'';
+ var logo="";
+ if(j.odds&&/365/.test(j.odds.fonte||"")){
+  var ttl="Odds (mercado 365scores) — "+(j.casa.sigla||"Casa")+" "+(j.odds.casa||"-")+" · Emp "+(j.odds.empate||"-")+" · "+(j.visitante.sigla||"Fora")+" "+(j.odds.fora||"-")+" · clique p/ ver";
+  logo='<img class="o365big oddbtn" src="'+S365LOGO+'" title="'+esc(ttl)+'" onclick="odds('+j.id+')">';
+ }
  var chead='<div class="chead">'+(enc?'<span class="tag" style="margin-right:auto">encerrado</span>':'')+'<span class="hora">&#128336; '+esc(fmtHora(j.inicio))+'</span>'+logo+'</div>';
- var od=j.odds?('<div class="odds"><span><i>'+esc(j.casa.sigla||"Casa")+'</i><b>'+(j.odds.casa||"-")+'</b></span><span class="oemp"><i>Emp</i><b>'+(j.odds.empate||"-")+'</b></span><span><i>'+esc(j.visitante.sigla||"Fora")+'</i><b>'+(j.odds.fora||"-")+'</b></span></div>'):'';
- var pal=j.palpite?('<span class="pal">&#128302; '+esc(j.palpite.pc)+'x'+esc(j.palpite.pv)+'</span>'):'';
- var jbody='<div class="jbody"><div class="times">'+row(j.casa,1,j.placar_casa)+row(j.visitante,0,j.placar_visitante)+'</div><div class="meta">'+od+pal+'</div></div>';
- return '<div class="jogo">'+gtab+'<div class="ccol">'+chead+jbody+'</div></div>';
+ var rows='<div class="rows">'+row(j.casa,1,j.placar_casa)+row(j.visitante,0,j.placar_visitante)+'</div>';
+ return '<div class="jogo">'+gtab+'<div class="ccol">'+chead+rows+'</div></div>';
+}
+function odds(id){
+ var j=JOGOS.find(function(x){return x.id===id;}); if(!j||!j.odds)return;
+ var o=j.odds;
+ function ro(lbl,v){return '<div class="mr"><span style="flex:1">'+lbl+'</span><b style="font-size:16px">'+esc(v||"-")+'</b></div>';}
+ modal('<h3>'+fl(j.casa.iso)+' '+esc(j.casa.pt)+' &times; '+esc(j.visitante.pt)+' '+fl(j.visitante.iso)+'</h3>'
+  +'<div class="muted" style="font-size:12px;margin-bottom:8px">Odds 1X2 &middot; '+esc(o.fonte||"")+'</div>'
+  +ro(fl(j.casa.iso)+' '+esc(j.casa.pt)+' (vitória)',o.casa)
+  +ro('Empate',o.empate)
+  +ro(fl(j.visitante.iso)+' '+esc(j.visitante.pt)+' (vitória)',o.fora));
 }
 
 function render(){
