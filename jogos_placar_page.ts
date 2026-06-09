@@ -140,8 +140,8 @@ function card(j){
  var src365=(j.odds&&/365/.test(j.odds.fonte||""))?('<img class="o365" src="'+S365LOGO+'" title="'+esc(j.odds.fonte)+'">'):'';var od=j.odds?('<div class="odds">'+src365+'<span><i>1</i><b>'+(j.odds.casa||"-")+'</b></span><span><i>X</i><b>'+(j.odds.empate||"-")+'</b></span><span><i>2</i><b>'+(j.odds.fora||"-")+'</b></span></div>'):'';
  var pal=j.palpite?('&#128302; '+esc(j.palpite.pc)+'x'+esc(j.palpite.pv)+(j.palpite.conf!=null?(' ('+esc(j.palpite.conf)+'%)'):'')):'';
  return '<div class="jogo">'+gtab+'<div class="jbody"><div class="times">'
-  +'<div class="lin">'+fl(j.casa.iso)+'<span class="nm">'+esc(j.casa.pt)+'</span><button class="ix" title="Stats e noticias" onclick="info(\\''+esc(j.casa.en)+'\\')">&#8505;&#65039;</button><input class="pl" id="pc-'+j.id+'" type="number" min="0" max="99" value="'+(j.placar_casa==null?"":j.placar_casa)+'" onchange="salvar('+j.id+')"></div>'
-  +'<div class="lin">'+fl(j.visitante.iso)+'<span class="nm">'+esc(j.visitante.pt)+'</span><button class="ix" title="Stats e noticias" onclick="info(\\''+esc(j.visitante.en)+'\\')">&#8505;&#65039;</button><input class="pl" id="pv-'+j.id+'" type="number" min="0" max="99" value="'+(j.placar_visitante==null?"":j.placar_visitante)+'" onchange="salvar('+j.id+')"></div>'
+  +'<div class="lin">'+fl(j.casa.iso)+'<span class="nm">'+esc(j.casa.pt)+'</span><button class="ix" title="Stats e noticias" onclick="info(\\''+esc(j.casa.en)+'\\')">&#128202;</button><input class="pl" id="pc-'+j.id+'" type="number" min="0" max="99" value="'+(j.placar_casa==null?"":j.placar_casa)+'" onchange="salvar('+j.id+')"></div>'
+  +'<div class="lin">'+fl(j.visitante.iso)+'<span class="nm">'+esc(j.visitante.pt)+'</span><button class="ix" title="Stats e noticias" onclick="info(\\''+esc(j.visitante.en)+'\\')">&#128202;</button><input class="pl" id="pv-'+j.id+'" type="number" min="0" max="99" value="'+(j.placar_visitante==null?"":j.placar_visitante)+'" onchange="salvar('+j.id+')"></div>'
   +'</div><div class="meta">'
   +'<span class="data">'+esc(fmtData(j.inicio))+'</span>'
   +(od||"")
