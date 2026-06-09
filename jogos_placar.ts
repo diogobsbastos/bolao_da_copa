@@ -92,30 +92,42 @@ async function copa2022(): Promise<any[]> {
 
 // Noticias das selecoes (NewsData.io) — entram no prompt do palpite. Cache 12h por selecao.
 type NewsItem = { title: string; link: string; fonte: string };
+let CACHE_ESPN: { t: number; arts: { headline: string; desc: string; link: string; source: string }[] } | null = null;
 const CACHE_NEWS = new Map<string, { t: number; linhas: string[] }>();
-async function newsRaw(nomePT: string): Promise<{ status: string; total: number; items: NewsItem[]; msg: string }> {
-  const key = await getCfg("newsdata_api_key");
-  if (!key) return { status: "sem-chave", total: 0, items: [], msg: "" };
+async function espnFeed(): Promise<{ headline: string; desc: string; link: string; source: string }[]> {
+  if (CACHE_ESPN && Date.now() - CACHE_ESPN.t < 60 * 60 * 1000) return CACHE_ESPN.arts;
   try {
-    const url = "https://newsdata.io/api/1/latest?apikey=" + encodeURIComponent(key) + "&language=pt&category=sports&q=" + encodeURIComponent('"' + nomePT + '"');
-    const r = await fetch(url);
+    const r = await fetch("https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/news?lang=pt&region=br&limit=50");
     const j: any = await r.json().catch(() => ({}));
-    const arr: any[] = Array.isArray(j?.results) ? j.results : [];
-    const seen = new Set<string>(); const items: NewsItem[] = [];
-    for (const a of arr) {
-      const title = String(a?.title || "").trim(); if (!title) continue;
-      const k = title.toLowerCase(); if (seen.has(k)) continue; seen.add(k);
-      items.push({ title, link: String(a?.link || ""), fonte: String(a?.source_name || a?.source_id || "") });
-      if (items.length >= 5) break;
-    }
-    const msg = (j?.results && !Array.isArray(j?.results)) ? String(j?.results?.message || "") : String(j?.message || "");
-    return { status: String(j?.status || r.status), total: Number(j?.totalResults || arr.length), items, msg };
-  } catch (e: any) { return { status: "erro", total: 0, items: [], msg: String(e?.message ?? e).slice(0, 120) }; }
+    const arr: any[] = Array.isArray(j?.articles) ? j.articles : [];
+    const arts = arr.map((a: any) => ({
+      headline: String(a?.headline || "").trim(),
+      desc: String(a?.description || ""),
+      link: String(a?.links?.web?.href || a?.links?.mobile?.href || ""),
+      source: String(a?.source || "ESPN"),
+    })).filter((a) => a.headline);
+    CACHE_ESPN = { t: Date.now(), arts };
+    return arts;
+  } catch { return []; }
+}
+async function newsRaw(nomePT: string, en: string): Promise<{ status: string; total: number; items: NewsItem[]; msg: string }> {
+  const arts = await espnFeed();
+  if (!arts.length) return { status: "feed-vazio", total: 0, items: [], msg: "feed da Copa (ESPN) sem materias agora" };
+  const needle = en.toLowerCase();
+  const seen = new Set<string>(); const items: NewsItem[] = [];
+  for (const a of arts) {
+    const hay = (a.headline + " " + a.desc).toLowerCase();
+    if (!hay.includes(needle)) continue;
+    const k = a.headline.toLowerCase(); if (seen.has(k)) continue; seen.add(k);
+    items.push({ title: a.headline, link: a.link, fonte: a.source });
+    if (items.length >= 5) break;
+  }
+  return { status: "ok", total: items.length, items, msg: items.length ? "" : ("nenhuma materia citou " + en + " no feed da Copa (" + arts.length + " materias)") };
 }
 async function noticiasTime(nomePT: string, en: string): Promise<string[]> {
   const c = CACHE_NEWS.get(en);
-  if (c && Date.now() - c.t < 12 * 3600 * 1000) return c.linhas;
-  const d = await newsRaw(nomePT);
+  if (c && Date.now() - c.t < 6 * 3600 * 1000) return c.linhas;
+  const d = await newsRaw(nomePT, en);
   const linhas = d.items.map((i) => i.title).slice(0, 4);
   if (linhas.length) CACHE_NEWS.set(en, { t: Date.now(), linhas });
   return linhas;
@@ -271,9 +283,7 @@ export async function rotasJogosPlacar(app: FastifyInstance) {
     const en = String((req.query as any)?.en ?? "").trim();
     if (!en) return reply.code(400).send({ erro: "time?" });
     const p = timePT(en);
-    const key = await getCfg("newsdata_api_key");
-    if (!key) return { ok: true, semChave: true, noticias: [], time: { en, pt: p.pt, iso: p.iso } };
-    const d = await newsRaw(p.pt);
+    const d = await newsRaw(p.pt, en);
     return { ok: true, noticias: d.items.slice(0, 3), time: { en, pt: p.pt, iso: p.iso }, debug: { status: d.status, total: d.total, msg: d.msg } };
   });
 

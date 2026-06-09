@@ -68,8 +68,8 @@ ${NAV_CSS}
       <a style="text-decoration:none;background:#eef1fb;color:#4361ee;padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;white-space:nowrap;align-self:flex-start" href="https://www.football-data.org/" target="_blank">Ir ao site &#8599;</a></div>
      <label>Token</label><input id="football_data_token" placeholder="(em branco mantem)">
      <div class="save"><button class="sm" onclick="salvar(['football_data_token'])">Salvar</button><button class="sm gh" onclick="pingJogos()">&#128268; Testar</button><span id="m-jogos" class="muted"></span></div></div>
-    <div class="card"><div class="cardhead"><div><h3>&#128203; Dados por time &mdash; API-Football <span class="pill local">a configurar</span></h3>
-      <div class="sub">Elenco, lesoes/suspensoes, forma recente, escalacao provavel e artilheiros por selecao. Cobre a Copa 2026. Plano free 100 req/dia.</div></div>
+    <div class="card"><div class="cardhead"><div><h3>&#128203; Dados por time &mdash; API-Football <span class="pill ativo">pago p/ 2026</span></h3>
+      <div class="sub">Elenco, lesoes, forma, escalacao provavel e artilheiros por selecao. ATENCAO: o plano free so cobre 2022-2024 &mdash; a Copa 2026 exige plano PAGO.</div></div>
       <a style="text-decoration:none;background:#eef1fb;color:#4361ee;padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;white-space:nowrap;align-self:flex-start" href="https://dashboard.api-football.com/register" target="_blank">Criar chave gratis &#8599;</a></div>
      <label>API Key (x-apisports-key)</label><input id="api_football_key" placeholder="(em branco mantem)">
      <div class="save"><button class="sm" onclick="salvar(['api_football_key'])">Salvar</button><button class="sm gh" onclick="pingApiFb()">&#128268; Testar</button><span id="m-apifb" class="muted"></span></div></div>
