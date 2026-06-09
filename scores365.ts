@@ -110,7 +110,11 @@ export async function probeLineup(gid: string | number): Promise<void> {
     const g = gj?.game;
     if (!g) { console.log("[lineup-probe] gid", gid, "sem game"); return; }
     const dump = (c: any) => { const lu = c?.lineups; const ms = Array.isArray(lu?.members) ? lu.members : []; return { name: c?.name, temLineup: !!lu, luKeys: lu ? Object.keys(lu) : [], formation: lu?.formation, isProbable: lu?.isProbable, status: lu?.status, nMembers: ms.length, member0: ms[0] || null }; };
-    console.log("[lineup-probe] gid", gid, "HOME", JSON.stringify(dump(g?.homeCompetitor)), "AWAY", JSON.stringify(dump(g?.awayCompetitor)), "gameMember0", JSON.stringify((Array.isArray(g?.members) ? g.members : [])[0] || null));
+    const byId = new Map<number, any>();
+    for (const m of (Array.isArray(g?.members) ? g.members : [])) byId.set(Number(m?.id), m);
+    const ph = parseSide(g?.homeCompetitor, byId), pa = parseSide(g?.awayCompetitor, byId);
+    const resumo = (c: any, ps: any) => ({ time: c?.name, formacao: ps?.formacao, confirmada: ps?.confirmada, n: ps?.titulares?.length, titulares: (ps?.titulares || []).map((t: any) => t.nome + " (" + t.posicao + ")") });
+    console.log("[lineup-probe] gid", gid, "PARSED-HOME", JSON.stringify(resumo(g?.homeCompetitor, ph)), "PARSED-AWAY", JSON.stringify(resumo(g?.awayCompetitor, pa)));
   } catch (e: any) { console.log("[lineup-probe] erro", String(e?.message ?? e).slice(0, 160)); }
 }
 
