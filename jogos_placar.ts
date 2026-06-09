@@ -53,6 +53,16 @@ const CONF: Record<string, string> = {
 };
 const CONF_LABEL: Record<string, string> = { CONMEBOL: "América do Sul (CONMEBOL)", UEFA: "Europa (UEFA)", CAF: "África (CAF)", AFC: "Ásia (AFC)", CONCACAF: "América do Norte/Central (CONCACAF)", OFC: "Oceania (OFC)" };
 function regiaoDe(en: string): string { const c = CONF[en]; return c ? CONF_LABEL[c] : ""; }
+const SIGLA: Record<string, string> = {
+  "Argentina":"ARG","Brazil":"BRA","Uruguay":"URU","Colombia":"COL","Ecuador":"ECU","Paraguay":"PAR",
+  "Spain":"ESP","France":"FRA","England":"ENG","Portugal":"POR","Netherlands":"NED","Belgium":"BEL","Germany":"GER","Croatia":"CRO","Switzerland":"SUI","Austria":"AUT","Turkey":"TUR","Sweden":"SWE","Norway":"NOR","Scotland":"SCO","Czechia":"CZE","Bosnia-Herzegovina":"BIH",
+  "Morocco":"MAR","Senegal":"SEN","Egypt":"EGY","Tunisia":"TUN","Algeria":"ALG","Ghana":"GHA","Ivory Coast":"CIV","South Africa":"RSA","Cape Verde Islands":"CPV","Congo DR":"COD",
+  "Japan":"JPN","Iran":"IRN","South Korea":"KOR","Australia":"AUS","Saudi Arabia":"KSA","Qatar":"QAT","Iraq":"IRQ","Jordan":"JOR","Uzbekistan":"UZB",
+  "United States":"USA","Mexico":"MEX","Canada":"CAN","Panama":"PAN","Curaçao":"CUW","Haiti":"HAI",
+  "New Zealand":"NZL",
+};
+function siglaDe(en: string): string { return SIGLA[en] || String(en || "").slice(0, 3).toUpperCase(); }
+
 
 
 const norm = (s: string) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z]/g, "");
@@ -263,7 +273,7 @@ export async function rotasJogosPlacar(app: FastifyInstance) {
       const grupo = j.fase === "grupos" ? (mapa.get(j.selecao_casa) || "") : "";
       return {
         id: j.id, fase: j.fase, rodada: j.rodada, status: j.status, inicio: j.inicio, grupo,
-        casa: { en: j.selecao_casa, pt: c.pt, iso: c.iso }, visitante: { en: j.selecao_visitante, pt: v.pt, iso: v.iso },
+        casa: { en: j.selecao_casa, pt: c.pt, iso: c.iso, sigla: siglaDe(j.selecao_casa) }, visitante: { en: j.selecao_visitante, pt: v.pt, iso: v.iso, sigla: siglaDe(j.selecao_visitante) },
         placar_casa: j.placar_casa, placar_visitante: j.placar_visitante, odds: j.odds || null, palpite: j.palpite_ia || null,
       };
     });
