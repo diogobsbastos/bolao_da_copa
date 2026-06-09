@@ -64,7 +64,7 @@ button:disabled{opacity:.55;cursor:default}
 .o365sm:hover{transform:scale(1.12)}
 .live365{position:relative;display:inline-flex;border-radius:50%}
 .live365::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;animation:radar365 1.9s ease-out infinite}
-@keyframes radar365{0%{box-shadow:0 0 0 0 rgba(20,170,89,.55)}70%{box-shadow:0 0 0 7px rgba(20,170,89,0)}100%{box-shadow:0 0 0 0 rgba(20,170,89,0)}}
+@keyframes radar365{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--rc,#0e9488) 50%,transparent)}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
 .data{font-size:11.5px;color:var(--mut);font-weight:700;text-align:right}
 .odds{display:flex;flex-direction:column;justify-content:space-between;gap:2px;min-width:66px;align-self:stretch;padding:2px 0}.odds>span{display:flex;justify-content:space-between;gap:8px;font-size:10.5px;line-height:1.35;color:var(--mut)}.odds i{font-style:normal;font-weight:700}.odds b{color:var(--tx);font-weight:800}.tagrow{display:flex;align-items:center;gap:5px}.o365big{height:17px;width:auto;border-radius:3px;opacity:.95}
 .pal{font-size:11px;color:#6d28d9;font-weight:700;text-align:right}
