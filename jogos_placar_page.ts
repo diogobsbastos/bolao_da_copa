@@ -48,6 +48,11 @@ button:disabled{opacity:.55;cursor:default}
 .od{margin-left:auto;font-size:11px;color:var(--mut);text-align:right;white-space:nowrap}
 .bdg{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:#fff;flex:none}
 .bV{background:#14794a}.bD{background:#c01f2e}.bE{background:#9a6b00}.b-{background:#9aa0ad}
+.modal{scrollbar-width:thin;scrollbar-color:#cbd2e0 transparent}
+.modal::-webkit-scrollbar{width:8px}
+.modal::-webkit-scrollbar-track{background:transparent;margin:8px 0}
+.modal::-webkit-scrollbar-thumb{background:#cbd2e0;border-radius:8px;border:2px solid var(--card)}
+.modal::-webkit-scrollbar-thumb:hover{background:#9aa3b6}
 ${NAV_CSS}
 </style></head><body>
 <div class="app">
