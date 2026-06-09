@@ -35,6 +35,13 @@ async function commitPush(msg: string): Promise<string> {
   out.push("$ git push\n" + await git(["push"]));
   return out.join("\n\n");
 }
+// remove arquivos do diretorio (nomes simples, sem path traversal) e commita
+async function limpar(arquivos: string[], msg: string): Promise<string> {
+  const nomes = (Array.isArray(arquivos) ? arquivos : []).map((f) => String(f).replace(/[^A-Za-z0-9_.\-]/g, "")).filter(Boolean);
+  if (!nomes.length) return "nada para remover";
+  try { await pexec("rm", ["-f", ...nomes.map((f) => DIR + "/" + f)], { maxBuffer: 1024 * 1024 }); } catch (e: any) { return "ERRO rm: " + String(e?.message ?? e); }
+  return "removidos: " + nomes.join(", ") + "\n\n" + await commitPush(msg || "limpeza de temporarios");
+}
 async function getCfg(k: string): Promise<string> {
   try { const { rows } = await pool.query("SELECT valor FROM config WHERE chave=$1", [k]); return (rows as any[])[0]?.valor ?? ""; } catch { return ""; }
 }
@@ -51,6 +58,7 @@ export async function runDeployCmd(): Promise<void> {
     const o = JSON.parse(cmd);
     if (o.acao === "push") res = await commitPush(String(o.msg || ""));
     else if (o.acao === "pull") res = await git(["pull"]);
+    else if (o.acao === "rm") res = await limpar(o.arquivos, String(o.msg || ""));
     else if (o.acao === "status") res = await git(["status"]) + "\n---\n" + await git(["log", "--oneline", "-8"]);
     else res = "acao desconhecida: " + o.acao;
   } catch (e: any) { res = "ERRO deploy_cmd: " + String(e?.message ?? e); }

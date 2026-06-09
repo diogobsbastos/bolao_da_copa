@@ -14,6 +14,7 @@ const ITENS: Array<[string, string, string]> = [
   ["users", "&#128100; Usuarios &amp; Carteiras", "/admin?pg=users"],
   ["rank", "&#127942; Ranking", "/admin?pg=rank"],
   ["integ", "&#128268; Integracoes / Crons", "/admin?pg=integ"],
+  ["deploy", "&#128190; Git &amp; Deploy", "/admin/deploy"],
 ];
 
 // ---------- Variante para telas novas (dentro de um .app flex) ----------
