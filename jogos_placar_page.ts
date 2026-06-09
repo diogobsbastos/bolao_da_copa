@@ -168,7 +168,7 @@ async function noticias(en){
  var t=d.time,body;
  if(d.semChave){body='<div class="muted">Configure a chave da NewsData.io em <b>Configuracoes &rsaquo; APIs</b> para ver as noticias.</div>';}
  else if(!d.noticias||!d.noticias.length){body='<div class="muted">sem noticias recentes para este time.'+(d.debug?(' <br><small>API: '+esc(d.debug.status)+', total '+esc(d.debug.total)+(d.debug.msg?(' &middot; '+esc(d.debug.msg)):'')+'</small>'):'')+'</div>';}
- else{body=d.noticias.map(function(n){return '<div class="mr"><span>&#128240;</span><span>'+esc(n)+'</span></div>';}).join("");}
+ else{body=d.noticias.map(function(n){var lk=n.link?('<a href="'+esc(n.link)+'" target="_blank" style="color:var(--pri);font-weight:700;text-decoration:none;white-space:nowrap;margin-left:8px">abrir &#8599;</a>'):'';var src=n.fonte?('<div class="muted" style="font-size:11px;margin-top:2px">fonte: '+esc(n.fonte)+'</div>'):'';return '<div class="mr" style="align-items:flex-start"><span>&#128240;</span><div style="flex:1;min-width:0"><div>'+esc(n.title)+'</div>'+src+'</div>'+lk+'</div>';}).join("");}
  modal('<h3>'+fl(t.iso)+' '+esc(t.pt)+' &mdash; ultimas noticias</h3>'+body);
 }
 async function stats(en){
