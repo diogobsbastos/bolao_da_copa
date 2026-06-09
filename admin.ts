@@ -98,6 +98,15 @@ export async function rotasAdmin(app: FastifyInstance) {
         const n = Array.isArray(j?.results) ? j.results.length : 0;
         return { ok: r.ok && j?.status === "success", detalhe: r.ok ? ("status " + (j?.status || "?") + ", " + n + " noticias") : (j?.results?.message || ("http " + r.status)) };
       }
+      if (alvo === "apifootball") {
+        const k = c["api_football_key"];
+        if (!k) return { ok: false, detalhe: "sem chave" };
+        const r = await fetch("https://v3.football.api-sports.io/status", { headers: { "x-apisports-key": k } });
+        const j: any = await r.json().catch(() => ({}));
+        const resp: any = j?.response;
+        if (r.ok && resp) return { ok: true, detalhe: "plano " + (resp?.subscription?.plan || "?") + ", " + (resp?.requests?.current ?? "?") + "/" + (resp?.requests?.limit_day ?? "?") + " hoje" };
+        return { ok: false, detalhe: (Array.isArray(j?.errors) ? JSON.stringify(j.errors) : String(j?.message || ("http " + r.status))).slice(0, 120) };
+      }
       return reply.code(400).send({ ok: false, detalhe: "alvo invalido" });
     } catch (e: any) {
       return { ok: false, detalhe: String(e?.message ?? e) };
