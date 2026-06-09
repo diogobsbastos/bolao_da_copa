@@ -96,6 +96,8 @@ button:disabled{opacity:.55;cursor:default}
 .pf.nopf{display:inline-flex;align-items:center;justify-content:center;font-size:15px;color:#9aa3b6}
 .lkbtn{display:inline-block;background:#eef1fb;color:var(--pri);font-weight:700;font-size:11px;padding:4px 11px;border-radius:999px;text-decoration:none;white-space:nowrap;margin-left:8px;transition:.15s}
 .lkbtn:hover{background:var(--pri);color:#fff}
+.s365link{display:flex;align-items:center;justify-content:center;margin-top:14px;padding:9px 10px;background:#f3f4f8;border-radius:10px;color:var(--pri);font-weight:700;font-size:12px;text-decoration:none}
+.s365link:hover{background:#eef1fb}
 ${NAV_CSS}
 </style></head><body>
 <div class="app">
@@ -188,7 +190,7 @@ function odds(id){
  var j=JOGOS.find(function(x){return String(x.id)===String(id);}); if(!j||!j.odds){toast("sem odds para este jogo","err");return;}
  var o=j.odds;
  function ro(lbl,v){return '<div class="mr"><span style="flex:1">'+lbl+'</span><b style="font-size:16px">'+esc(v||"-")+'</b></div>';}
- modal('<h3>'+fl(j.casa.iso)+' '+esc(j.casa.pt)+' &times; '+esc(j.visitante.pt)+' '+fl(j.visitante.iso)+'</h3><div class="muted" style="font-size:12px;margin-bottom:8px">Odds 1X2 &middot; '+esc(o.fonte||"")+'</div>'+ro(fl(j.casa.iso)+' '+esc(j.casa.pt)+' (vitória)',o.casa)+ro('Empate',o.empate)+ro(fl(j.visitante.iso)+' '+esc(j.visitante.pt)+' (vitória)',o.fora));
+ modal('<h3>'+fl(j.casa.iso)+' '+esc(j.casa.pt)+' &times; '+esc(j.visitante.pt)+' '+fl(j.visitante.iso)+'</h3><div class="muted" style="font-size:12px;margin-bottom:8px">Odds 1X2 &middot; '+esc(o.fonte||"")+'</div>'+ro(fl(j.casa.iso)+' '+esc(j.casa.pt)+' (vitória)',o.casa)+ro('Empate',o.empate)+ro(fl(j.visitante.iso)+' '+esc(j.visitante.pt)+' (vitória)',o.fora)+(o.gid?('<a class="s365link" href="https://www.365scores.com/pt-br/football/match/g-'+esc(o.gid)+'#id='+esc(o.gid)+'" target="_blank"><img src="'+S365LOGO+'" style="height:18px;margin-right:7px;vertical-align:middle">Ver todas as estatísticas no 365scores &#8599;</a>'):''));
 }
 
 function render(){

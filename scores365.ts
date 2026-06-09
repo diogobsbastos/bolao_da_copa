@@ -30,7 +30,7 @@ function odds1x2(g: any): any {
   const dec = (nm: string) => { const o = line.options.find((o: any) => String(o?.name) === nm); return o?.rate?.decimal ?? null; };
   const casa = dec("1"), empate = dec("X"), fora = dec("2");
   if (casa == null && empate == null && fora == null) return null;
-  return { casa, empate, fora, fonte: "mercado (365scores)", em: new Date().toISOString() };
+  return { casa, empate, fora, fonte: "mercado (365scores)", gid: g?.id || null, em: new Date().toISOString() };
 }
 
 export async function syncOdds(): Promise<any> {
