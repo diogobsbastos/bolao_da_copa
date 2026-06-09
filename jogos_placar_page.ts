@@ -57,6 +57,9 @@ button:disabled{opacity:.55;cursor:default}
 .fav .fl{width:17px;height:12px}
 .o365sm{height:15px;width:auto;border-radius:3px;cursor:pointer;transition:.15s}
 .o365sm:hover{transform:scale(1.12)}
+.live365{position:relative;display:inline-flex;border-radius:50%}
+.live365::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;animation:radar365 1.9s ease-out infinite}
+@keyframes radar365{0%{box-shadow:0 0 0 0 rgba(20,170,89,.55)}70%{box-shadow:0 0 0 7px rgba(20,170,89,0)}100%{box-shadow:0 0 0 0 rgba(20,170,89,0)}}
 .data{font-size:11.5px;color:var(--mut);font-weight:700;text-align:right}
 .odds{display:flex;flex-direction:column;justify-content:space-between;gap:2px;min-width:66px;align-self:stretch;padding:2px 0}.odds>span{display:flex;justify-content:space-between;gap:8px;font-size:10.5px;line-height:1.35;color:var(--mut)}.odds i{font-style:normal;font-weight:700}.odds b{color:var(--tx);font-weight:800}.tagrow{display:flex;align-items:center;gap:5px}.o365big{height:17px;width:auto;border-radius:3px;opacity:.95}
 .pal{font-size:11px;color:#6d28d9;font-weight:700;text-align:right}
@@ -163,7 +166,7 @@ function card(j){
  var cor=CORES[chaveTab(j)]||"#222838";
  var gtab=j.grupo?('<div class="gtab" style="background:'+cor+'">GRUPO '+esc(j.grupo)+'</div>'):'';
  function row(tm,casa,val){var fld=casa?"pc":"pv";return '<div class="lin">'+fl(tm.iso)+'<span class="nm">'+esc(tm.pt)+'</span><span class="scw"><button class="ix" title="Stats e noticias" onclick="info(\\''+esc(tm.en)+'\\')">&#128202;</button><input class="pl" id="'+fld+'-'+j.id+'" type="number" min="0" max="99" value="'+(val==null?"":val)+'" onchange="salvar('+j.id+')"><span class="step"><button class="su" onclick="stp('+j.id+','+(casa?1:0)+',1)">&#9650;</button><button class="su" onclick="stp('+j.id+','+(casa?1:0)+',-1)">&#9660;</button></span></span><span class="sp"></span></div>';}
- var logo=(j.odds&&/365/.test(j.odds.fonte||""))?('<img class="o365sm oddbtn" src="'+S365LOGO+'" title="ver odds (mercado 365scores)" onclick="odds('+j.id+')">'):'';
+ var logo=(j.odds&&/365/.test(j.odds.fonte||""))?('<span class="live365"><img class="o365sm oddbtn" src="'+S365LOGO+'" title="odds ao vivo — mercado 365scores" onclick="odds('+j.id+')"></span>'):'';
  var fav="";
  if(j.odds){var c=parseFloat(j.odds.casa),x=parseFloat(j.odds.empate),f=parseFloat(j.odds.fora);var ar=[["c",c],["e",x],["f",f]].filter(function(a){return !isNaN(a[1]);});if(ar.length){ar.sort(function(a,b){return a[1]-b[1];});var bb=ar[0][0];
   if(bb==="c")fav='<span class="fav" onclick="odds('+j.id+')" title="favorito"><i>FAV</i>'+fl(j.casa.iso)+'<b>'+esc(j.odds.casa)+'</b></span>';
