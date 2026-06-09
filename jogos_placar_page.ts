@@ -57,6 +57,7 @@ button:disabled{opacity:.55;cursor:default}
 .mx{position:absolute;top:9px;right:11px;background:transparent;color:var(--mut);border:0;font-size:24px;line-height:1;cursor:pointer;padding:0 6px;font-weight:700}
 .mx:hover{color:var(--tx)}
 .pf{width:26px;height:34px;object-fit:cover;border-radius:4px;background:#e6e8f0;flex:none}
+.pf.nopf{display:inline-flex;align-items:center;justify-content:center;font-size:15px;color:#9aa3b6}
 .lkbtn{display:inline-block;background:#eef1fb;color:var(--pri);font-weight:700;font-size:11px;padding:4px 11px;border-radius:999px;text-decoration:none;white-space:nowrap;margin-left:8px;transition:.15s}
 .lkbtn:hover{background:var(--pri);color:#fff}
 ${NAV_CSS}
@@ -214,7 +215,8 @@ var el=d.elenco||[];
  if(el.length){html+='<div style="display:flex;align-items:center;gap:8px;margin:12px 0 4px"><span class="muted" style="font-size:12px;flex:1">Elenco ('+el.length+')</span><button class="ix" style="padding:5px 9px" onclick="escalacao()">🔮 Escalação provável</button></div><div id="esc-box"></div>'+el.map(linhaJog).join("");}
  modal(html);
 }
-function linhaJog(p){var img=p.figurinha?(_b()+"/fig/"+p.figurinha):"";return '<div class="mr" style="padding:4px"><img class="pf" src="'+img+'" onerror="this.remove()"><span style="flex:1;min-width:0">'+esc(p.nome)+'</span><span class="od">'+esc(p.posicao||"")+(p.clube?(' &middot; '+esc(p.clube)):'')+'</span></div>';}
+function imgFail(el){el.outerHTML='<span class="pf nopf">&#128100;</span>';}
+function linhaJog(p){var av=p.figurinha?('<img class="pf" src="'+_b()+"/fig/"+p.figurinha+'" onerror="imgFail(this)">'):'<span class="pf nopf">&#128100;</span>';return '<div class="mr" style="padding:4px">'+av+'<span style="flex:1;min-width:0">'+esc(p.nome)+'</span><span class="od">'+esc(p.posicao||"")+(p.clube?(' &middot; '+esc(p.clube)):'')+'</span></div>';}
 async function autoOdds(escopo){
  var r=await fetch(_b()+"/admin/jogos-placar/auto",{method:"POST",headers:H(),body:JSON.stringify(escopoBody(escopo))});
  var d=await r.json().catch(function(){return{};});
