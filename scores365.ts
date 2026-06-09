@@ -49,7 +49,7 @@ export async function syncOdds(): Promise<any> {
   let comOdds = 0, comGame = 0; const sample: any[] = [];
   for (const it of matched) {
     try {
-      const gj = await s365(`/game?appTypeId=5&langId=1&gameId=${it.gameId}`);
+      const gj = await s365(`/game?appTypeId=5&langId=1&userCountryId=21&timezoneName=America/Sao_Paulo&gameId=${it.gameId}`);
       if (gj?.game) comGame++;
       const od = odds1x2(gj?.game);
       if (sample.length < 3) sample.push({ gameId: it.gameId, temGame: !!gj?.game, temOdds: !!od });
@@ -69,7 +69,7 @@ export async function rotasScores365(app: FastifyInstance) {
   app.get("/admin/scores365/ping", async (req, reply) => {
     if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
     try {
-      const j = await s365("/game?appTypeId=5&langId=1&gameId=4627866");
+      const j = await s365("/game?appTypeId=5&langId=1&userCountryId=21&timezoneName=America/Sao_Paulo&gameId=4627866");
       const g = j?.game; if (!g) return { ok: false, detalhe: "sem resposta" };
       const od = odds1x2(g);
       return { ok: true, detalhe: (g?.homeCompetitor?.name || "?") + " x " + (g?.awayCompetitor?.name || "?") + (od ? (" · odds " + od.casa + "/" + od.empate + "/" + od.fora) : " · sem odds") };
