@@ -1,0 +1,19 @@
+# dependências e build
+node_modules/
+dist/
+
+# segredos (NUNCA subir)
+.env
+.env.*
+
+# backups automáticos da ferramenta
+*.bak
+*.prebak
+
+# python
+__pycache__/
+*.pyc
+
+# assets pesados (backup separado nos zips)
+figurinhas/
+*.zip
