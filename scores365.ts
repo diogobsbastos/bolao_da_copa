@@ -46,16 +46,18 @@ export async function syncOdds(): Promise<any> {
     if (!m) { m = byKey.get(a + "|" + h); invert = !!m; }
     if (m && g?.id) matched.push({ jogoId: m.id, gameId: g.id, invert });
   }
-  let comOdds = 0;
+  let comOdds = 0, comGame = 0; const sample: any[] = [];
   for (const it of matched) {
     try {
       const gj = await s365(`/game?appTypeId=5&langId=1&gameId=${it.gameId}`);
+      if (gj?.game) comGame++;
       const od = odds1x2(gj?.game);
+      if (sample.length < 3) sample.push({ gameId: it.gameId, temGame: !!gj?.game, temOdds: !!od });
       if (od) { const odd = it.invert ? { ...od, casa: od.fora, fora: od.casa } : od; await pool.query("UPDATE jogos SET odds=$1 WHERE id=$2", [JSON.stringify(odd), it.jogoId]); comOdds++; }
     } catch {}
     await sleep(120);
   }
-  const status = { em: new Date().toISOString(), jogos365: games.length, casados: matched.length, comOdds };
+  const status = { em: new Date().toISOString(), jogos365: games.length, casados: matched.length, comGame, comOdds, sample };
   await setCfg("scores365_status", JSON.stringify(status));
   return status;
 }
