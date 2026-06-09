@@ -51,7 +51,6 @@ button:disabled{opacity:.55;cursor:default}
 .ib{background:transparent;border:0;cursor:pointer;font-size:16px;padding:0 2px;line-height:1;flex:none;opacity:.85}.ib:hover{opacity:1}
 .od1{font-size:13px;font-weight:800;color:var(--tx);min-width:30px;text-align:right;flex:none}
 .foot{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--mut);margin-top:8px;padding-top:7px;border-top:1px dashed var(--bd);flex-wrap:wrap}.foot b{color:var(--tx);font-weight:800}.hora{font-size:9.5px;font-weight:700;color:var(--mut)}.thead{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--mut);margin-bottom:3px}.oem b{color:var(--tx)}
-.su:hover{background:var(--pri);color:#fff}
 .oddh{font-size:8px;font-weight:800;letter-spacing:.5px;color:var(--mut);text-align:right;text-transform:uppercase;line-height:1;margin-bottom:1px}
 .meta{display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;min-width:124px;gap:6px}
 .mtop{display:flex;align-items:center;gap:6px}
