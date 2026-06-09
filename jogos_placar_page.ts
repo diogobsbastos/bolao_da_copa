@@ -34,7 +34,7 @@ button:disabled{opacity:.55;cursor:default}
 .pl{width:42px;text-align:center;font-size:15px;font-weight:800;padding:5px;border:1px solid var(--bd);border-radius:8px;flex:none}
 .meta{display:flex;flex-direction:column;align-items:flex-end;gap:5px;min-width:130px}
 .data{font-size:11.5px;color:var(--mut);font-weight:700;text-align:right}
-.odds{display:flex;flex-direction:column;gap:1px;align-items:stretch;min-width:54px;margin:2px 0}.odds .o365{height:12px;width:auto;align-self:flex-end;margin-bottom:2px;border-radius:2px}.odds>span{display:flex;justify-content:space-between;gap:8px;font-size:10.5px;line-height:1.3;color:var(--mut)}.odds i{font-style:normal;font-weight:700}.odds b{color:var(--tx);font-weight:800}
+.odds{display:flex;flex-direction:column;gap:1px;align-items:stretch;min-width:66px;margin:3px 0}.odds>span{display:flex;justify-content:space-between;gap:8px;font-size:10.5px;line-height:1.35;color:var(--mut)}.odds i{font-style:normal;font-weight:700}.odds b{color:var(--tx);font-weight:800}.tagrow{display:flex;align-items:center;gap:5px}.o365big{height:17px;width:auto;border-radius:3px;opacity:.95}
 .pal{font-size:11px;color:#6d28d9;font-weight:700;text-align:right}
 .tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;background:#e4f6ec;color:#14794a}
 .tag.ag{background:#eef1fb;color:var(--pri)}
@@ -137,7 +137,7 @@ function card(j){
  var enc=j.status==="encerrado";
  var cor=CORES[chaveTab(j)]||"#222838";
  var gtab=j.grupo?('<div class="gtab" style="background:'+cor+'">GRUPO '+esc(j.grupo)+'</div>'):'';
- var src365=(j.odds&&/365/.test(j.odds.fonte||""))?('<img class="o365" src="'+S365LOGO+'" title="'+esc(j.odds.fonte)+'">'):'';var od=j.odds?('<div class="odds">'+src365+'<span><i>1</i><b>'+(j.odds.casa||"-")+'</b></span><span><i>X</i><b>'+(j.odds.empate||"-")+'</b></span><span><i>2</i><b>'+(j.odds.fora||"-")+'</b></span></div>'):'';
+ var od=j.odds?('<div class="odds"><span><i>Casa</i><b>'+(j.odds.casa||"-")+'</b></span><span><i>Emp.</i><b>'+(j.odds.empate||"-")+'</b></span><span><i>Fora</i><b>'+(j.odds.fora||"-")+'</b></span></div>'):'';
  var pal=j.palpite?('&#128302; '+esc(j.palpite.pc)+'x'+esc(j.palpite.pv)+(j.palpite.conf!=null?(' ('+esc(j.palpite.conf)+'%)'):'')):'';
  return '<div class="jogo">'+gtab+'<div class="jbody"><div class="times">'
   +'<div class="lin">'+fl(j.casa.iso)+'<span class="nm">'+esc(j.casa.pt)+'</span><button class="ix" title="Stats e noticias" onclick="info(\\''+esc(j.casa.en)+'\\')">&#128202;</button><input class="pl" id="pc-'+j.id+'" type="number" min="0" max="99" value="'+(j.placar_casa==null?"":j.placar_casa)+'" onchange="salvar('+j.id+')"></div>'
@@ -146,7 +146,7 @@ function card(j){
   +'<span class="data">'+esc(fmtData(j.inicio))+'</span>'
   +(od||"")
   +(pal?'<span class="pal">'+pal+'</span>':'')
-  +'<span>'+(enc?'<span class="tag">encerrado</span>':'<span class="tag ag">agendado</span>')+'</span>'
+  +'<span class="tagrow">'+(enc?'<span class="tag">encerrado</span>':'<span class="tag ag">agendado</span>')+(j.odds&&/365/.test(j.odds.fonte||"")?('<img class="o365big" src="'+S365LOGO+'" title="odds: mercado (365scores)">'):'')+'</span>'
   +'</div></div></div>';
 }
 function render(){
