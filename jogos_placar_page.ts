@@ -190,7 +190,7 @@ async function escalacao(){
  var d=await r.json().catch(function(){return{};});
  if(!d||!d.ok){box.innerHTML='<div class="muted">'+esc((d&&d.erro)||"erro")+'</div>';return;}
  if(!d.titulares||!d.titulares.length){box.innerHTML='<div class="muted">sem elenco pra montar.</div>';return;}
- var h='<div class="mr" style="background:#f1effb;border-radius:8px;margin-top:4px"><b>Escalação provável</b><span class="od">'+esc(d.formacao||"")+'</span></div>';
+ var h='<div class="mr" style="background:#f1effb;border-radius:8px;margin-top:4px"><b>Escalação provável</b><span class="od">'+esc(d.formacao||"")+(d.fonte==="ia"?" · IA":(d.fonte==="elenco"?" · por posição":""))+'</span></div>';
  h+=d.titulares.map(linhaJog).join("");
  box.innerHTML=h;
 }

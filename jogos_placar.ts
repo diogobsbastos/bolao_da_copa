@@ -221,6 +221,19 @@ function filtroEscopo(b: any, args: any[]): string {
   return "";
 }
 
+function escalacaoHeuristica(elenco: any[]): any {
+  const pos = (p: any) => String(p.posicao || "").toLowerCase();
+  const gk = elenco.filter((p) => pos(p).includes("goal"));
+  const df = elenco.filter((p) => pos(p).includes("def"));
+  const md = elenco.filter((p) => pos(p).includes("mid"));
+  const fw = elenco.filter((p) => pos(p).includes("off") || pos(p).includes("forward") || pos(p).includes("att"));
+  const take = (a: any[], n: number) => a.slice(0, n);
+  const xi: any[] = [...take(gk, 1), ...take(df, 4), ...take(md, 3), ...take(fw, 3)];
+  const usados = new Set(xi.map((p) => p.id));
+  for (const p of elenco) { if (xi.length >= 11) break; if (!usados.has(p.id)) { xi.push(p); usados.add(p.id); } }
+  return { formacao: "4-3-3", fonte: "elenco", titulares: xi.slice(0, 11).map((j) => ({ id: j.id, nome: j.nome, posicao: j.posicao, figurinha: j.figurinha })) };
+}
+
 export async function rotasJogosPlacar(app: FastifyInstance) {
   app.get("/admin/jogos-placar", async (_req, reply) => reply.header("cache-control", "no-store").type("text/html").send(PAGINA_JOGOS));
   app.get("/admin/classificacao", async (_req, reply) => reply.header("cache-control", "no-store").type("text/html").send(PAGINA_CLASS));
@@ -300,11 +313,15 @@ export async function rotasJogosPlacar(app: FastifyInstance) {
       const c = await getCfg(ck);
       if (c) { try { return { ok: true, time: { en, pt: p.pt, iso: p.iso }, cache: true, ...JSON.parse(c) }; } catch {} }
     }
+    let res: any = null;
     try {
       const lista = elenco.map((j) => j.nome + " (" + (j.posicao || "") + ")").join("; ");
       const prompt = "Voce e um treinador de futebol. Elenco da selecao de " + p.pt + " para a Copa do Mundo 2026: " + lista +
-        ". Monte a escalacao TITULAR mais provavel: exatamente 11 jogadores (1 goleiro + 10 de linha) com uma formacao tatica coerente. Use os nomes EXATAMENTE como na lista. Responda SOMENTE JSON valido: {\"formacao\":\"4-3-3\",\"titulares\":[\"Nome\"]} com 11 nomes.";
-      const txt = await chamarLLM(prompt, "texto", { origem: "jogos", processo: "escalacao" });
+        ". Monte a escalacao TITULAR mais provavel: exatamente 11 jogadores (1 goleiro + 10 de linha) com formacao tatica coerente. Use os nomes EXATAMENTE como na lista. Responda SOMENTE JSON valido: {\"formacao\":\"4-3-3\",\"titulares\":[\"Nome\"]} com 11 nomes.";
+      const txt = await Promise.race([
+        chamarLLM(prompt, "texto", { origem: "jogos", processo: "escalacao" }),
+        new Promise<string>((_, rej) => setTimeout(() => rej(new Error("timeout")), 15000)),
+      ]);
       const o = parseBlocoJSON(txt);
       if (o && Array.isArray(o.titulares) && o.titulares.length) {
         const nn = (x: string) => String(x || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z]/g, "");
@@ -314,12 +331,12 @@ export async function rotasJogosPlacar(app: FastifyInstance) {
           if (!j) j = elenco.find((e) => { const a = nn(e.nome), b = nn(nm); return !!b && (a.includes(b) || b.includes(a)); });
           return j ? { id: j.id, nome: j.nome, posicao: j.posicao, figurinha: j.figurinha } : { nome: nm, posicao: "", figurinha: null };
         });
-        const res = { formacao: String(o.formacao || ""), titulares };
-        await setCfg(ck, JSON.stringify(res));
-        return { ok: true, time: { en, pt: p.pt, iso: p.iso }, ...res };
+        res = { formacao: String(o.formacao || ""), fonte: "ia", titulares };
       }
-      return { ok: false, erro: "IA nao retornou escalacao valida" };
-    } catch (e: any) { return { ok: false, erro: String(e?.message ?? e).slice(0, 140) }; }
+    } catch (e: any) { /* timeout/erro -> heuristico */ }
+    if (!res) res = escalacaoHeuristica(elenco);
+    await setCfg(ck, JSON.stringify(res));
+    return { ok: true, time: { en, pt: p.pt, iso: p.iso }, ...res };
   });
 
   app.get("/admin/jogos-placar/noticias", async (req, reply) => {
