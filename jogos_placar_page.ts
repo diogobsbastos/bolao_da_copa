@@ -175,14 +175,18 @@ async function stats(en){
  modal('<div class="muted">carregando '+esc(en)+'...</div>');
  var r=await fetch(_b()+"/admin/jogos-placar/stats?en="+encodeURIComponent(en),{headers:H()});
  var d=await r.json().catch(function(){return{};});
- if(!d||!d.ok){modal('<h3>Stats</h3><div class="muted">Erro: '+esc((d&&d.erro)||"")+'</div>');return;}
+ if(!d||!d.ok){modal('<h3>Info</h3><div class="muted">Erro: '+esc((d&&d.erro)||"")+'</div>');return;}
  var t=d.time;
- var rk=d.ranking?('<span class="rk">Ranking FIFA #'+d.ranking+'</span>'):'<span class="muted">ranking n/d</span>';
+ var rk=d.ranking?('<span class="rk">Ranking FIFA #'+d.ranking+'</span>'):'';
+ var html='<h3>'+fl(t.iso)+' '+esc(t.pt)+'</h3><div style="margin:2px 0 10px">'+rk+'</div>';
+ if(d.grupo){html+='<div class="mr"><b>Grupo '+esc(String(d.grupo.nome).replace("Grupo ",""))+'</b><span class="od">'+d.grupo.pos+'º lugar &middot; '+d.grupo.pts+' pts ('+d.grupo.v+'V '+d.grupo.e+'E '+d.grupo.d+'D)</span></div>';}
+ function jline(lbl,j){if(!j)return '';var dd=j.data?fmtData(j.data):'';var pl=j.placar?(' <b>'+esc(j.placar)+'</b>'):'';return '<div class="mr"><span class="muted" style="width:56px;flex:none">'+lbl+'</span>'+fl(j.adversario.iso)+'<span>'+(j.casa?'vs ':'@ ')+esc(j.adversario.pt)+'</span>'+pl+'<span class="od">'+esc(dd)+'</span></div>';}
+ html+=jline('Próximo',d.proximo)+jline('Último',d.ultimo);
  var u=d.ultimaCopa||[];
- var linhas=u.length?u.map(function(g){
-  return '<div class="mr"><span class="bdg b'+g.res+'">'+g.res+'</span><b>'+esc(g.placar)+'</b>'+fl(g.adversario.iso)+'<span>'+esc(g.adversario.pt)+'</span><span class="od">'+esc(faseCurta(g.fase))+' &middot; '+esc(fmtD(g.data))+'</span></div>';
- }).join(""):'<div class="muted">'+(d.temFonte2022?"nao disputou a Copa 2022.":"fonte 2022 indisponivel.")+'</div>';
- modal('<h3>'+fl(t.iso)+' '+esc(t.pt)+'</h3><div style="margin:2px 0 12px">'+rk+'</div><div class="muted" style="font-size:12px;margin-bottom:6px">Desempenho na ultima Copa (2022):</div>'+linhas);
+ if(u.length){html+='<div class="muted" style="font-size:12px;margin:10px 0 4px">Copa 2022:</div>'+u.map(function(g){return '<div class="mr"><span class="bdg b'+g.res+'">'+g.res+'</span><b>'+esc(g.placar)+'</b>'+fl(g.adversario.iso)+'<span>'+esc(g.adversario.pt)+'</span><span class="od">'+esc(faseCurta(g.fase))+'</span></div>';}).join("");}
+ var el=d.elenco||[];
+ if(el.length){html+='<div class="muted" style="font-size:12px;margin:10px 0 4px">Elenco ('+el.length+'):</div>'+el.map(function(p){return '<div class="mr" style="padding:5px 4px"><span style="flex:1;min-width:0">'+esc(p.nome)+'</span><span class="od">'+esc(p.posicao||"")+(p.clube?(' &middot; '+esc(p.clube)):'')+'</span></div>';}).join("");}
+ modal(html);
 }
 async function autoOdds(escopo){
  var r=await fetch(_b()+"/admin/jogos-placar/auto",{method:"POST",headers:H(),body:JSON.stringify(escopoBody(escopo))});
