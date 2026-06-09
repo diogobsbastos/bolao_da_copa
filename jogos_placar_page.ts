@@ -47,7 +47,7 @@ button:disabled{opacity:.55;cursor:default}
 .pl::-webkit-inner-spin-button,.pl::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 .pl{-moz-appearance:textfield}
 .step{display:flex;flex-direction:column;gap:2px;flex:none}
-.su{background:#eef1fb;color:#9aa3b6;border:0;border-radius:4px;width:16px;height:13px;font-size:7px;line-height:1;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center}.su:hover{background:#dde3f3;color:var(--pri)}
+.su{background:#eef1fb;color:#9aa3b6;border:0;border-radius:4px;width:16px;height:13px;font-size:7px;line-height:1;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center}.su:hover,.su:active,.su:focus{background:var(--rc,var(--pri));color:#fff}
 .ib{background:transparent;border:0;cursor:pointer;font-size:16px;padding:0 2px;line-height:1;flex:none;opacity:.85}.ib:hover{opacity:1}
 .od1{font-size:13px;font-weight:800;color:var(--tx);min-width:30px;text-align:right;flex:none}
 .foot{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--mut);margin-top:8px;padding-top:7px;border-top:1px dashed var(--bd);flex-wrap:wrap}.foot b{color:var(--tx);font-weight:800}.hora{font-size:9.5px;font-weight:700;color:var(--mut)}.thead{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--mut);margin-bottom:3px}.oem b{color:var(--tx)}
@@ -183,7 +183,7 @@ function card(j){
   else fav='<span class="fav" onclick="odds('+j.id+')" title="tendencia"><i>EMP</i><b>'+esc(j.odds.empate)+'</b></span>';}}
  var tag=enc?'<span class="tag">encerrado</span>':'<span class="tag ag">&#128336; '+esc(fmtHora(j.inicio))+'</span>';
  var jb='<div class="jbody">'+cn(j.casa)+cs(1,j.placar_casa)+'<div class="cm cmtop">'+tag+logo+'</div>'+cn(j.visitante)+cs(0,j.placar_visitante)+'<div class="cm cmbot">'+fav+'</div></div>';
- return '<div class="jogo">'+gtab+jb+'</div>';
+ return '<div class="jogo" style="--rc:'+cor+'">'+gtab+jb+'</div>';
 }
 
 function odds(id){
