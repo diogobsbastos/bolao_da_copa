@@ -25,7 +25,12 @@ button:disabled{opacity:.55;cursor:default}
 .jgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .jogo{background:var(--card);border:1px solid var(--bd);border-radius:12px;overflow:hidden;display:flex;align-items:stretch}
 .gtab{writing-mode:vertical-rl;transform:rotate(180deg);background:#222838;color:#fff;font-weight:800;font-size:10px;letter-spacing:2px;padding:8px 6px;display:flex;align-items:center;justify-content:center;text-align:center;flex:none}
-.jbody{flex:1;min-width:0;display:flex;align-items:stretch;gap:12px;padding:9px 12px}
+.jbody{flex:1;min-width:0;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-gap:8px;row-gap:9px;padding:10px 12px}
+.cn{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden}
+.cs{display:flex;align-items:center;gap:7px;justify-self:center}
+.cm{justify-self:end;display:flex;align-items:center}
+.cmtop{gap:12px}
+.cmbot{gap:5px}
 .ccol{flex:1;min-width:0;display:flex;flex-direction:column}
 .chead{display:flex;align-items:center;justify-content:flex-end;gap:7px;padding:7px 12px 0;font-size:11px;color:var(--mut)}
 .rows{padding:3px 12px 12px;display:flex;flex-direction:column;gap:9px}
@@ -166,7 +171,8 @@ function card(j){
  var enc=j.status==="encerrado";
  var cor=CORES[chaveTab(j)]||"#222838";
  var gtab=j.grupo?('<div class="gtab" style="background:'+cor+'">GRUPO '+esc(j.grupo)+'</div>'):'';
- function row(tm,casa,val){var fld=casa?"pc":"pv";return '<div class="lin">'+fl(tm.iso)+'<span class="nm">'+esc(tm.pt)+'</span><span class="scw"><button class="ix" title="Stats e noticias" onclick="info(\\''+esc(tm.en)+'\\')">&#128202;</button><input class="pl" id="'+fld+'-'+j.id+'" type="number" min="0" max="99" value="'+(val==null?"":val)+'" onchange="salvar('+j.id+')"><span class="step"><button class="su" onclick="stp('+j.id+','+(casa?1:0)+',1)">&#9650;</button><button class="su" onclick="stp('+j.id+','+(casa?1:0)+',-1)">&#9660;</button></span></span><span class="sp"></span></div>';}
+ function cn(tm){return '<div class="cn">'+fl(tm.iso)+'<span class="nm">'+esc(tm.pt)+'</span></div>';}
+ function cs(casa,val){var fld=casa?"pc":"pv";var en=casa?j.casa.en:j.visitante.en;return '<div class="cs"><button class="ix" title="Stats e noticias" onclick="info(\\''+esc(en)+'\\')">&#128202;</button><input class="pl" id="'+fld+'-'+j.id+'" type="number" min="0" max="99" value="'+(val==null?"":val)+'" onchange="salvar('+j.id+')"><span class="step"><button class="su" onclick="stp('+j.id+','+(casa?1:0)+',1)">&#9650;</button><button class="su" onclick="stp('+j.id+','+(casa?1:0)+',-1)">&#9660;</button></span></div>';}
  var logo=(j.odds&&/365/.test(j.odds.fonte||""))?('<span class="live365"><img class="o365sm oddbtn" src="'+S365LOGO+'" title="odds ao vivo — mercado 365scores" onclick="odds('+j.id+')"></span>'):'';
  var fav="";
  if(j.odds){var c=parseFloat(j.odds.casa),x=parseFloat(j.odds.empate),f=parseFloat(j.odds.fora);var ar=[["c",c],["e",x],["f",f]].filter(function(a){return !isNaN(a[1]);});if(ar.length){ar.sort(function(a,b){return a[1]-b[1];});var bb=ar[0][0];
@@ -174,9 +180,8 @@ function card(j){
   else if(bb==="f")fav='<span class="fav" onclick="odds('+j.id+')" title="favorito"><i>FAV</i>'+fl(j.visitante.iso)+'<b>'+esc(j.odds.fora)+'</b></span>';
   else fav='<span class="fav" onclick="odds('+j.id+')" title="tendencia"><i>EMP</i><b>'+esc(j.odds.empate)+'</b></span>';}}
  var tag=enc?'<span class="tag">encerrado</span>':'<span class="tag ag">&#128336; '+esc(fmtHora(j.inicio))+'</span>';
- var meta='<div class="meta"><div class="mtop">'+tag+logo+'</div><div class="mbot">'+fav+'</div></div>';
- var rows='<div class="times">'+row(j.casa,1,j.placar_casa)+row(j.visitante,0,j.placar_visitante)+'</div>';
- return '<div class="jogo">'+gtab+'<div class="jbody">'+rows+meta+'</div></div>';
+ var jb='<div class="jbody">'+cn(j.casa)+cs(1,j.placar_casa)+'<div class="cm cmtop">'+tag+logo+'</div>'+cn(j.visitante)+cs(0,j.placar_visitante)+'<div class="cm cmbot">'+fav+'</div></div>';
+ return '<div class="jogo">'+gtab+jb+'</div>';
 }
 
 function odds(id){
