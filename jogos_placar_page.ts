@@ -35,10 +35,10 @@ button:disabled{opacity:.55;cursor:default}
 .pl::-webkit-inner-spin-button,.pl::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 .pl{-moz-appearance:textfield}
 .step{display:flex;flex-direction:column;gap:2px;flex:none}
-.su{color:#fff;border:0;border-radius:4px;width:16px;height:13px;font-size:7px;line-height:1;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;opacity:.85}.su:hover{opacity:1}
+.su{background:#eef1fb;color:#9aa3b6;border:0;border-radius:4px;width:16px;height:13px;font-size:7px;line-height:1;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center}.su:hover{background:#dde3f3;color:var(--pri)}
 .ib{background:transparent;border:0;cursor:pointer;font-size:16px;padding:0 2px;line-height:1;flex:none;opacity:.85}.ib:hover{opacity:1}
 .od1{font-size:13px;font-weight:800;color:var(--tx);min-width:30px;text-align:right;flex:none}
-.foot{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--mut);margin-top:8px;padding-top:7px;border-top:1px dashed var(--bd);flex-wrap:wrap}.foot b{color:var(--tx);font-weight:800}.hora{font-weight:700}.stt{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--mut)}.oem b{color:var(--tx)}
+.foot{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--mut);margin-top:8px;padding-top:7px;border-top:1px dashed var(--bd);flex-wrap:wrap}.foot b{color:var(--tx);font-weight:800}.hora{font-weight:700}.thead{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--mut);margin-bottom:3px}.oem b{color:var(--tx)}
 .su:hover{background:var(--pri);color:#fff}
 .oddh{font-size:8px;font-weight:800;letter-spacing:.5px;color:var(--mut);text-align:right;text-transform:uppercase;line-height:1;margin-bottom:1px}
 .meta{display:flex;flex-direction:column;align-items:flex-end;gap:5px;min-width:130px}
@@ -147,13 +147,13 @@ function card(j){
  var enc=j.status==="encerrado";
  var cor=CORES[chaveTab(j)]||"#222838";
  var gtab=j.grupo?('<div class="gtab" style="background:'+cor+'">GRUPO '+esc(j.grupo)+'</div>'):'';
- function row(tm,casa,val){var fld=casa?"pc":"pv";return '<div class="lin">'+fl(tm.iso)+'<span class="nm">'+esc(tm.pt)+'</span><button class="ib" title="Stats e noticias" onclick="info(\\''+esc(tm.en)+'\\')">&#128202;</button><input class="pl" id="'+fld+'-'+j.id+'" type="number" min="0" max="99" value="'+(val==null?"":val)+'" onchange="salvar('+j.id+')"><span class="step"><button class="su" style="background:'+cor+'" onclick="stp('+j.id+','+(casa?1:0)+',1)">&#9650;</button><button class="su" style="background:'+cor+'" onclick="stp('+j.id+','+(casa?1:0)+',-1)">&#9660;</button></span></div>';}
+ function row(tm,casa,val){var fld=casa?"pc":"pv";return '<div class="lin">'+fl(tm.iso)+'<span class="nm">'+esc(tm.pt)+'</span><button class="ix" title="Stats e noticias" onclick="info(\\''+esc(tm.en)+'\\')">&#128202;</button><input class="pl" id="'+fld+'-'+j.id+'" type="number" min="0" max="99" value="'+(val==null?"":val)+'" onchange="salvar('+j.id+')"><span class="step"><button class="su" onclick="stp('+j.id+','+(casa?1:0)+',1)">&#9650;</button><button class="su" onclick="stp('+j.id+','+(casa?1:0)+',-1)">&#9660;</button></span></div>';}
+ var thead='<div class="thead"><span class="hora">&#128336; '+esc(fmtHora(j.inicio))+'</span>'+(enc?'<span class="tag">encerrado</span>':'')+'</div>';
  var od=j.odds?('<div class="odds"><div class="oddh">ODDS</div><span><i>'+esc(j.casa.sigla||"Casa")+'</i><b>'+(j.odds.casa||"-")+'</b></span><span><i>Emp</i><b>'+(j.odds.empate||"-")+'</b></span><span><i>'+esc(j.visitante.sigla||"Fora")+'</i><b>'+(j.odds.fora||"-")+'</b></span></div>'):'';
  var logo=(j.odds&&/365/.test(j.odds.fonte||""))?('<img class="o365big" src="'+S365LOGO+'" title="odds: mercado (365scores)">'):'';
  var pal=j.palpite?('<span class="pal">&#128302; '+esc(j.palpite.pc)+'x'+esc(j.palpite.pv)+'</span>'):'';
- var tag=enc?'<span class="tag">encerrado</span>':'<span class="tag ag">agendado</span>';
- var meta='<div class="meta">'+od+pal+'<div class="stt">'+tag+'<span class="hora">'+esc(fmtHora(j.inicio))+'</span>'+logo+'</div></div>';
- return '<div class="jogo">'+gtab+'<div class="jbody"><div class="times">'+row(j.casa,1,j.placar_casa)+row(j.visitante,0,j.placar_visitante)+'</div>'+meta+'</div></div>';
+ var meta='<div class="meta">'+od+(logo||'')+pal+'</div>';
+ return '<div class="jogo">'+gtab+'<div class="jbody"><div class="times">'+thead+row(j.casa,1,j.placar_casa)+row(j.visitante,0,j.placar_visitante)+'</div>'+meta+'</div></div>';
 }
 
 function render(){
