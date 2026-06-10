@@ -215,7 +215,7 @@ function jitter(pc: number, pv: number): [number, number] {
 }
 
 const LET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-function mapaGrupos(rows: any[]): Map<string, string> {
+export function mapaGrupos(rows: any[]): Map<string, string> {
   const adj = new Map<string, Set<string>>(); const primeiro = new Map<string, number>();
   const liga = (a: string, b: string) => { if (!adj.has(a)) adj.set(a, new Set()); adj.get(a)!.add(b); };
   for (const j of rows) {

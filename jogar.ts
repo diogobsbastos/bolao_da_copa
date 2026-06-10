@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 import { pool } from "./db.js";
 import { usuarioDaReq } from "./auth.js";
 import { PAGINA_JOGAR } from "./jogar_page.js";
-import { timePT, rankOf, palpiteOdds, calcClassificacao } from "./jogos_placar.js";
+import { timePT, rankOf, palpiteOdds, calcClassificacao, mapaGrupos } from "./jogos_placar.js";
 
 async function jogador(req: FastifyRequest) { return await usuarioDaReq(req); }
 function palpiteDetLite(rkC: number, rkV: number) { const d = rkV - rkC, ad = Math.abs(d); if (ad < 4) return { pc: 1, pv: 1 }; const gf = Math.min(3, 1 + Math.round(ad / 12)), gc = Math.max(0, 1 - Math.round(ad / 22)); return d > 0 ? { pc: gf, pv: gc } : { pc: gc, pv: gf }; }
@@ -38,8 +38,10 @@ export async function rotasJogar(app: FastifyInstance) {
     if (rod) { args.push(rod); q += ` AND j.rodada=$${args.length}`; }
     q += " ORDER BY j.inicio NULLS LAST, j.id";
     const rows = (await pool.query(q, args)).rows as any[];
+    const allg = (await pool.query("SELECT selecao_casa, selecao_visitante, inicio FROM jogos WHERE fase='grupos' AND selecao_casa<>'A definir' AND selecao_visitante<>'A definir'")).rows as any[];
+    let gmap = new Map<string, string>(); try { gmap = mapaGrupos(allg); } catch {}
     const agora = Date.now();
-    const jogos = rows.map((j) => { const c = timePT(j.selecao_casa), v = timePT(j.selecao_visitante); const travado = j.inicio ? new Date(j.inicio).getTime() <= agora : false; const od = j.odds && j.odds.casa != null ? { casa: j.odds.casa, empate: j.odds.empate, fora: j.odds.fora } : null; return { id: j.id, rodada: j.rodada, inicio: j.inicio, travado, casa: { pt: c.pt, iso: c.iso }, visitante: { pt: v.pt, iso: v.iso }, odds: od, meu: (j.pc != null && j.pv != null) ? { pc: j.pc, pv: j.pv } : null }; });
+    const jogos = rows.map((j) => { const c = timePT(j.selecao_casa), v = timePT(j.selecao_visitante); const travado = j.inicio ? new Date(j.inicio).getTime() <= agora : false; const od = j.odds && j.odds.casa != null ? { casa: j.odds.casa, empate: j.odds.empate, fora: j.odds.fora, fonte: j.odds.fonte || "" } : null; return { id: j.id, rodada: j.rodada, inicio: j.inicio, travado, grupo: gmap.get(j.selecao_casa) || "", casa: { pt: c.pt, iso: c.iso }, visitante: { pt: v.pt, iso: v.iso }, odds: od, meu: (j.pc != null && j.pv != null) ? { pc: j.pc, pv: j.pv } : null }; });
     return { ok: true, jogos, rodada: rod || null };
   });
 

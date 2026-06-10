@@ -64,6 +64,23 @@ th,td{padding:8px 8px;border-bottom:1px solid var(--bd);text-align:left}th{color
  .side.open{transform:none}.burger{display:block}.scrim.open{display:block}.main{padding:14px}
  .brand{font-size:13px}.w{padding:4px 8px}
 }
+.diah{font-size:11px;font-weight:800;letter-spacing:.4px;color:var(--mut);text-transform:uppercase;margin:16px 0 8px}
+.jgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px}
+.jogo{position:relative;background:rgba(23,28,38,.66);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;overflow:hidden}
+.jogo:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--rc)}
+.gtab{position:absolute;left:5px;top:0;font-size:8px;font-weight:800;color:#fff;background:var(--rc);padding:2px 7px;border-bottom-right-radius:7px;letter-spacing:.5px}
+.jpad{margin-top:12px}
+.jlin{display:flex;align-items:center;gap:9px;padding:4px 0 4px 6px}
+.jflag{width:26px;height:19px;border-radius:3px;object-fit:cover;background:#2a3142;flex:none}
+.jn{flex:1;font-weight:600;font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.jpin{width:44px;height:38px;text-align:center;font-size:17px;font-weight:800;background:rgba(255,255,255,.06);border:1px solid var(--bd);color:var(--tx);border-radius:8px;flex:none;-moz-appearance:textfield}
+.jpin::-webkit-inner-spin-button,.jpin::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.jpin:disabled{opacity:.5}
+.jstep{display:flex;flex-direction:column;gap:2px;flex:none}
+.jsu{width:18px;height:16px;background:rgba(255,255,255,.08);color:var(--mut);border:0;border-radius:4px;font-size:8px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}.jsu:hover{background:var(--rc);color:#fff}
+.jfoot{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding-top:7px;border-top:1px dashed var(--bd);font-size:11px;color:var(--mut)}
+.jtag{font-size:10.5px;font-weight:700}.jtag.lk{color:var(--no)}
+.jfav{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--tx);font-weight:700}.jfav i{font-style:normal;font-size:8px;color:var(--mut);font-weight:800}.jfav .jflag{width:20px;height:15px}
 </style></head><body>
 <div class="top">
  <button class="burger" onclick="drawer()">&#9776;</button>
@@ -212,6 +229,19 @@ async function loadDados(){
  document.getElementById("p-apo").textContent=c.apostas;
  document.getElementById("p-are").textContent=c.arena;
 }
+var COR_ROD={1:"#14a06a",2:"#e0a008",3:"#e23744"};
+function fl2(iso){return iso?('<img class="jflag" src="https://flagcdn.com/40x30/'+iso+'.png" onerror="this.style.visibility=\\'hidden\\'">'):'<span class="jflag"></span>';}
+function fmtDia(s){if(!s)return"";var d=new Date(s);if(isNaN(d))return"";var w=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];return w[d.getDay()]+", "+("0"+d.getDate()).slice(-2)+"/"+("0"+(d.getMonth()+1)).slice(-2);}
+function fmtHora(s){if(!s)return"";var d=new Date(s);if(isNaN(d))return"";return ("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);}
+function favOdds(j){if(!j.odds)return"";var c=parseFloat(j.odds.casa),x=parseFloat(j.odds.empate),f=parseFloat(j.odds.fora);var ar=[["c",c],["e",x],["f",f]].filter(function(a){return !isNaN(a[1]);});if(!ar.length)return"";ar.sort(function(a,b){return a[1]-b[1];});var b=ar[0][0];if(b==="c")return '<span class="jfav"><i>FAV</i>'+fl2(j.casa.iso)+'<b>'+esc(j.odds.casa)+'</b></span>';if(b==="f")return '<span class="jfav"><i>FAV</i>'+fl2(j.visitante.iso)+'<b>'+esc(j.odds.fora)+'</b></span>';return '<span class="jfav"><i>EMP</i><b>'+esc(j.odds.empate)+'</b></span>';}
+function cardBolao(j,cor){
+ var dis=j.travado?"disabled":"";
+ var pc=(j.meu&&j.meu.pc!=null)?j.meu.pc:"";var pv=(j.meu&&j.meu.pv!=null)?j.meu.pv:"";
+ function lin(casa){var tm=casa?j.casa:j.visitante;var fld=casa?"pc":"pv";var val=casa?pc:pv;var step=j.travado?"":'<span class="jstep"><button class="jsu" onclick="stp('+j.id+','+(casa?1:0)+',1)">&#9650;</button><button class="jsu" onclick="stp('+j.id+','+(casa?1:0)+',-1)">&#9660;</button></span>';return '<div class="jlin">'+fl2(tm.iso)+'<span class="jn">'+esc(tm.pt)+'</span><input class="jpin" id="'+fld+'-'+j.id+'" type="number" min="0" max="99" value="'+val+'" '+dis+' onchange="salvar('+j.id+')">'+step+'</div>';}
+ var tag=j.travado?'<span class="jtag lk">&#128274; fechado</span>':'<span class="jtag">&#128336; '+esc(fmtHora(j.inicio))+'</span>';
+ var gt=j.grupo?('<div class="gtab">GRUPO '+esc(j.grupo)+'</div>'):"";
+ return '<div class="jogo" style="--rc:'+cor+'">'+gt+'<div class="'+(j.grupo?"jpad":"")+'">'+lin(1)+lin(0)+'</div><div class="jfoot">'+tag+favOdds(j)+'</div></div>';
+}
 async function loadBolao(rod){
  CURROD=rod;
  document.querySelectorAll("#bolao-tabs .tab").forEach(function(t){t.classList.toggle("on",+t.getAttribute("data-r")===rod);});
@@ -219,27 +249,18 @@ async function loadBolao(rod){
  var r=await fetch(BASE+"/jogar/bolao?rodada="+rod,{headers:H()});
  var d=await r.json();if(!d||!d.ok){box.textContent="erro ao carregar.";return;}
  if(!d.jogos.length){box.innerHTML='<div class="muted">sem jogos nesta rodada.</div>';return;}
- box.innerHTML=d.jogos.map(function(j){
-  var lock=j.travado?'<span class="lock">travado</span>':'';
-  var pc=j.meu?j.meu.pc:'';var pv=j.meu?j.meu.pv:'';
-  var dis=j.travado?'disabled':'';
-  var od=j.odds?('<div class="muted" style="font-size:11px;text-align:center;flex:none;width:100%;margin-top:4px">odds '+j.odds.casa+' / '+j.odds.empate+' / '+j.odds.fora+'</div>'):'';
-  return '<div class="jrow" style="flex-wrap:wrap">'
-   +'<div class="jteam r">'+esc(j.casa.pt)+' '+fl(j.casa.iso)+'</div>'
-   +'<input class="pin" id="pc-'+j.id+'" value="'+pc+'" '+dis+' inputmode="numeric" maxlength="2">'
-   +'<span class="muted">x</span>'
-   +'<input class="pin" id="pv-'+j.id+'" value="'+pv+'" '+dis+' inputmode="numeric" maxlength="2">'
-   +'<div class="jteam">'+fl(j.visitante.iso)+' '+esc(j.visitante.pt)+'</div>'
-   +(j.travado?('<div style="flex:none;width:100%;text-align:center;margin-top:4px">'+lock+'</div>'):('<button class="btn" style="padding:7px 12px;flex:none" onclick="salvar('+j.id+')">salvar</button>'))
-   +od+'</div>';
- }).join("");
+ var cor=COR_ROD[rod]||"#14794a";var html="",dia="";
+ d.jogos.forEach(function(j){var dd=fmtDia(j.inicio);if(dd!==dia){if(dia)html+="</div>";dia=dd;html+='<div class="diah">Fase de grupos &middot; '+esc(dd)+'</div><div class="jgrid">';}html+=cardBolao(j,cor);});
+ if(dia)html+="</div>";
+ box.innerHTML=html;
 }
+function stp(id,casa,dd){var e=document.getElementById((casa?"pc-":"pv-")+id);if(!e||e.disabled)return;var v=(parseInt(e.value)||0)+dd;if(v<0)v=0;if(v>99)v=99;e.value=v;salvar(id);}
 async function salvar(id){
- var pc=document.getElementById("pc-"+id).value,pv=document.getElementById("pv-"+id).value;
- if(pc===""||pv===""){toast("Coloque os dois placares.",1);return;}
+ var a=document.getElementById("pc-"+id),b=document.getElementById("pv-"+id);if(!a||!b)return;
+ var pc=a.value,pv=b.value;if(pc===""||pv==="")return;
  var r=await fetch(BASE+"/jogar/palpite",{method:"POST",headers:H(),body:JSON.stringify({jogo_id:id,pc:+pc,pv:+pv})});
  var d=await r.json();
- if(d&&d.ok){toast("Palpite salvo!");loadDados();}else{toast((d&&d.erro)||"erro",1);}
+ if(d&&d.ok){toast("Palpite salvo");loadDados();}else{toast((d&&d.erro)||"erro",1);}
 }
 async function preencherAuto(){
  var r=await fetch(BASE+"/jogar/palpite-auto",{method:"POST",headers:H(),body:JSON.stringify({rodada:CURROD})});
