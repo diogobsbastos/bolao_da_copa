@@ -3,9 +3,9 @@ export const PAGINA_JOGAR = `<!doctype html><html lang="pt-br"><head><meta chars
 <title>Bolão da Copa 26</title>
 <style>
 :root{--pri:#14794a;--pri2:#1faa59;--bg:#0e1117;--card:#171c26;--card2:#1f2633;--tx:#eef1f6;--mut:#94a0b4;--bd:#283142;--gold:#f5c451;--no:#e23744;}
-*{box-sizing:border-box}html,body{margin:0}body{font-family:system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--tx);-webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box}html,body{margin:0}body{font-family:system-ui,Segoe UI,Roboto,sans-serif;background:radial-gradient(120% 110% at 50% -10%,#0b3d2e 0%,#0a1228 48%,#080d18 100%) fixed;color:var(--tx);min-height:100vh;-webkit-tap-highlight-color:transparent}
 a{color:inherit;text-decoration:none}
-.top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;padding:10px 14px;background:#10151e;border-bottom:1px solid var(--bd)}
+.top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;padding:8px 14px;background:rgba(16,21,30,.82);backdrop-filter:blur(8px);border-bottom:1px solid var(--bd)}
 .burger{font-size:22px;background:none;border:0;color:var(--tx);cursor:pointer;display:none}
 .brand{font-weight:800;font-size:15px;white-space:nowrap}
 .brand b{color:var(--pri2)}
@@ -14,21 +14,21 @@ a{color:inherit;text-decoration:none}
 .w small{color:var(--mut);font-weight:600}
 .av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--pri),var(--pri2));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;cursor:pointer;flex:none}
 .layout{display:flex;min-height:calc(100vh - 55px)}
-.side{width:210px;flex:none;background:#10151e;border-right:1px solid var(--bd);padding:12px 8px;display:flex;flex-direction:column;gap:3px}
-.side a{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;font-weight:600;font-size:14px;color:var(--mut);cursor:pointer}
+.side{width:186px;flex:none;background:rgba(16,21,30,.72);backdrop-filter:blur(8px);border-right:1px solid var(--bd);padding:10px 7px;display:flex;flex-direction:column;gap:2px}
+.side a{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:9px;font-weight:600;font-size:13.5px;color:var(--mut);cursor:pointer}
 .side a .ic{width:20px;text-align:center}
 .side a:hover{background:var(--card)}
 .side a.on{background:var(--pri);color:#fff}
 .side a.soon{opacity:.5;cursor:not-allowed}
 .side a .tag{margin-left:auto;font-size:9px;background:var(--bd);color:var(--mut);padding:2px 6px;border-radius:6px}
-.main{flex:1;min-width:0;padding:18px;max-width:900px}
+.main{flex:1;min-width:0;padding:16px;max-width:840px}
 .sec{display:none}.sec.on{display:block;animation:fade .25s ease}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-h1{font-size:20px;margin:0 0 14px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px}
-.card h3{margin:0 0 4px;font-size:13px;color:var(--mut);font-weight:700}
-.stat{font-size:26px;font-weight:800}
+h1{font-size:18px;margin:0 0 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.card{background:rgba(23,28,38,.66);border:1px solid var(--bd);border-radius:12px;padding:13px}
+.card h3{margin:0 0 3px;font-size:12px;color:var(--mut);font-weight:700}
+.stat{font-size:22px;font-weight:800}
 .btn{background:var(--pri);color:#fff;border:0;border-radius:10px;padding:11px 16px;font-weight:800;cursor:pointer;font-size:14px}
 .btn.ghost{background:var(--card2);color:var(--tx);border:1px solid var(--bd)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
