@@ -122,11 +122,11 @@ body.mcol .side a .tag{display:none}
 .tag{color:var(--rc,#1faa59)}
 .pl:focus{outline:none;border-color:var(--rc,#1faa59);box-shadow:0 0 0 3px color-mix(in srgb,var(--rc,#1faa59) 20%,transparent)}
 .autobar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-.sw{position:relative;display:inline-block;width:42px;height:24px;flex:none;cursor:pointer}
+.sw{position:relative;display:inline-block;width:42px;height:24px;flex:none;cursor:pointer;margin-left:auto}
 .sw input{opacity:0;width:0;height:0;position:absolute}
 .sl{position:absolute;inset:0;background:var(--surface2);border:1px solid var(--bd);border-radius:999px;transition:.2s}
 .sl:before{content:"";position:absolute;height:18px;width:18px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.2s}
-.sw input:checked+.sl{background:var(--pri);border-color:var(--pri)}
+.sw input:checked+.sl{background:var(--rc,var(--pri));border-color:var(--rc,var(--pri))}
 .sw input:checked+.sl:before{transform:translateX(18px)}
 .swlbl{font-size:13px;font-weight:600;color:var(--mut)}
 .qmark{width:22px;height:22px;border-radius:50%;background:var(--surface2);border:1px solid var(--bd);color:var(--mut);font-weight:800;font-size:12px;cursor:pointer;flex:none}.qmark:hover{background:var(--pri);color:#fff}
@@ -174,7 +174,7 @@ body.mcol .side a .tag{display:none}
    <h1>Bol&atilde;o &mdash; palpite da rodada</h1>
    <div class="muted" style="margin-bottom:10px">Coloque o placar que voc&ecirc; acha. Risco zero: erro n&atilde;o tira token, acerto soma pontos no ranking. Trava no apito.</div>
    <div class="tabs" id="bolao-tabs"><span class="tab on" data-r="1" onclick="loadBolao(1)">Rodada 1</span><span class="tab" data-r="2" onclick="loadBolao(2)">Rodada 2</span><span class="tab" data-r="3" onclick="loadBolao(3)">Rodada 3</span></div>
-   <div class="autobar"><button class="btn ghost" id="btn-auto" onclick="preencherAuto()">&#127919; Preencher pela l&oacute;gica das odds</button><label class="sw" title="Auto-preencher"><input type="checkbox" id="autochk" onchange="setAuto(this.checked)"><span class="sl"></span></label><span class="swlbl">Auto-preencher</span><button class="qmark" onclick="ajudaAuto()" title="O que &eacute;?">?</button></div>
+   <div class="autobar" id="autobar"><button class="btn ghost" id="btn-auto" onclick="preencherAuto()">&#127919; Preencher pela l&oacute;gica das odds</button><label class="sw" title="Auto-preencher"><input type="checkbox" id="autochk" onchange="setAuto(this.checked)"><span class="sl"></span></label><span class="swlbl">Auto-preencher</span><button class="qmark" onclick="ajudaAuto()" title="O que &eacute;?">?</button></div>
    <div id="bolao-box" class="muted">carregando...</div>
   </section>
 
@@ -302,7 +302,7 @@ function cardBolao(j,cor){
 }
 async function loadBolao(rod){
  CURROD=rod;
- document.querySelectorAll("#bolao-tabs .tab").forEach(function(t){var rr=+t.getAttribute("data-r");var cc=COR_ROD[rr]||"#14794a";var on=rr===rod;t.classList.toggle("on",on);t.style.background=on?cc:"transparent";t.style.borderColor=on?cc:"var(--bd)";t.style.color=on?"#fff":cc;});var _ba=document.getElementById("btn-auto");if(_ba){var _c=COR_ROD[rod]||"#14794a";_ba.style.background=_c;_ba.style.borderColor=_c;_ba.style.color="#fff";}
+ document.querySelectorAll("#bolao-tabs .tab").forEach(function(t){var rr=+t.getAttribute("data-r");var cc=COR_ROD[rr]||"#14794a";var on=rr===rod;t.classList.toggle("on",on);t.style.background=on?cc:"transparent";t.style.borderColor=on?cc:"var(--bd)";t.style.color=on?"#fff":cc;});var _ba=document.getElementById("btn-auto");if(_ba){var _c=COR_ROD[rod]||"#14794a";_ba.style.background=_c;_ba.style.borderColor=_c;_ba.style.color="#fff";}var _ab=document.getElementById("autobar");if(_ab)_ab.style.setProperty("--rc",COR_ROD[rod]||"#14794a");
  var box=document.getElementById("bolao-box");box.textContent="carregando...";
  var r=await fetch(BASE+"/jogar/bolao?rodada="+rod,{headers:H()});
  var d=await r.json();if(!d||!d.ok){box.textContent="erro ao carregar.";return;}
