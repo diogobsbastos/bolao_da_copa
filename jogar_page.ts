@@ -172,7 +172,7 @@ th,td{padding:8px 8px;border-bottom:1px solid var(--bd);text-align:left}th{color
 .touractions{display:flex;gap:8px;align-items:center}
 .touractions .btn{flex:1}
 .touractions .tprev{flex:none;width:44px;padding:11px 0}
-.toast{position:fixed;top:66px;right:16px;z-index:120;background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;border:0;padding:11px 16px;border-radius:11px;font-size:13px;font-weight:700;box-shadow:0 12px 30px rgba(31,170,89,.4);max-width:300px;animation:tin .18s ease}
+.toast{position:fixed;top:66px;right:16px;z-index:400;background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;border:0;padding:11px 16px;border-radius:11px;font-size:13px;font-weight:700;box-shadow:0 12px 30px rgba(31,170,89,.4);max-width:300px;animation:tin .18s ease}
 .toast.err{background:linear-gradient(135deg,#b01b29,#e23744);box-shadow:0 12px 30px rgba(226,55,68,.4)}
 @keyframes tin{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
 .toast.err{border-left-color:var(--no)}
