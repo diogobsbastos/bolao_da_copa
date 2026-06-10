@@ -96,8 +96,11 @@ th,td{padding:8px 8px;border-bottom:1px solid var(--bd);text-align:left}th{color
 .tg-stepper button:hover{background:var(--rc,#14794a);color:#fff;border-color:var(--rc,#14794a)}
 .tg-x{font-size:17px;color:var(--mut)}
 .tourbubble{display:flex;align-items:flex-start;gap:9px;background:var(--surface2);border-radius:12px;padding:10px 12px;font-size:13px;font-weight:600;line-height:1.45;margin-bottom:14px;min-height:42px}
-.tourbubble .trb{font-size:22px;flex:none}
-.tourbubble .tfont{display:block;font-size:11px;font-weight:700;color:var(--mut);margin-top:3px}
+.tourbubble{align-items:center}
+.tourbubble .trb{width:34px;height:34px;flex:none;animation:bob 2.6s ease-in-out infinite;filter:drop-shadow(0 2px 6px var(--rc,#14794a))}
+.tourbubble .trb svg{width:100%;height:100%;display:block}
+.tourbubble #tour-resumo{flex:1}
+.tourbubble .tfont{flex:none;align-self:center;font-size:10.5px;font-weight:800;color:var(--mut);background:var(--surface2);border-radius:999px;padding:3px 9px;white-space:nowrap}
 .touractions{display:flex;gap:8px;align-items:center}
 .touractions .btn{flex:1}
 .touractions .tprev{flex:none;width:44px;padding:11px 0}
@@ -377,7 +380,7 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
  </main>
 </div>
 <div class="mov" id="mov" onclick="if(event.target===this)fecha()"><div class="modal"><button class="mx" onclick="fecha()" title="Fechar">&times;</button><div id="mbody"></div><div id="mfoot" style="margin-top:12px;text-align:right"></div></div></div>
-<div class="tourov" id="tour" onclick="if(event.target===this)tourClose()"><div class="tourcard" id="tourcard"><div class="tourtop"><span id="tour-prog">&mdash;</span><button class="tourx" onclick="tourClose()" title="Fechar">&times;</button></div><div class="tourgame"><div class="tg-side"><span class="flagw" id="tour-flagC"></span><span id="tour-nomeC">&mdash;</span></div><div class="tg-score"><div class="tg-stepper"><button onclick="tourStep('c',1)">&#9650;</button><input id="tpc" inputmode="numeric" value="0"><button onclick="tourStep('c',-1)">&#9660;</button></div><span class="tg-x">&times;</span><div class="tg-stepper"><button onclick="tourStep('v',1)">&#9650;</button><input id="tpv" inputmode="numeric" value="0"><button onclick="tourStep('v',-1)">&#9660;</button></div></div><div class="tg-side"><span class="flagw" id="tour-flagV"></span><span id="tour-nomeV">&mdash;</span></div></div><div class="tourbubble"><span class="trb">&#129302;</span><span id="tour-resumo">analisando o jogo&hellip;</span></div><div class="touractions"><button class="btn ghost tprev" onclick="tourPrev()" title="Anterior">&#8249;</button><button class="btn ghost" onclick="tourSkip()">Pular</button><button class="btn" id="tour-aplicar" onclick="tourApply()">Aplicar e pr&oacute;ximo &#8594;</button></div></div></div>
+<div class="tourov" id="tour" onclick="if(event.target===this)tourClose()"><div class="tourcard" id="tourcard"><div class="tourtop"><span id="tour-prog">&mdash;</span><button class="tourx" onclick="tourClose()" title="Fechar">&times;</button></div><div class="tourgame"><div class="tg-side"><span class="flagw" id="tour-flagC"></span><span id="tour-nomeC">&mdash;</span></div><div class="tg-score"><div class="tg-stepper"><button onclick="tourStep('c',1)">&#9650;</button><input id="tpc" inputmode="numeric" value="0"><button onclick="tourStep('c',-1)">&#9660;</button></div><span class="tg-x">&times;</span><div class="tg-stepper"><button onclick="tourStep('v',1)">&#9650;</button><input id="tpv" inputmode="numeric" value="0"><button onclick="tourStep('v',-1)">&#9660;</button></div></div><div class="tg-side"><span class="flagw" id="tour-flagV"></span><span id="tour-nomeV">&mdash;</span></div></div><div class="tourbubble"><span class="trb" id="tour-robo"><svg viewBox="0 0 64 64"><defs><linearGradient id="trg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2bd07a"/><stop offset="1" stop-color="#0f7a45"/></linearGradient></defs><line x1="32" y1="9" x2="32" y2="16" stroke="#0f7a45" stroke-width="2.6"/><circle cx="32" cy="7" r="3.4" fill="#f5c451" stroke="#0a1228" stroke-width="1.2"/><rect x="8" y="26" width="5" height="12" rx="2.5" fill="#0f7a45" stroke="#0a1228" stroke-width="1.4"/><rect x="51" y="26" width="5" height="12" rx="2.5" fill="#0f7a45" stroke="#0a1228" stroke-width="1.4"/><rect x="12" y="15" width="40" height="34" rx="12" fill="url(#trg)" stroke="#0a1228" stroke-width="2.2"/><rect x="18" y="24" width="28" height="15" rx="7.5" fill="#0a1228"/><circle cx="26" cy="31.5" r="3.6" fill="#7cffb0"/><circle cx="38" cy="31.5" r="3.6" fill="#7cffb0"/><circle cx="27" cy="32.6" r="1.5" fill="#0a1228"/><circle cx="39" cy="32.6" r="1.5" fill="#0a1228"/><path d="M26 44 Q32 48 38 44" fill="none" stroke="#0a1228" stroke-width="2" stroke-linecap="round"/></svg></span><span id="tour-resumo">analisando o jogo&hellip;</span><span class="tfont" id="tour-fonte"></span></div><div class="touractions"><button class="btn ghost tprev" onclick="tourPrev()" title="Anterior">&#8249;</button><button class="btn ghost" onclick="tourSkip()">Pular</button><button class="btn" id="tour-aplicar" onclick="tourApply()">Aplicar e pr&oacute;ximo &#8594;</button></div></div></div>
 <script>
 var BASE=location.pathname.replace(/\\/jogar.*$/,"");
 var TOKEN=localStorage.getItem("sessao");
@@ -555,15 +558,17 @@ async function tourShow(i){
  document.getElementById("tour-flagV").innerHTML=fl(g.visitante.iso);
  document.getElementById("tour-nomeC").textContent=g.casa.pt;
  document.getElementById("tour-nomeV").textContent=g.visitante.pt;
- var rb=document.getElementById("tour-resumo");rb.innerHTML="analisando o jogo&hellip; &#129300;";
+ var rb=document.getElementById("tour-resumo");rb.textContent="analisando o jogo…";var rf=document.getElementById("tour-fonte");if(rf)rf.textContent="";
  var ap=document.getElementById("tour-aplicar");if(ap)ap.disabled=true;
  document.getElementById("tpc").value="";document.getElementById("tpv").value="";
  var d=await tourFetch(g.id);
  if(TIDX!==i)return;
  if(!d){rb.textContent="não consegui analisar este jogo.";if(ap)ap.disabled=false;return;}
+ var rf=document.getElementById("tour-fonte");
  document.getElementById("tpc").value=d.pc;document.getElementById("tpv").value=d.pv;
- var fonte=d.fonte==="ia"?"sua IA":"lógica das odds";
- rb.innerHTML=esc(d.resumo||"")+'<span class="tfont">&#129302; por '+fonte+(d.aviso?(" — "+esc(d.aviso)):"")+'</span>';
+ var fonte=d.fonte==="ia"?"sua IA":"lógica";
+ rb.textContent=d.resumo||"";
+ if(rf){rf.textContent="por "+fonte;rf.title=d.aviso||"";}
  if(ap)ap.disabled=false;
  if(i+1<TQ.length)tourFetch(TQ[i+1].id);
 }

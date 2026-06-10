@@ -239,7 +239,7 @@ export async function rotasJogar(app: FastifyInstance) {
     for (const jj of jogos) {
       try {
         const ctx = await montarContexto(jj.id); if (!ctx) continue;
-        const prompt = "Você é um analista de futebol. Com base no CONTEXTO (JSON) do jogo da Copa, preveja o placar final mais provável (considere odds, probabilidade, escalação, forma e notícias). Responda SOMENTE com JSON válido {\"pc\":N,\"pv\":N} onde pc=gols " + ctx.jogo.casa.pt + " e pv=gols " + ctx.jogo.visitante.pt + ", sem texto extra. CONTEXTO: " + JSON.stringify(ctx);
+        const prompt = "Você é um analista de futebol. Com base no CONTEXTO (JSON) do jogo da Copa, preveja o placar final mais provável (considere odds, probabilidade, escalação, forma e notícias). IMPORTANTE: e Copa do Mundo em sedes neutras (EUA/Canada/Mexico) — NAO existe mando de campo nem vantagem de jogar em casa (so o pais-sede jogando no seu pais tem leve fator torcida); 'casa'/'visitante' e apenas a ordem do confronto, nunca cite 'mando' ou 'vantagem de casa' como argumento. Responda SOMENTE com JSON válido {\"pc\":N,\"pv\":N} onde pc=gols " + ctx.jogo.casa.pt + " e pv=gols " + ctx.jogo.visitante.pt + ", sem texto extra. CONTEXTO: " + JSON.stringify(ctx);
         const t0 = Date.now();
         const r = await invocarTexto({ provedor: prov.provedor, modelo: prov.modelo, api_key: prov.api_key, base_url: prov.base_url } as any, prompt);
         const m = String(r.texto).match(/\{[\s\S]*?\}/); let pc: any = null, pv: any = null;
@@ -271,7 +271,7 @@ export async function rotasJogar(app: FastifyInstance) {
     };
     if (!prov || !prov.api_key) return logico();
     try {
-      const prompt = "Voce e um analista de futebol. Com base no CONTEXTO (JSON) do jogo da Copa, preveja o placar final mais provavel (considere odds, probabilidade, escalacao, forma e noticias). Responda SOMENTE com JSON valido {\"pc\":N,\"pv\":N,\"resumo\":\"...\"} onde pc=gols " + ctx.jogo.casa.pt + ", pv=gols " + ctx.jogo.visitante.pt + " e resumo = no maximo 8 palavras em portugues dizendo o porque. Nada fora do JSON. CONTEXTO: " + JSON.stringify(ctx);
+      const prompt = "Voce e um analista de futebol. Com base no CONTEXTO (JSON) do jogo da Copa, preveja o placar final mais provavel (considere odds, probabilidade, escalacao, forma e noticias). IMPORTANTE: e Copa do Mundo em sedes neutras (EUA/Canada/Mexico) — NAO existe mando de campo nem vantagem de jogar em casa (so o pais-sede jogando no seu pais tem leve fator torcida); 'casa'/'visitante' e apenas a ordem do confronto, nunca cite 'mando' ou 'vantagem de casa' como argumento. Responda SOMENTE com JSON valido {\"pc\":N,\"pv\":N,\"resumo\":\"...\"} onde pc=gols " + ctx.jogo.casa.pt + ", pv=gols " + ctx.jogo.visitante.pt + " e resumo = no maximo 8 palavras em portugues dizendo o porque. Nada fora do JSON. CONTEXTO: " + JSON.stringify(ctx);
       const t0 = Date.now();
       const r = await invocarTexto({ provedor: prov.provedor, modelo: prov.modelo, api_key: prov.api_key, base_url: prov.base_url } as any, prompt);
       try { await registrarGasto({ modelo: prov.modelo, tokens_in: r.usage.in, tokens_out: r.usage.out, tokens_cache: r.usage.cache, processo: String(u.id), origem: "jogador", tempo: (Date.now() - t0) / 1000 }); } catch {}
