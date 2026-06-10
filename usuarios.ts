@@ -12,8 +12,10 @@ function gerarReferral(): string {
 }
 
 interface CadastroBody {
-  email?: string; senha?: string; nome?: string; telefone?: string; referral?: string;
+  email?: string; senha?: string; nome?: string; telefone?: string; referral?: string; codigo?: string;
 }
+
+import { aplicarEntrada } from "./indicacao.js";
 
 export async function rotasUsuarios(app: FastifyInstance) {
   // Cadastro: cria usuário + 3 carteiras (200/200/100) + ledger inicial + ranking.
@@ -44,6 +46,7 @@ export async function rotasUsuarios(app: FastifyInstance) {
       );
       await client.query("INSERT INTO ranking (usuario_id) VALUES ($1)", [id]);
       await client.query("COMMIT");
+      try { if (b.codigo || b.referral) await aplicarEntrada(id, b.codigo || b.referral); } catch {}
       return reply.code(201).send({
         id,
         codigo_referral: u.rows[0].codigo_referral,
