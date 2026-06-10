@@ -161,14 +161,14 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
 .masc{width:46px;height:46px;flex:none;cursor:pointer;transition:filter .3s,opacity .3s}.masc svg{width:100%;height:100%;display:block}
 .grow{flex:1;min-width:0}
 .free{margin-left:auto;background:#d6f5e3;color:#0f7a45;font-size:8px;font-weight:800;padding:1px 5px;border-radius:5px;letter-spacing:.2px;line-height:1.5}
-.masc.off{opacity:.82}
-.masc.on{animation:bob 2.4s ease-in-out infinite;filter:drop-shadow(0 4px 10px rgba(31,170,89,.35))}
+.masc.off{opacity:.85;filter:drop-shadow(0 2px 5px var(--rc,#14794a))}
+.masc.on{animation:bob 2.4s ease-in-out infinite;filter:drop-shadow(0 4px 12px var(--rc,#14794a))}
 .masc.think{animation:bob .55s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-6px) rotate(3deg)}}
 .bubble{position:relative;background:var(--surface2);border:1px solid var(--bd);border-radius:12px;padding:8px 12px;font-size:12.5px;font-weight:600;flex:0 1 auto;max-width:360px;line-height:1.4}
 .bubble:before{content:"";position:absolute;left:-7px;top:18px;border:7px solid transparent;border-right-color:var(--bd)}
-.mbtn{background:var(--pri);color:#fff;border:0;border-radius:8px;padding:6px 11px;font-weight:800;font-size:12px;cursor:pointer;margin-left:4px}
-.mlink{color:var(--pri2);font-weight:800;cursor:pointer}
+.mbtn{background:var(--rc,#14794a);color:#fff;border:0;border-radius:8px;padding:6px 11px;font-weight:800;font-size:12px;cursor:pointer;margin-left:4px}
+.mlink{color:var(--rc,#14794a);font-weight:800;cursor:pointer;letter-spacing:.3px}
 .gstep{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--bd);font-size:13px;line-height:1.5}
 .gnum{flex:none;width:24px;height:24px;border-radius:50%;background:var(--pri);color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center}
 .gopen{display:inline-flex;align-items:center;gap:6px;background:var(--pri);color:#fff;padding:8px 14px;border-radius:9px;font-weight:800;font-size:12px;text-decoration:none}
@@ -400,7 +400,7 @@ function cardBolao(j,cor){
  return '<div class="jogo" style="--rc:'+cor+'">'+gt+jb+'</div>';
 }
 var IA_ON=false;
-function setMascote(){var m=document.getElementById("masc"),b=document.getElementById("masc-bubble");if(!m||!b)return;m.className="masc "+(IA_ON?"on":"off");if(IA_ON){b.innerHTML='T&ocirc; pronto pra palpitar essa rodada! <button class="mbtn" onclick="preencherIA()">&#10024; Palpitar</button>';}else{b.innerHTML='&#128164; <b>Conecte sua IA</b> e eu palpito por voc&ecirc;. <span class="mlink" onclick="mascClick()">conectar &#8594;</span>';}}
+function setMascote(){var m=document.getElementById("masc"),b=document.getElementById("masc-bubble");if(!m||!b)return;m.className="masc "+(IA_ON?"on":"off");if(IA_ON){b.innerHTML='T&ocirc; pronto pra palpitar essa rodada! <button class="mbtn" onclick="preencherIA()">&#10024; Palpitar</button>';}else{b.innerHTML='&#128164; <b>Conecte sua IA</b> e eu palpito por voc&ecirc;. <span class="mlink" onclick="mascClick()">CONECTAR &#8594;</span>';}}
 function mascClick(){if(!IA_ON)nav("ia");}
 
 async function loadBolao(rod){
