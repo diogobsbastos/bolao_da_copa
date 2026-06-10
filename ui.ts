@@ -7,7 +7,6 @@ const ITENS: Array<[string, string, string]> = [
   ["config", "&#9881;&#65039; Configuracoes", "/admin/config-hub"],
   ["tokenomics", "&#128176; Tokenomics", "/admin/tokenomics"],
   ["jogos", "&#9917; Jogos / Placar", "/admin/jogos-placar"],
-  ["classif", "&#127942; Classificacao", "/admin/classificacao"],
   ["resultados", "&#127937; Resultados", "/admin/resultados"],
   ["figs", "&#128203; Elencos / Figurinhas", "/admin/figurinhas"],
   ["criador", "&#127912; Criador de Figurinhas", "/admin/criador-fig"],

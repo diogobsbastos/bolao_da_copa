@@ -331,6 +331,21 @@ export async function rotasJogosPlacar(app: FastifyInstance) {
       return { ok: true, jogos };
     } catch (e: any) { return reply.code(500).send({ erro: String(e?.message ?? e).slice(0, 160) }); }
   });
+  app.get("/admin/resultados/artilharia", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    try {
+      const rows = (await pool.query(
+        `SELECT j.nome, j.selecao, s.gols, s.assistencias, s.jogos, s.nota_fantasy
+           FROM jogadores_stats s JOIN jogadores j ON j.id=s.jogador_id
+          WHERE s.gols>0 OR s.assistencias>0
+          ORDER BY s.gols DESC, s.assistencias DESC, s.nota_fantasy DESC NULLS LAST LIMIT 50`)).rows as any[];
+      const artilheiros = rows.map((r) => {
+        const t = timePT(r.selecao);
+        return { nome: r.nome, sel_pt: t.pt, iso: t.iso, gols: r.gols, ass: r.assistencias, jogos: r.jogos, nota: r.nota_fantasy };
+      });
+      return { ok: true, artilheiros };
+    } catch (e: any) { return reply.code(500).send({ erro: String(e?.message ?? e).slice(0, 160) }); }
+  });
 
   // Stats: ranking FIFA + desempenho na Copa 2022 (StatsBomb). Placar sempre do ponto de vista do time (meu x dele).
   app.get("/admin/jogos-placar/stats", async (req, reply) => {
