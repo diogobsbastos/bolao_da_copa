@@ -108,7 +108,8 @@ export async function rotasJogar(app: FastifyInstance) {
     let acessoFull = false; let pf: any = {};
     try { pf = (await pool.query("SELECT acesso_full, nome_time, avatar, pagou FROM usuarios WHERE id=$1", [u.id])).rows[0] as any || {}; acessoFull = !!pf.acesso_full || u.papel === "admin"; } catch {}
     let valorPago = 0; try { valorPago = Number(((await pool.query("SELECT COALESCE(SUM(valor),0) v FROM depositos WHERE usuario_id=$1 AND status='approved'", [u.id])).rows[0] as any)?.v || 0); } catch {}
-    return { ok: true, autoPreencher: autoP, iaConectada: iaOn, acessoFull, me: { id: u.id, nome: u.nome || u.email, email: u.email, papel: u.papel, nomeTime: pf.nome_time || "", avatar: pf.avatar || "", pagou: !!pf.pagou, valorPago }, carteiras: { saldo: Number(cart.saldo || 0) }, ranking: { pos, pontos, total }, proximo, palpitesPendentes: pend };
+    let mataAberto = false; try { const mf = (await pool.query("SELECT valor FROM config WHERE chave='mata_aberto'")).rows[0]?.valor; if (mf==='1' || mf==='true') mataAberto=true; else { const mn = (await pool.query("SELECT min(inicio) m FROM jogos WHERE fase<>'grupos' AND inicio IS NOT NULL")).rows[0]?.m; if (mn && Date.now() >= new Date(mn).getTime()) mataAberto=true; } } catch {}
+    return { ok: true, autoPreencher: autoP, iaConectada: iaOn, acessoFull, me: { id: u.id, nome: u.nome || u.email, email: u.email, papel: u.papel, nomeTime: pf.nome_time || "", avatar: pf.avatar || "", pagou: !!pf.pagou, valorPago }, carteiras: { saldo: Number(cart.saldo || 0) }, ranking: { pos, pontos, total }, proximo, palpitesPendentes: pend, mataAberto };
   });
 
   app.post("/jogar/perfil", async (req, reply) => {
