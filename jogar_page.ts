@@ -740,10 +740,9 @@ function renderCopa(){
   box.innerHTML='<div class="gcols">'+d.grupos.map(function(g){return '<div class="card" style="margin:0"><h3>'+esc(g.grupo)+'</h3><table><thead><tr><th>#</th><th>Seleção</th><th>P</th><th>J</th><th>SG</th></tr></thead><tbody>'+g.times.map(function(t,i){return '<tr><td class="pos">'+(i+1)+'</td><td>'+fl(t.iso)+' '+esc(t.pt)+'</td><td style="font-weight:800">'+t.p+'</td><td>'+t.j+'</td><td>'+(t.sg>0?"+":"")+t.sg+'</td></tr>';}).join("")+'</tbody></table></div>';}).join("")+'</div>';
  }else if(COPATAB==="calendario"){
   var cal=d.calendario||[];if(!cal.length){box.innerHTML='<div class="muted">calendário indisponível.</div>';return;}
-  var byR={};cal.forEach(function(j){var k=j.rodada||0;(byR[k]=byR[k]||[]).push(j);});
-  var html="";Object.keys(byR).sort(function(a,b){return a-b;}).forEach(function(rod){
-   html+='<div class="card" style="margin-bottom:10px"><h3>Rodada '+esc(rod)+'</h3>'+byR[rod].map(function(j){var pl=(j.rc!=null&&j.rv!=null)?('<b style="margin:0 8px">'+j.rc+'-'+j.rv+'</b>'):('<span class="muted" style="margin:0 8px">x</span>');return '<div style="display:flex;align-items:center;gap:6px;padding:6px 0;font-size:13px;border-top:1px solid var(--bd)"><span style="flex:1;text-align:right">'+esc(j.casa.pt)+' '+fl(j.casa.iso)+'</span>'+pl+'<span style="flex:1">'+fl(j.visitante.iso)+' '+esc(j.visitante.pt)+'</span><span class="muted" style="width:92px;text-align:right">'+fmtData(j.inicio)+'</span></div>';}).join("")+'</div>';
-  });box.innerHTML=html;
+  var byD=[],idx={};cal.forEach(function(j){var dia=fmtDia(j.inicio)||"A definir";if(idx[dia]==null){idx[dia]=byD.length;byD.push({dia:dia,jogos:[]});}byD[idx[dia]].jogos.push(j);});
+  var cell=function(j){var pl=(j.rc!=null&&j.rv!=null)?('<b>'+j.rc+'-'+j.rv+'</b>'):('<span class="muted">x</span>');var dt=new Date(j.inicio),hh=isNaN(dt)?'':(("0"+dt.getHours()).slice(-2)+":"+("0"+dt.getMinutes()).slice(-2));return '<div style="display:flex;align-items:center;gap:6px;font-size:13px;padding:7px 4px;border-top:1px solid var(--bd)"><span style="width:32px;color:var(--mut);font-size:11px">'+hh+'</span><span style="flex:1;text-align:right">'+esc(j.casa.pt)+' '+fl(j.casa.iso)+'</span>'+pl+'<span style="flex:1">'+fl(j.visitante.iso)+' '+esc(j.visitante.pt)+'</span></div>';};
+  box.innerHTML=byD.map(function(g){return '<div class="card" style="margin-bottom:10px"><h3>'+esc(g.dia)+'</h3><div class="gcols">'+g.jogos.map(cell).join("")+'</div></div>';}).join("");
  }else if(COPATAB==="artilheiros"){
   box.innerHTML='<div class="card"><h3>&#9917; Artilheiros</h3><div class="muted">Em breve — entra quando os gols começarem a sair.</div></div>';
  }else{
