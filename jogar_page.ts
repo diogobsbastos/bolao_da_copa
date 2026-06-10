@@ -23,7 +23,7 @@ a{color:inherit;text-decoration:none}
 .side a:hover{background:var(--card)}
 .side a.on{background:var(--pri);color:#fff}
 .side a.soon{opacity:.5;cursor:not-allowed}
-.side a .tag{margin-left:auto;font-size:8px;background:var(--bd);color:var(--mut);padding:1px 5px;border-radius:5px}
+.side a .tag{margin-left:auto;display:inline-flex;align-items:center;font-size:8px;background:var(--bd);color:var(--mut);padding:2px 6px;border-radius:6px;line-height:1}
 .main{flex:1;min-width:0;padding:16px;max-width:840px}
 .sec{display:none}.sec.on{display:block;animation:fade .25s ease}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -227,7 +227,7 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
 .mascbar{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--bd);border-radius:14px;padding:10px 12px;margin-bottom:12px}
 .masc{width:46px;height:46px;flex:none;cursor:pointer;transition:filter .3s,opacity .3s}.masc svg{width:100%;height:100%;display:block}
 .grow{flex:1;min-width:0}
-.free{margin-left:auto;background:#d6f5e3;color:#0f7a45;font-size:7px;font-weight:800;padding:1px 4px;border-radius:5px;letter-spacing:.2px;line-height:1.5}
+.free{margin-left:auto;display:inline-flex;align-items:center;background:#d6f5e3;color:#0f7a45;font-size:8px;font-weight:800;padding:2px 6px;border-radius:6px;letter-spacing:.3px;line-height:1}
 .side{gap:1px}
 .side a{padding:7px 10px;font-size:13px;border-radius:10px;gap:10px;transition:background .12s}
 .side a .ic{width:20px;height:20px;display:flex;align-items:center;justify-content:center}
