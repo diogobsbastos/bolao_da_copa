@@ -18,7 +18,7 @@ a{color:inherit;text-decoration:none}
 .av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--pri),var(--pri2));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;cursor:pointer;flex:none}
 .layout{display:flex;min-height:calc(100vh - 55px)}
 .side{width:186px;flex:none;background:var(--panel);backdrop-filter:blur(8px);border-right:1px solid var(--bd);padding:10px 7px;display:flex;flex-direction:column;gap:2px}
-.side a{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:9px;font-weight:600;font-size:13.5px;color:var(--mut);cursor:pointer}
+.side a{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:9px;font-weight:600;font-size:13.5px;color:var(--mut);cursor:pointer;white-space:nowrap}
 .side a .ic{width:20px;text-align:center}
 .side a:hover{background:var(--card)}
 .side a.on{background:var(--pri);color:#fff}
@@ -130,7 +130,7 @@ th,td{padding:8px 8px;border-bottom:1px solid var(--bd);text-align:left}th{color
 body.mcol .side{width:58px;padding:10px 6px}
 body.mcol .side a{justify-content:center;font-size:0;gap:0;padding:10px 0}
 body.mcol .side a .ic{font-size:18px}
-body.mcol .side a .tag{display:none}
+body.mcol .side a .tag,body.mcol .side a .free{display:none}
 .sbtn{background:var(--surface2);color:var(--rc,#1faa59)}
 .sbtn:hover{background:color-mix(in srgb,var(--rc,#1faa59) 18%,var(--surface2));color:var(--rc,#1faa59)}
 .su:hover{background:color-mix(in srgb,var(--rc,#1faa59) 18%,var(--surface2));color:var(--rc,#1faa59)}
@@ -152,7 +152,7 @@ body.mcol .side a .tag{display:none}
 .mascbar{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--bd);border-radius:14px;padding:10px 12px;margin-bottom:12px}
 .masc{width:46px;height:46px;flex:none;cursor:pointer;transition:filter .3s,opacity .3s}.masc svg{width:100%;height:100%;display:block}
 .grow{flex:1;min-width:0}
-.free{display:inline-block;background:linear-gradient(135deg,#f5c451,#f0931e);color:#1a1200;font-size:8.5px;font-weight:800;padding:1px 5px;border-radius:6px;letter-spacing:.3px;vertical-align:middle;margin-left:2px}
+.free{margin-left:auto;background:#d6f5e3;color:#0f7a45;font-size:8px;font-weight:800;padding:1px 5px;border-radius:5px;letter-spacing:.2px;line-height:1.5}
 .masc.off{opacity:.82}
 .masc.on{animation:bob 2.4s ease-in-out infinite;filter:drop-shadow(0 4px 10px rgba(31,170,89,.35))}
 .masc.think{animation:bob .55s ease-in-out infinite}
