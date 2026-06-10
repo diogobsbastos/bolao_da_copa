@@ -2,10 +2,12 @@ export const PAGINA_JOGAR = `<!doctype html><html lang="pt-br"><head><meta chars
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Bolão da Copa 26</title>
 <style>
-:root{--pri:#14794a;--pri2:#1faa59;--bg:#0e1117;--card:#171c26;--card2:#1f2633;--tx:#eef1f6;--mut:#94a0b4;--bd:#283142;--gold:#f5c451;--no:#e23744;}
-*{box-sizing:border-box}html,body{margin:0}body{font-family:system-ui,Segoe UI,Roboto,sans-serif;background:radial-gradient(120% 110% at 50% -10%,#0b3d2e 0%,#0a1228 48%,#080d18 100%) fixed;color:var(--tx);min-height:100vh;-webkit-tap-highlight-color:transparent}
+:root{--pri:#14794a;--pri2:#1faa59;--bg:#0e1117;--card:#171c26;--card2:#1f2633;--tx:#eef1f6;--mut:#94a0b4;--bd:#283142;--gold:#f5c451;--no:#e23744;--bgrad:radial-gradient(120% 110% at 50% -10%,#0b3d2e 0%,#0a1228 48%,#080d18 100%);--panel:rgba(16,21,30,.80);--surface:rgba(23,28,38,.66);--surface2:rgba(255,255,255,.06);--flagbg:#2a3142;}
+body.light{--card:#ffffff;--card2:#eef1f8;--tx:#1b2230;--mut:#5d6678;--bd:#e2e6f0;--bgrad:radial-gradient(120% 110% at 50% -10%,#e7f4ec 0%,#eef1f8 45%,#e6ebf3 100%);--panel:rgba(255,255,255,.90);--surface:#ffffff;--surface2:#eef1f8;--flagbg:#e6e8f0;}
+.tgl{background:var(--surface2);border:1px solid var(--bd);color:var(--tx);width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:15px;flex:none;display:flex;align-items:center;justify-content:center}
+*{box-sizing:border-box}html,body{margin:0}body{font-family:system-ui,Segoe UI,Roboto,sans-serif;background:var(--bgrad) fixed;color:var(--tx);min-height:100vh;-webkit-tap-highlight-color:transparent}
 a{color:inherit;text-decoration:none}
-.top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;padding:8px 14px;background:rgba(16,21,30,.82);backdrop-filter:blur(8px);border-bottom:1px solid var(--bd)}
+.top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--panel);backdrop-filter:blur(8px);border-bottom:1px solid var(--bd)}
 .burger{font-size:22px;background:none;border:0;color:var(--tx);cursor:pointer;display:none}
 .brand{font-weight:800;font-size:15px;white-space:nowrap}
 .brand b{color:var(--pri2)}
@@ -14,7 +16,7 @@ a{color:inherit;text-decoration:none}
 .w small{color:var(--mut);font-weight:600}
 .av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--pri),var(--pri2));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;cursor:pointer;flex:none}
 .layout{display:flex;min-height:calc(100vh - 55px)}
-.side{width:186px;flex:none;background:rgba(16,21,30,.72);backdrop-filter:blur(8px);border-right:1px solid var(--bd);padding:10px 7px;display:flex;flex-direction:column;gap:2px}
+.side{width:186px;flex:none;background:var(--panel);backdrop-filter:blur(8px);border-right:1px solid var(--bd);padding:10px 7px;display:flex;flex-direction:column;gap:2px}
 .side a{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:9px;font-weight:600;font-size:13.5px;color:var(--mut);cursor:pointer}
 .side a .ic{width:20px;text-align:center}
 .side a:hover{background:var(--card)}
@@ -26,7 +28,7 @@ a{color:inherit;text-decoration:none}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 h1{font-size:18px;margin:0 0 12px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
-.card{background:rgba(23,28,38,.66);border:1px solid var(--bd);border-radius:12px;padding:13px}
+.card{background:var(--surface);border:1px solid var(--bd);border-radius:12px;padding:13px}
 .card h3{margin:0 0 3px;font-size:12px;color:var(--mut);font-weight:700}
 .stat{font-size:22px;font-weight:800}
 .btn{background:var(--pri);color:#fff;border:0;border-radius:10px;padding:11px 16px;font-weight:800;cursor:pointer;font-size:14px}
@@ -66,18 +68,18 @@ th,td{padding:8px 8px;border-bottom:1px solid var(--bd);text-align:left}th{color
 }
 .diah{font-size:11px;font-weight:800;letter-spacing:.4px;color:var(--mut);text-transform:uppercase;margin:16px 0 8px}
 .jgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px}
-.jogo{position:relative;background:rgba(23,28,38,.66);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;overflow:hidden}
+.jogo{position:relative;background:var(--surface);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;overflow:hidden}
 .jogo:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--rc)}
 .gtab{position:absolute;left:5px;top:0;font-size:8px;font-weight:800;color:#fff;background:var(--rc);padding:2px 7px;border-bottom-right-radius:7px;letter-spacing:.5px}
 .jpad{margin-top:12px}
 .jlin{display:flex;align-items:center;gap:9px;padding:4px 0 4px 6px}
-.jflag{width:26px;height:19px;border-radius:3px;object-fit:cover;background:#2a3142;flex:none}
+.jflag{width:26px;height:19px;border-radius:3px;object-fit:cover;background:var(--flagbg);flex:none}
 .jn{flex:1;font-weight:600;font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.jpin{width:44px;height:38px;text-align:center;font-size:17px;font-weight:800;background:rgba(255,255,255,.06);border:1px solid var(--bd);color:var(--tx);border-radius:8px;flex:none;-moz-appearance:textfield}
+.jpin{width:44px;height:38px;text-align:center;font-size:17px;font-weight:800;background:var(--surface2);border:1px solid var(--bd);color:var(--tx);border-radius:8px;flex:none;-moz-appearance:textfield}
 .jpin::-webkit-inner-spin-button,.jpin::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 .jpin:disabled{opacity:.5}
 .jstep{display:flex;flex-direction:column;gap:2px;flex:none}
-.jsu{width:18px;height:16px;background:rgba(255,255,255,.08);color:var(--mut);border:0;border-radius:4px;font-size:8px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}.jsu:hover{background:var(--rc);color:#fff}
+.jsu{width:18px;height:16px;background:var(--surface2);color:var(--mut);border:0;border-radius:4px;font-size:8px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}.jsu:hover{background:var(--rc);color:#fff}
 .jfoot{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding-top:7px;border-top:1px dashed var(--bd);font-size:11px;color:var(--mut)}
 .jtag{font-size:10.5px;font-weight:700}.jtag.lk{color:var(--no)}
 .jfav{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--tx);font-weight:700}.jfav i{font-style:normal;font-size:8px;color:var(--mut);font-weight:800}.jfav .jflag{width:20px;height:15px}
@@ -89,6 +91,7 @@ th,td{padding:8px 8px;border-bottom:1px solid var(--bd);text-align:left}th{color
   <span class="w" title="Colecionador">&#129689; <span id="w-col">0</span></span>
   <span class="w" title="Apostas">&#127919; <span id="w-apo">0</span></span>
   <span class="w" title="Arena">&#9876; <span id="w-are">0</span></span>
+  <button class="tgl" id="tgl" onclick="tema()" title="Tema claro/escuro">&#127769;</button>
   <span class="av" id="av" onclick="nav('perfil')" title="Perfil">?</span>
  </div>
 </div>
@@ -286,5 +289,7 @@ async function loadCopa(){
  else{h+='<div class="muted">classifica&ccedil;&atilde;o aparece quando os jogos come&ccedil;arem.</div>';}
  box.innerHTML=h;
 }
+function tema(){var l=document.body.classList.toggle("light");localStorage.setItem("tema",l?"light":"dark");var t=document.getElementById("tgl");if(t)t.textContent=l?"\u2600\uFE0F":"\uD83C\uDF19";}
+if(localStorage.getItem("tema")==="light"){document.body.classList.add("light");var _t=document.getElementById("tgl");if(_t)_t.textContent="\u2600\uFE0F";}
 if(!TOKEN){location.href=(BASE||"")+"/";}else{loadDados();}
 </script></body></html>`;
