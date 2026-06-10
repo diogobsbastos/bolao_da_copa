@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { pool } from "./db.js";
 import { usuarioDaReq } from "./auth.js";
+import { aoPagar } from "./indicacao.js";
 
 const MP = "https://api.mercadopago.com";
 
@@ -25,6 +26,7 @@ async function creditarDeposito(depId: number): Promise<boolean> {
     for (const c of cards) await pool.query("INSERT INTO inventario_figurinhas (usuario_id, jogador_id, origem) VALUES ($1,$2,'pacote_base')", [uid, c.id]);
   }
   try { await pool.query("UPDATE usuarios_carteiras SET saldo_colecionador = saldo_colecionador WHERE usuario_id=$1", [uid]); } catch {}
+  try { await aoPagar(uid); } catch {}
   console.log("[pagamento] pacote base creditado p/ usuario", uid, "deposito", depId);
   return true;
 }

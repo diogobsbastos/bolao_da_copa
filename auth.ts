@@ -1,5 +1,6 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import { aplicarEntrada } from "./indicacao.js";
 import { pool } from "./db.js";
 
 function verifica(senha: string, stored: string): boolean {
@@ -24,7 +25,7 @@ async function novaSessao(usuarioId: number): Promise<string> {
   return token;
 }
 
-async function criarJogador(email: string, nome: string | null, senhaHash: string): Promise<number> {
+async function criarJogador(email: string, nome: string | null, senhaHash: string, codigo?: string | null): Promise<number> {
   const ref = randomBytes(4).toString("hex").toUpperCase();
   const ins = await pool.query(
     "INSERT INTO usuarios (email, senha_hash, nome, codigo_referral, papel) VALUES ($1,$2,$3,$4,'jogador') RETURNING id",
@@ -38,6 +39,7 @@ async function criarJogador(email: string, nome: string | null, senhaHash: strin
     [id]
   );
   await pool.query("INSERT INTO ranking (usuario_id) VALUES ($1)", [id]);
+  if (codigo) { try { await aplicarEntrada(id, codigo); } catch {} }
   return id;
 }
 
@@ -88,7 +90,7 @@ export async function rotasAuth(app: FastifyInstance) {
   });
 
   app.post("/auth/google", async (req, reply) => {
-    const { credential } = (req.body ?? {}) as { credential?: string };
+    const { credential, codigo } = (req.body ?? {}) as { credential?: string; codigo?: string };
     if (!credential) return reply.code(400).send({ erro: "sem credential" });
     const clientId = await cfg("google_client_id");
     if (!clientId) return reply.code(500).send({ erro: "google nao configurado" });
@@ -116,7 +118,7 @@ export async function rotasAuth(app: FastifyInstance) {
       papel = ex.rows[0].papel;
       nomeU = ex.rows[0].nome ?? nome;
     } else {
-      id = await criarJogador(email, nome, "google:" + randomBytes(16).toString("hex"));
+      id = await criarJogador(email, nome, "google:" + randomBytes(16).toString("hex"), codigo);
       papel = "jogador";
       nomeU = nome;
     }
