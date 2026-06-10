@@ -216,3 +216,24 @@ Cada tela = arquivo único (lógica + página HTML), registrado na ordem em `ser
 **LLM / Custos / Economia**
 - `llm.ts` — pool de provedores. `chamarLLM(prompt,papel,ctx)`. `GET /admin/llm?papel=`, `POST /admin/llm/{modelos,testar_params,del,usar,testar}`, `POST /admin/llm`. Tabela `llm_provedores`. Gemini + OpenAI-compat.
 - `custos.ts` — preços + ledger IA + dólar. `GET /admin/custos/dados`, `POST /admin/precos/{salvar,arquivar,del,catalogo,dolar}`, `POST /admin/custos/zerar`. Tabelas `precos_modelos`, `gastos_log`, `custos_meta`. `registrarGasto`/`garantirPreco`/`dolarAtual`. Auto-migra no bo
+---
+
+## 16. Token único (Beta 1.0) — PASSO 1 FEITO (10/jun, commits 97eba2e + 8805e0f)
+
+Colapso das 3 carteiras → 1 saldo. Regra fechada em CLAUDE.md §0.1.
+
+**Banco `bolao_copa26`:**
+- `usuarios_carteiras`: nova coluna **`saldo integer NOT NULL DEFAULT 500`** (fonte da verdade). Migração: `saldo = saldo_colecionador+saldo_apostas+saldo_arena`. As 3 colunas antigas **ficam dormentes** (não são mais lidas; mantidas por segurança/histórico).
+- `transacoes_tokens`: ledger passa a usar **`carteira='token'`**. Dois CHECKs precisaram de ajuste (achados por teste antes de quebrar usuário):
+  - `transacoes_tokens_carteira_check` → agora aceita `{token,colecionador,apostas,arena}`.
+  - `transacoes_tokens_tipo_check` (já existia) só aceita `{cadastro,recarga_rodada,referral,gasto_pacote,aposta,premio_aposta,venda_bagre,arena,ajuste}` → usar **`referral`** (NÃO `indicacao`) no crédito de indicação. (O código antigo usava 'indicacao' e o insert falhava silencioso no try/catch.)
+
+**Código (arquivos pequenos, deploy clone→push→VPS pull+restart):**
+- `auth.ts`/`usuarios.ts` cadastro: 1 saldo (default 500) + ledger `('token',500,500,'cadastro')`. Retorno `carteiras:{saldo:500}`.
+- `jogar.ts` `/jogar/dados`: lê `SELECT saldo`; retorna `carteiras:{saldo}` (mantida a chave `carteiras` p/ `setProfile(me,c,full)` usar `c.saldo`).
+- `jogar_page.ts`: header e perfil mostram 1 saldo (ids **`w-saldo`** / **`p-saldo`**); dash `d-saldo` = `c.saldo`.
+- `indicacao.ts`: `creditarTokens(uid, valor, tipo)` → `UPDATE ... saldo=saldo+$2`, ledger 1 linha `'token'`. Recompensa de indicação = **+50** tipo `referral`.
+- `tokenomics.ts`/`_page.ts`: total = `sum(saldo)`; removido o breakdown col/apo/are.
+- `pagamento.ts`: no-op de "touch" trocado p/ `SET saldo=saldo`.
+
+**PENDENTE / próximos:** drip **+50/rodada** (somar no `saldo`, tipo `recarga_rodada`) ainda não existe no código. Passo 2 (Bolão creditar token no acerto) vai precisar de um **tipo novo no CHECK** (ex.: adicionar `premio_bolao`) antes de inserir no ledger.
