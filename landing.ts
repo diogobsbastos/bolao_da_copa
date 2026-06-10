@@ -79,6 +79,7 @@ body::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--pri2),var(
 @media(max-width:560px){.cdlab{display:none}.cdval{min-width:0}}
 .convbar{position:relative;overflow:hidden;display:flex;align-items:center;gap:7px;justify-content:center;flex:0 1 auto;min-width:0;max-width:560px;margin:0 6px;padding:8px 20px;border-radius:999px;font-size:13.5px;font-weight:800;line-height:1.2;color:#3a2600;background:linear-gradient(135deg,#ffe27a,#ffb300 55%,#ff8f00);border:1px solid rgba(255,255,255,.6);box-shadow:0 6px 24px rgba(255,150,0,.5);white-space:nowrap;text-overflow:ellipsis;animation:cbpop .55s cubic-bezier(.18,1.5,.4,1) both}
 .convbar b{color:#160e00}
+.cbnm{display:inline-block;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
 .convbar.convalt{color:#fff;background:linear-gradient(135deg,#2a3550,#1b2435);border-color:rgba(255,255,255,.22);box-shadow:0 6px 18px rgba(0,0,0,.35)}
 .convbar.convused{color:#fff;background:linear-gradient(135deg,#7a2530,#561a22)}
 .convbar::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 25%,rgba(255,255,255,.75) 50%,transparent 75%);transform:translateX(-130%);animation:cbshine 2.8s ease-in-out infinite}
@@ -230,8 +231,9 @@ async function mostraConvite(){
   var full=(j.tipo==="full"&&j.disponivel);
   var used=(!j.disponivel&&j.tipo==="full");
   bar.className="convbar"+(full?"":(used?" convused":" convalt"));bar.style.display="flex";
-  if(full){bar.innerHTML="\ud83c\udf89 <b>"+esc(j.nome)+"</b> te liberou <b>acesso FULL</b> \u2014 crie sua conta! \ud83c\udf86";}
-  else{bar.innerHTML="\u26bd <b>"+esc(j.nome)+"</b> te convidou pro <b>Bol\u00e3o Copa 26</b>. Crie sua conta pra come\u00e7ar.";}
+  var pnome='<span class="cbnm">'+esc(String(j.nome||"amigo").trim().split(/\s+/)[0]||"amigo")+'</span>';
+  if(full){bar.innerHTML="\ud83c\udf89 <b>"+pnome+"</b> te liberou <b>acesso FULL</b> \u2014 crie sua conta! \ud83c\udf86";}
+  else{bar.innerHTML="\u26bd <b>"+pnome+"</b> te convidou \u2014 crie sua conta!";}
   if(used){bar.innerHTML="\u26a0\ufe0f Este convite full j\u00e1 foi utilizado.";}
  }catch(e){}
 }
