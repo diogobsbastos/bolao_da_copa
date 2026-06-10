@@ -33,7 +33,7 @@ ${NAV_CSS}
  <main class="main">
   <div class="top"><h2>&#127942; Classificacao dos Grupos</h2><span id="conn" class="muted">conectando...</span></div>
   <div class="pad">
-   <div class="muted" style="margin-bottom:12px">Calculada a partir dos placares lancados em <b>Jogos / Placar</b>. P=pontos · J=jogos · V/E/D · GP/GC · SG=saldo.</div>
+   <div class="muted" style="margin-bottom:12px">Calculada a partir dos <b>resultados reais</b> coletados (mesma base do app do jogador). P=pontos · J=jogos · V/E/D · GP/GC · SG=saldo.</div>
    <div class="grid" id="grid"><div class="muted" style="padding:14px">carregando...</div></div>
    <div class="leg"><span class="dot"></span> primeiros 2 de cada grupo (classificados)</div>
   </div>

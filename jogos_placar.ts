@@ -4,6 +4,7 @@ import { usuarioDaReq } from "./auth.js";
 import { chamarLLM } from "./llm.js";
 import { PAGINA_JOGOS } from "./jogos_placar_page.js";
 import { PAGINA_CLASS } from "./classificacao_page.js";
+import { PAGINA_RESULTADOS } from "./resultados_page.js";
 
 const TIMES: Record<string, { pt: string; iso: string }> = {
   "Algeria": { pt: "Argélia", iso: "dz" }, "Argentina": { pt: "Argentina", iso: "ar" },
@@ -277,6 +278,7 @@ export async function classifGrupoDe(en: string): Promise<any> {
 export async function rotasJogosPlacar(app: FastifyInstance) {
   app.get("/admin/jogos-placar", async (_req, reply) => reply.header("cache-control", "no-store").type("text/html").send(PAGINA_JOGOS));
   app.get("/admin/classificacao", async (_req, reply) => reply.header("cache-control", "no-store").type("text/html").send(PAGINA_CLASS));
+  app.get("/admin/resultados", async (_req, reply) => reply.header("cache-control", "no-store").type("text/html").send(PAGINA_RESULTADOS));
 
   app.get("/admin/jogos-placar/dados", async (req, reply) => {
     if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
@@ -303,9 +305,30 @@ export async function rotasJogosPlacar(app: FastifyInstance) {
     if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
     try {
       const rows = (await pool.query(
-        `SELECT selecao_casa, selecao_visitante, inicio, placar_casa, placar_visitante
+        `SELECT selecao_casa, selecao_visitante, inicio, resultado_casa AS placar_casa, resultado_visitante AS placar_visitante
            FROM jogos WHERE fase='grupos' AND selecao_casa<>'A definir' AND selecao_visitante<>'A definir'`)).rows as any[];
       return { grupos: calcClassificacao(rows) };
+    } catch (e: any) { return reply.code(500).send({ erro: String(e?.message ?? e).slice(0, 160) }); }
+  });
+  app.get("/admin/resultados/dados", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    try {
+      const rows = (await pool.query(
+        `SELECT id, fase, rodada, selecao_casa, selecao_visitante, inicio, status,
+                placar_casa, placar_visitante, resultado_casa, resultado_visitante, apurado, resultado_em
+           FROM jogos WHERE selecao_casa<>'A definir' AND selecao_visitante<>'A definir'
+           ORDER BY inicio NULLS LAST, id`)).rows as any[];
+      const jogos = rows.map((j) => {
+        const c = timePT(j.selecao_casa), v = timePT(j.selecao_visitante);
+        return {
+          id: j.id, fase: j.fase, rodada: j.rodada, inicio: j.inicio, status: j.status,
+          casa_pt: c.pt, casa_iso: c.iso, visit_pt: v.pt, visit_iso: v.iso,
+          palpite_c: j.placar_casa, palpite_v: j.placar_visitante,
+          real_c: j.resultado_casa, real_v: j.resultado_visitante,
+          apurado: j.apurado, resultado_em: j.resultado_em,
+        };
+      });
+      return { ok: true, jogos };
     } catch (e: any) { return reply.code(500).send({ erro: String(e?.message ?? e).slice(0, 160) }); }
   });
 
