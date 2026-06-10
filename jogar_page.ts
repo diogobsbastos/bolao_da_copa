@@ -343,7 +343,7 @@ function cardBolao(j,cor){
  return '<div class="jogo" style="--rc:'+cor+'">'+gt+jb+'</div>';
 }
 var IA_ON=false;
-function setMascote(){var m=document.getElementById("masc"),b=document.getElementById("masc-bubble");if(!m||!b)return;m.className="masc "+(IA_ON?"on":"off");if(IA_ON){b.innerHTML='T&ocirc; pronto pra palpitar essa rodada! <button class="mbtn" onclick="preencherIA()">&#10024; Palpitar</button>';}else{b.innerHTML='&#128164; <b>Conecte sua IA</b> e eu palpito por voc&ecirc;. <span class="mlink" onclick="nav(\'ia\')">conectar &#8594;</span>';}}
+function setMascote(){var m=document.getElementById("masc"),b=document.getElementById("masc-bubble");if(!m||!b)return;m.className="masc "+(IA_ON?"on":"off");if(IA_ON){b.innerHTML='T&ocirc; pronto pra palpitar essa rodada! <button class="mbtn" onclick="preencherIA()">&#10024; Palpitar</button>';}else{b.innerHTML='&#128164; <b>Conecte sua IA</b> e eu palpito por voc&ecirc;. <span class="mlink" onclick="mascClick()">conectar &#8594;</span>';}}
 function mascClick(){if(!IA_ON)nav("ia");}
 
 async function loadBolao(rod){
