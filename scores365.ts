@@ -265,6 +265,22 @@ export async function probeGame(gid: string | number): Promise<void> {
   } catch (e: any) { console.log("[game-probe] erro", String(e?.message ?? e).slice(0, 200)); }
 }
 
+export async function probeAthlete(gid: string | number): Promise<void> {
+  try {
+    const gj = await s365(`/game?appTypeId=5&langId=1&userCountryId=21&timezoneName=America/Sao_Paulo&gameId=${gid}`);
+    const g = gj?.game; if (!g) { console.log("[ath-probe] sem game"); return; }
+    const hcId = g.homeCompetitor?.id;
+    const mem = (Array.isArray(g?.members) ? g.members : [])[0] || {};
+    const athId = mem?.athleteId || mem?.id;
+    console.log("[ath-probe] hcId", hcId, "member0", JSON.stringify({ id: mem?.id, athleteId: mem?.athleteId, name: mem?.name, keys: Object.keys(mem) }));
+    const tryp = async (label: string, path: string) => { try { const r = await s365(path); const k = Object.keys(r || {}); console.log("[ath-probe]", label, "KEYS", JSON.stringify(k), "SAMPLE", JSON.stringify(r).slice(0, 700)); } catch (e: any) { console.log("[ath-probe]", label, "erro", String(e?.message ?? e).slice(0, 80)); } };
+    await tryp("squad", `/squads/?appTypeId=5&langId=1&competitor=${hcId}`);
+    await tryp("competitor", `/competitors/?appTypeId=5&langId=1&competitor=${hcId}`);
+    await tryp("athlete", `/athletes/?appTypeId=5&langId=1&athletes=${athId}`);
+    await tryp("athlete2", `/athlete/?appTypeId=5&langId=1&athleteId=${athId}`);
+  } catch (e: any) { console.log("[ath-probe] erro", String(e?.message ?? e).slice(0, 120)); }
+}
+
 export async function rotasScores365(app: FastifyInstance) {
   app.post("/admin/scores365/coletar", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); return await coletarDados365(); });
   app.post("/admin/scores365/odds", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); return await syncOdds(); });
@@ -295,4 +311,5 @@ export async function rotasScores365(app: FastifyInstance) {
   // Sonda de boot (verificação): se config.lineup_probe tiver gids (csv), loga a estrutura crua.
   (async () => { try { const g = await cfg("lineup_probe"); if (g) for (const id of g.split(",").map((s) => s.trim()).filter(Boolean)) await probeLineup(id); } catch {} })();
   (async () => { try { const g = await cfg("game_probe"); if (g) for (const id of g.split(",").map((s) => s.trim()).filter(Boolean)) await probeGame(id); } catch {} })();
+  (async () => { try { const g = await cfg("athlete_probe"); if (g) for (const id of g.split(",").map((s) => s.trim()).filter(Boolean)) await probeAthlete(id); } catch {} })();
 }
