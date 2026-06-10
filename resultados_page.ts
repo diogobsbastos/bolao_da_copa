@@ -19,21 +19,22 @@ export const PAGINA_RESULTADOS = `<!doctype html><html lang="pt-br"><head><meta 
 .dayh{font-weight:800;font-size:14px;margin:18px 0 8px;text-transform:capitalize}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .jg{background:var(--card);border:1px solid var(--bd);border-radius:11px;padding:10px 12px}
-.jghd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.jghd{display:flex;align-items:center;gap:8px;margin-bottom:4px}
 .hr{font-size:12px;color:var(--mut)}
-.tms{}
-.tm{display:flex;align-items:center;gap:7px;font-weight:600;font-size:13.5px;padding:2px 0}
-.tm .sc{margin-left:auto;font-weight:800;font-size:16px}
+.hd-r{margin-left:auto;display:flex;align-items:center;gap:7px}
+.tm{display:flex;align-items:center;gap:7px;font-weight:600;font-size:14px;padding:3px 0}
+.tm .sc{margin-left:auto;display:flex;align-items:center}
+.scv{font-weight:800;font-size:17px;min-width:18px;text-align:center}
+.sci{width:42px;text-align:center;padding:4px;border:1px solid var(--pri);border-radius:6px;font-size:15px;font-weight:700}
 .fl{width:22px;height:16px;object-fit:cover;border-radius:2px;background:#e6e8f0}
-.pal{font-size:11px;color:var(--mut);margin-top:5px}
 .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap}
 .p-final{background:#e6f7ee;color:#0f7a45}.p-ag{background:#fdf3e0;color:#9a6a00}.p-pal{background:#eef1f6;color:#5a6275}
 .lnk{cursor:pointer}.lnk:hover{filter:brightness(.96)}
-.ed{display:flex;align-items:center;gap:6px;margin-top:8px}
-.ed input{width:44px;text-align:center;padding:6px;border:1px solid var(--bd);border-radius:7px;font-size:14px}
-.ed .x{color:var(--mut)}.ed .cl{font-size:11px;color:var(--mut);margin-right:2px}
-.sv{border:0;background:var(--pri);color:#fff;border-radius:7px;padding:7px 10px;font-weight:700;font-size:12px;cursor:pointer}
-.apu{font-size:11px;font-weight:700}.apu.ok{color:var(--ok)}.apu.no{color:var(--am)}
+.edbtn{border:1px solid var(--bd);background:#fff;color:var(--pri);border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer}
+.edbtn:hover{background:#eef1f6}
+.sv{border:0;background:var(--pri);color:#fff;border-radius:7px;padding:5px 11px;font-weight:700;font-size:12px;cursor:pointer}
+.cxl{border:0;background:none;color:var(--mut);cursor:pointer;font-size:14px;line-height:1;padding:2px}
+.apu{font-size:13px;font-weight:800}.apu.ok{color:var(--ok)}.apu.no{color:var(--am)}
 @media(max-width:820px){.grid{grid-template-columns:1fr}}
 ${NAV_CSS}
 </style></head><body>
@@ -42,7 +43,7 @@ ${NAV_CSS}
  <main class="main">
   <div class="top"><h2>&#127937; Resultados Reais</h2><span id="conn" class="muted">conectando...</span></div>
   <div class="pad">
-   <div class="muted" style="margin-bottom:12px">Resultado REAL coletado do 365scores no horario do jogo (<code>jogos.resultado_*</code>, status <b>final</b>). A apuracao compara os palpites com este resultado. Confira se o cron trabalhou e corrija na mao se precisar.</div>
+   <div class="muted" style="margin-bottom:12px">Resultado REAL coletado do 365scores no horario do jogo (<code>jogos.resultado_*</code>, status <b>final</b>). A apuracao compara os palpites com este resultado. Clique <b>Editar</b> num jogo para lancar/corrigir na mao.</div>
    <div class="bar">
     <div class="st">Coletor: <b id="b-ultimo">&mdash;</b></div>
     <div class="st">Jogos apurados: <b id="b-apur">0</b></div>
@@ -69,29 +70,37 @@ function stPill(j){
  if(j.status==="encerrado")return '<span class="pill p-pal lnk" title="placar-base do robo - abrir Jogos & Placar" onclick="go(&#39;/admin/jogos-placar&#39;)">so palpite-base &#8599;</span>';
  return '<span class="pill p-ag lnk" title="o coletor dispara no horario do jogo - abrir Integracoes/Crons" onclick="go(&#39;/admin?pg=integ&#39;)">agendado &#8599;</span>';
 }
-async function carregarStatus(){
- try{var r=await fetch(_b()+"/admin/bolao/status",{headers:H()});if(!r.ok)return;var d=await r.json();
-  document.getElementById("b-apur").textContent=d.jogosApurados||0;
-  document.getElementById("b-pend").textContent=d.aguardandoApuracao||0;
+function carregarStatus(){
+ fetch(_b()+"/admin/bolao/status",{headers:H()}).then(function(r){return r.ok?r.json():null;}).then(function(d){
+  if(!d)return;document.getElementById("b-apur").textContent=d.jogosApurados||0;document.getElementById("b-pend").textContent=d.aguardandoApuracao||0;
   var st=d.status||{};document.getElementById("b-ultimo").textContent=esc(st.ultimo||st.em||st.quando||"sem registro");
- }catch(e){}
+ }).catch(function(){});
 }
 function card(j){
  var real=(j.real_c!=null&&j.real_v!=null);
- var scC=real?j.real_c:"&ndash;",scV=real?j.real_v:"&ndash;";
- var palTxt=(j.palpite_c!=null)?('palpite-base: '+j.palpite_c+' x '+j.palpite_v):'';
- var apu=real?(j.apurado?' &middot; <span class="apu ok">apurado &#10003;</span>':' &middot; <span class="apu no">aguardando apuracao</span>'):'';
- return '<div class="jg">'
-  +'<div class="jghd"><span class="hr">&#9200; '+fmtH(j.inicio)+'</span>'+stPill(j)+'</div>'
-  +'<div class="tms">'
-  +'<div class="tm">'+fl(j.casa_iso)+esc(j.casa_pt)+'<span class="sc">'+scC+'</span></div>'
-  +'<div class="tm">'+fl(j.visit_iso)+esc(j.visit_pt)+'<span class="sc">'+scV+'</span></div>'
-  +'</div>'
-  +((palTxt||apu)?'<div class="pal">'+palTxt+apu+'</div>':'')
-  +'<div class="ed"><span class="cl">corrigir:</span><input id="rc-'+j.id+'" type="number" min="0" value="'+(j.real_c!=null?j.real_c:"")+'"><span class="x">x</span>'
-  +'<input id="rv-'+j.id+'" type="number" min="0" value="'+(j.real_v!=null?j.real_v:"")+'">'
-  +'<button class="sv" onclick="salvar('+j.id+')">Salvar</button></div>'
+ var vc=real?j.real_c:"&ndash;",vv=real?j.real_v:"&ndash;";
+ var ivc=real?j.real_c:"",ivv=real?j.real_v:"";
+ var apu=real?(j.apurado?'<span class="apu ok" title="apurado">&#10003;</span>':'<span class="apu no" title="aguardando apuracao">&#8230;</span>'):'';
+ return '<div class="jg" id="jg-'+j.id+'">'
+  +'<div class="jghd"><span class="hr">&#9200; '+fmtH(j.inicio)+'</span>'
+  +'<span class="hd-r">'+stPill(j)+apu
+  +'<button class="edbtn" id="ed-'+j.id+'" onclick="editar('+j.id+')">&#9998; Editar</button>'
+  +'<button class="sv" id="sv-'+j.id+'" onclick="salvar('+j.id+')" style="display:none">Salvar</button>'
+  +'<button class="cxl" id="cx-'+j.id+'" onclick="load()" style="display:none" title="cancelar">&#10005;</button>'
+  +'</span></div>'
+  +'<div class="tm">'+fl(j.casa_iso)+esc(j.casa_pt)+'<span class="sc"><span class="scv" id="scv-'+j.id+'-c">'+vc+'</span><input class="sci" id="rc-'+j.id+'" type="number" min="0" value="'+ivc+'" style="display:none"></span></div>'
+  +'<div class="tm">'+fl(j.visit_iso)+esc(j.visit_pt)+'<span class="sc"><span class="scv" id="scv-'+j.id+'-v">'+vv+'</span><input class="sci" id="rv-'+j.id+'" type="number" min="0" value="'+ivv+'" style="display:none"></span></div>'
   +'</div>';
+}
+function editar(id){
+ document.getElementById("scv-"+id+"-c").style.display="none";
+ document.getElementById("scv-"+id+"-v").style.display="none";
+ document.getElementById("rc-"+id).style.display="";
+ document.getElementById("rv-"+id).style.display="";
+ document.getElementById("ed-"+id).style.display="none";
+ document.getElementById("sv-"+id).style.display="";
+ document.getElementById("cx-"+id).style.display="";
+ document.getElementById("rc-"+id).focus();
 }
 async function load(){
  var c=document.getElementById("conn");
