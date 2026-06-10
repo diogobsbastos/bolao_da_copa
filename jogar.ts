@@ -105,8 +105,28 @@ export async function rotasJogar(app: FastifyInstance) {
     const pend = Number(((await pool.query("SELECT count(*) n FROM jogos j WHERE j.fase='grupos' AND j.selecao_casa<>'A definir' AND j.inicio>=now() AND NOT EXISTS (SELECT 1 FROM palpites_bolao pb WHERE pb.jogo_id=j.id AND pb.usuario_id=$1)", [u.id])).rows[0] as any)?.n || 0);
     let autoP = false; try { autoP = !!((await pool.query("SELECT auto_preencher FROM usuarios WHERE id=$1", [u.id])).rows[0] as any)?.auto_preencher; } catch {}
     let iaOn = false; try { iaOn = !!((await pool.query("SELECT (length(api_key)>0) k FROM usuarios_llm WHERE usuario_id=$1", [u.id])).rows[0] as any)?.k; } catch {}
-    let acessoFull = false; try { acessoFull = !!((await pool.query("SELECT acesso_full FROM usuarios WHERE id=$1", [u.id])).rows[0] as any)?.acesso_full || u.papel === "admin"; } catch {}
-    return { ok: true, autoPreencher: autoP, iaConectada: iaOn, acessoFull, me: { id: u.id, nome: u.nome || u.email, email: u.email, papel: u.papel }, carteiras: { colecionador: Number(cart.c || 0), apostas: Number(cart.a || 0), arena: Number(cart.ar || 0) }, ranking: { pos, pontos, total }, proximo, palpitesPendentes: pend };
+    let acessoFull = false; let pf: any = {};
+    try { pf = (await pool.query("SELECT acesso_full, nome_time, avatar, pagou FROM usuarios WHERE id=$1", [u.id])).rows[0] as any || {}; acessoFull = !!pf.acesso_full || u.papel === "admin"; } catch {}
+    let valorPago = 0; try { valorPago = Number(((await pool.query("SELECT COALESCE(SUM(valor),0) v FROM depositos WHERE usuario_id=$1 AND status='approved'", [u.id])).rows[0] as any)?.v || 0); } catch {}
+    return { ok: true, autoPreencher: autoP, iaConectada: iaOn, acessoFull, me: { id: u.id, nome: u.nome || u.email, email: u.email, papel: u.papel, nomeTime: pf.nome_time || "", avatar: pf.avatar || "", pagou: !!pf.pagou, valorPago }, carteiras: { colecionador: Number(cart.c || 0), apostas: Number(cart.a || 0), arena: Number(cart.ar || 0) }, ranking: { pos, pontos, total }, proximo, palpitesPendentes: pend };
+  });
+
+  app.post("/jogar/perfil", async (req, reply) => {
+    const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    const b: any = req.body || {};
+    const nome = String(b.nome || "").trim().slice(0, 60);
+    const time = String(b.nomeTime || "").trim().slice(0, 40);
+    if (nome) await pool.query("UPDATE usuarios SET nome=$2 WHERE id=$1", [u.id, nome]);
+    await pool.query("UPDATE usuarios SET nome_time=$2 WHERE id=$1", [u.id, time]);
+    return { ok: true };
+  });
+  app.post("/jogar/perfil/avatar", async (req, reply) => {
+    const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    const b: any = req.body || {};
+    const data = String(b.dataUrl || "");
+    if (!/^data:image\/(png|jpeg|jpg|webp);base64,/.test(data) || data.length > 400000) return reply.code(400).send({ erro: "imagem invalida ou grande demais" });
+    await pool.query("UPDATE usuarios SET avatar=$2 WHERE id=$1", [u.id, data]);
+    return { ok: true, avatar: data };
   });
 
   app.get("/jogar/bolao", async (req, reply) => {

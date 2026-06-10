@@ -228,6 +228,44 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
 .masc{width:46px;height:46px;flex:none;cursor:pointer;transition:filter .3s,opacity .3s}.masc svg{width:100%;height:100%;display:block}
 .grow{flex:1;min-width:0}
 .free{margin-left:auto;background:#d6f5e3;color:#0f7a45;font-size:8px;font-weight:800;padding:1px 5px;border-radius:5px;letter-spacing:.2px;line-height:1.5}
+.side{gap:1px}
+.side a{padding:7px 10px;font-size:13px;border-radius:10px;gap:10px;transition:background .12s}
+.side a .ic{width:20px;height:20px;display:flex;align-items:center;justify-content:center}
+.side a .ic svg{width:19px;height:19px}
+.side a.on{background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;box-shadow:0 3px 10px rgba(31,170,89,.28)}
+.sdiv{height:1px;background:var(--bd);margin:8px 8px}
+.pwrap{position:relative}
+.av img{width:100%;height:100%;object-fit:cover;display:block}
+.pdrop{position:absolute;top:46px;right:0;width:236px;background:var(--panel);border:1px solid var(--bd);border-radius:14px;box-shadow:0 18px 44px rgba(8,16,38,.32);padding:8px;display:none;flex-direction:column;gap:1px;z-index:60;backdrop-filter:blur(10px)}
+.pdrop.open{display:flex;animation:fade .14s ease}
+.pdhead{display:flex;align-items:center;gap:10px;padding:6px 8px 10px;border-bottom:1px solid var(--bd);margin-bottom:5px}
+.pdhead .av{width:40px;height:40px;font-size:16px;cursor:default}
+.pdhead b{font-size:14px;display:block;line-height:1.2}
+.pdhead small{color:var(--mut);font-size:11px;display:block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pdrop a{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:9px;font-size:13px;font-weight:600;color:var(--tx);cursor:pointer}
+.pdrop a:hover{background:var(--card)}
+.pdrop a svg{width:18px;height:18px;color:var(--mut)}
+.pdrop a.dang{color:#e23744}.pdrop a.dang svg{color:#e23744}
+.pdsep{height:1px;background:var(--bd);margin:6px 4px}
+.tabs{display:flex;gap:4px;margin:0 0 18px;border-bottom:1px solid var(--bd)}
+.tab{background:none;border:0;border-bottom:2px solid transparent;color:var(--mut);font-weight:700;font-size:14px;padding:9px 14px;cursor:pointer;margin-bottom:-1px}
+.tab:hover{color:var(--tx)}
+.tab.on{color:var(--pri2);border-bottom-color:var(--pri)}
+.profwrap{max-width:560px}
+.profhead{display:flex;align-items:center;gap:16px;margin-bottom:16px}
+.profava{width:84px;height:84px;border-radius:50%;background:linear-gradient(135deg,var(--pri),var(--pri2));display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:800;color:#fff;position:relative;overflow:hidden;flex:none;cursor:pointer}
+.profava img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.profcam{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);color:#fff;font-size:9.5px;font-weight:700;text-align:center;padding:3px 0;letter-spacing:.3px;z-index:2}
+.profmeta b{font-size:19px}
+.full{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;color:#0f7a45;background:#d6f5e3;padding:2px 8px;border-radius:6px;margin-left:6px}
+.proffield{margin-bottom:12px}
+.proffield label{display:block;font-size:12px;color:var(--mut);font-weight:700;margin-bottom:5px}
+.proffield input{width:100%;background:var(--card2);border:1px solid var(--bd);color:var(--tx);border-radius:10px;padding:10px 12px;font-size:14px}
+.proffield input.ro{opacity:.65}
+.profstats{display:flex;gap:10px;margin:16px 0}
+.profstat{flex:1;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px 8px;text-align:center}
+.profstat .v{font-size:19px;font-weight:800}
+.profstat .l{font-size:10.5px;color:var(--mut);font-weight:700;margin-top:2px}
 .convlink input{width:100%;background:var(--surface2);border:1px solid var(--bd);color:var(--tx);border-radius:9px;padding:9px;font-size:12px;margin:4px 0 10px}
 .convbtns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .cbtn{display:flex;align-items:center;justify-content:center;gap:5px;border:0;border-radius:10px;padding:11px 6px;font-weight:800;font-size:12.5px;cursor:pointer;text-decoration:none}
@@ -278,24 +316,32 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
   <span class="w" title="Apostas">&#127919; <span id="w-apo">0</span></span>
   <span class="w" title="Arena">&#9876; <span id="w-are">0</span></span>
   <button class="tgl" id="tgl" onclick="tema()" title="Tema claro/escuro">&#127769;</button>
-  <span class="av" id="av" onclick="nav('perfil')" title="Perfil">?</span>
+  <div class="pwrap">
+   <span class="av" id="av" onclick="togDrop(event)" title="Perfil">?</span>
+   <div class="pdrop" id="pdrop">
+    <div class="pdhead"><span class="av" id="av2">?</span><div><b id="pd-nome">jogador</b><small id="pd-email"></small></div></div>
+    <a onclick="nav('perfil')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg> Meu Perfil</a>
+    <a onclick="nav('deposito')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg> Dep&oacute;sito</a>
+    <a onclick="nav('convidar')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="1"/><path d="M2 9h20v3H2zM12 9v11M9 9a2.5 2.5 0 1 1 3-3.5A2.5 2.5 0 1 1 15 9"/></svg> Convidar <span class="free">FULL</span></a>
+    <a onclick="nav('perfil')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M16 12h3"/><path d="M3 9h12a2 2 0 0 1 0 4"/></svg> Carteira</a>
+    <div class="pdsep"></div>
+    <a class="dang" onclick="sair()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4"/><path d="m9 16-4-4 4-4M5 12h11"/></svg> Sair</a>
+   </div>
+  </div>
  </div>
 </div>
 <div class="layout">
  <nav class="side" id="side">
-  <a class="on" data-s="dash" onclick="nav('dash')"><span class="ic">&#127968;</span> In&iacute;cio</a>
-  <a data-s="bolao" onclick="nav('bolao')"><span class="ic">&#9917;</span> Bol&atilde;o</a>
-  <a data-s="time" onclick="nav('time')"><span class="ic">&#127183;</span> Meu Time</a>
-  <a data-s="copa" onclick="nav('copa')"><span class="ic">&#127758;</span> Copa do Mundo</a>
-  <a data-s="market" onclick="nav('market')"><span class="ic">&#128722;</span> Marketplace</a>
-  <a data-s="arena" onclick="nav('arena')"><span class="ic">&#9876;</span> Arena</a>
-  <a data-s="rank" onclick="nav('rank')"><span class="ic">&#127942;</span> Ranking</a>
-  <a data-s="deposito" onclick="nav('deposito')"><span class="ic">&#128179;</span> Dep&oacute;sito</a>
-  <a data-s="convidar" onclick="nav('convidar')"><span class="ic">&#127873;</span> Convidar <span class="free">FULL</span></a>
-  <a data-s="ia" onclick="nav('ia')"><span class="ic">&#129302;</span> Conectar IA <span class="free">GR&Aacute;TIS</span></a>
-  <a data-s="custo" onclick="nav('custo')"><span class="ic">&#128176;</span> Custo da IA</a>
-  <a class="soon"><span class="ic">&#127920;</span> Bet <span class="tag">Em breve</span></a>
-  <a onclick="sair()" style="margin-top:auto"><span class="ic">&#128682;</span> Sair</a>
+  <a class="on" data-s="dash" onclick="nav('dash')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/></svg></span> In&iacute;cio</a>
+  <a data-s="bolao" onclick="nav('bolao')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m12 7 3.4 2.5-1.3 4.1h-4.2L8.6 9.5z"/></svg></span> Bol&atilde;o</a>
+  <a data-s="time" onclick="nav('time')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 19v-1.5a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4V19"/><circle cx="9.5" cy="7.5" r="3"/><path d="M21 19v-1.5a4 4 0 0 0-3-3.9"/></svg></span> Meu Time</a>
+  <a data-s="copa" onclick="nav('copa')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18"/></svg></span> Copa do Mundo</a>
+  <a data-s="market" onclick="nav('market')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2.5 3.5H5l2.2 11a1.7 1.7 0 0 0 1.7 1.4h8a1.7 1.7 0 0 0 1.7-1.3L21.5 7H6.2"/></svg></span> Marketplace</a>
+  <a data-s="arena" onclick="nav('arena')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.4 3 7.9 7 9.6 4-1.7 7-5.2 7-9.6V6z"/><path d="m12.5 8.5-2 3.2h3l-2 3.3"/></svg></span> Arena</a>
+  <a data-s="rank" onclick="nav('rank')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v4a5 5 0 0 1-10 0z"/><path d="M7 5H4.5v1.5A3 3 0 0 0 7.5 9.5M17 5h2.5v1.5a3 3 0 0 1-3 3"/><path d="M9.5 14.5h5M12 12v2.5M8.5 20h7"/></svg></span> Ranking</a>
+  <div class="sdiv"></div>
+  <a data-s="ia" onclick="nav('ia')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/><path d="M9 3v2M15 3v2M9 19v2M15 19v2M3 9h2M3 15h2M19 9h2M19 15h2"/></svg></span> IA <span class="free">GR&Aacute;TIS</span></a>
+  <a class="soon"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1.1"/><circle cx="15" cy="15" r="1.1"/><circle cx="12" cy="12" r="1.1"/></svg></span> Bet <span class="tag">Em breve</span></a>
  </nav>
  <div class="scrim" id="scrim" onclick="drawer()"></div>
  <main class="main">
@@ -371,6 +417,7 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
   </section>
 
   <section class="sec" id="s-ia">
+   <div class="tabs"><button class="tab on" onclick="nav('ia')">Conectar</button><button class="tab" onclick="nav('custo')">Custo</button></div>
    <h1>&#129302; Conectar minha IA</h1>
    <div class="muted" style="margin-bottom:10px">Conecte sua pr&oacute;pria LLM (chave sua, custo seu). Ela palpita por voc&ecirc; usando o contexto de cada jogo: odds, probabilidade, escala&ccedil;&atilde;o, forma e not&iacute;cias.</div>
    <div class="card">
@@ -405,6 +452,7 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
   </section>
 
   <section class="sec" id="s-custo">
+   <div class="tabs"><button class="tab" onclick="nav('ia')">Conectar</button><button class="tab on" onclick="nav('custo')">Custo</button></div>
    <h1>&#128176; Custo da sua IA</h1>
    <div class="muted" style="margin-bottom:12px">Voc&ecirc; usa <b>a sua pr&oacute;pria chave</b>, ent&atilde;o o custo &eacute; seu &mdash; e no <b>free tier &eacute; R$ 0</b>. Mandamos muito contexto (entrada), a IA responde s&oacute; o placar (sa&iacute;da min&uacute;scula), ent&atilde;o mesmo pagando sai centavos. Acompanhe tudo aqui.</div>
    <div class="custgrid">
@@ -418,14 +466,26 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
   </section>
 
   <section class="sec" id="s-perfil">
-   <h1>Perfil</h1>
-   <div class="card"><div><b id="p-nome"></b></div><div class="muted" id="p-email"></div>
-    <div style="margin-top:12px;display:flex;gap:18px">
-     <div><div class="muted">Colecionador</div><div class="stat" id="p-col" style="font-size:20px">0</div></div>
-     <div><div class="muted">Apostas</div><div class="stat" id="p-apo" style="font-size:20px">0</div></div>
-     <div><div class="muted">Arena</div><div class="stat" id="p-are" style="font-size:20px">0</div></div>
+   <h1>Meu Perfil</h1>
+   <div class="profwrap">
+    <div class="profhead">
+     <div class="profava" id="p-ava" onclick="document.getElementById('pf-file').click()"><span id="p-ava-l">?</span><span class="profcam">trocar</span></div>
+     <input type="file" id="pf-file" accept="image/*" style="display:none" onchange="avatarPick(this)">
+     <div class="profmeta"><div><b id="p-hnome">jogador</b><span class="full" id="p-full" style="display:none">&#11088; FULL</span></div><div class="muted" id="p-email" style="font-size:13px;margin-top:2px"></div></div>
     </div>
-    <div style="margin-top:14px"><button class="btn ghost" onclick="sair()">Sair da conta</button></div>
+    <div class="card">
+     <div class="proffield"><label>Nome do jogador</label><input id="p-nome" maxlength="60" placeholder="seu nome"></div>
+     <div class="proffield"><label>Nome do seu time</label><input id="p-time" maxlength="40" placeholder="ex.: Os Invenc&iacute;veis FC"></div>
+     <div class="proffield"><label>E-mail</label><input id="p-email-in" class="ro" readonly></div>
+     <div style="display:flex;gap:10px;align-items:center;margin-top:2px"><button class="btn" onclick="salvarPerfil()">Salvar altera&ccedil;&otilde;es</button><span id="p-save-st" class="muted" style="font-size:12px"></span></div>
+    </div>
+    <div class="profstats">
+     <div class="profstat"><div class="v" id="p-pago">R$ 0</div><div class="l">Valor pago</div></div>
+     <div class="profstat"><div class="v" id="p-col">0</div><div class="l">Colecionador</div></div>
+     <div class="profstat"><div class="v" id="p-apo">0</div><div class="l">Apostas</div></div>
+     <div class="profstat"><div class="v" id="p-are">0</div><div class="l">Arena</div></div>
+    </div>
+    <button class="btn ghost" onclick="sair()">Sair da conta</button>
    </div>
   </section>
 
@@ -447,7 +507,9 @@ function menuBtn(){if(window.innerWidth<=760){drawer();}else{var c=document.body
 function sair(){localStorage.removeItem("sessao");localStorage.removeItem("papel");location.href=(BASE||"")+"/";}
 function fmtData(s){if(!s)return"";var d=new Date(s);if(isNaN(d))return"";return d.toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});}
 function nav(sec){
- document.querySelectorAll(".side a[data-s]").forEach(function(a){a.classList.toggle("on",a.getAttribute("data-s")===sec);});
+ var mk=({custo:"ia",deposito:"__x",convidar:"__x",perfil:"__x",carteira:"__x"})[sec]||sec;
+ document.querySelectorAll(".side a[data-s]").forEach(function(a){a.classList.toggle("on",a.getAttribute("data-s")===mk);});
+ var _pd=document.getElementById("pdrop");if(_pd)_pd.classList.remove("open");
  document.querySelectorAll(".sec").forEach(function(s){s.classList.remove("on");});
  var el=document.getElementById("s-"+sec);if(el)el.classList.add("on");
  if(window.innerWidth<=760){document.getElementById("side").classList.remove("open");document.getElementById("scrim").classList.remove("open");}
@@ -459,6 +521,27 @@ function nav(sec){
  if(sec==="deposito")loadDeposito();
  if(sec==="convidar")loadConvidar();
 }
+function setAv(id,av,ini){var e=document.getElementById(id);if(!e)return;if(av){e.innerHTML='<img src="'+av+'">';}else{e.innerHTML="";e.textContent=ini;}}
+function togDrop(e){if(e)e.stopPropagation();var d=document.getElementById("pdrop");if(d)d.classList.toggle("open");}
+document.addEventListener("click",function(e){var d=document.getElementById("pdrop");if(d&&d.classList.contains("open")&&!d.contains(e.target)&&e.target.id!=="av"){d.classList.remove("open");}});
+function setProfile(me,c,full){
+ var ini=((me.nome||"?").trim()[0]||"?").toUpperCase();
+ var pl=document.getElementById("p-ava-l");if(pl)pl.textContent=ini;
+ var av=document.getElementById("p-ava");if(av){var img=av.querySelector("img");if(me.avatar){if(!img){img=document.createElement("img");av.insertBefore(img,av.firstChild);}img.src=me.avatar;}else if(img){img.remove();}}
+ var hn=document.getElementById("p-hnome");if(hn)hn.textContent=me.nome||"jogador";
+ var fb=document.getElementById("p-full");if(fb)fb.style.display=(me.pagou||full)?"inline-flex":"none";
+ var ne=document.getElementById("p-nome");if(ne&&document.activeElement!==ne)ne.value=me.nome||"";
+ var tm=document.getElementById("p-time");if(tm&&document.activeElement!==tm)tm.value=me.nomeTime||"";
+ var em=document.getElementById("p-email");if(em)em.textContent=me.email||"";
+ var ei=document.getElementById("p-email-in");if(ei)ei.value=me.email||"";
+ var pg=document.getElementById("p-pago");if(pg)pg.textContent="R$ "+Number(me.valorPago||0).toFixed(0);
+ var col=document.getElementById("p-col");if(col)col.textContent=c.colecionador;
+ var apo=document.getElementById("p-apo");if(apo)apo.textContent=c.apostas;
+ var are=document.getElementById("p-are");if(are)are.textContent=c.arena;
+}
+function avatarPick(inp){var fi=inp.files&&inp.files[0];if(!fi)return;var rd=new FileReader();rd.onload=function(){var im=new Image();im.onload=function(){var sz=256,cv=document.createElement("canvas");cv.width=sz;cv.height=sz;var ct=cv.getContext("2d");var mn=Math.min(im.width,im.height);ct.drawImage(im,(im.width-mn)/2,(im.height-mn)/2,mn,mn,0,0,sz,sz);salvarAvatar(cv.toDataURL("image/jpeg",0.85));};im.src=rd.result;};rd.readAsDataURL(fi);}
+async function salvarAvatar(data){var r=await fetch(BASE+"/jogar/perfil/avatar",{method:"POST",headers:H(),body:JSON.stringify({dataUrl:data})});var d=await r.json().catch(function(){return{};});if(d&&d.ok){toast("Foto atualizada \u2705");loadDados();}else toast((d&&d.erro)||"erro na foto",1);}
+async function salvarPerfil(){var nome=document.getElementById("p-nome").value.trim();var time=document.getElementById("p-time").value.trim();var st=document.getElementById("p-save-st");if(st)st.textContent="salvando\u2026";var r=await fetch(BASE+"/jogar/perfil",{method:"POST",headers:H(),body:JSON.stringify({nome:nome,nomeTime:time})});var d=await r.json().catch(function(){return{};});if(d&&d.ok){if(st)st.textContent="salvo \u2705";toast("Perfil salvo \u2705");loadDados();setTimeout(function(){if(st)st.textContent="";},2200);}else{if(st)st.textContent="";toast((d&&d.erro)||"erro ao salvar",1);}}
 async function loadDados(){
  var r=await fetch(BASE+"/jogar/dados",{headers:H()});
  if(r.status===401){location.href=(BASE||"")+"/";return;}
@@ -468,7 +551,10 @@ async function loadDados(){
  document.getElementById("w-are").textContent=c.arena;
  var nome=me.nome||"jogador";
  document.getElementById("nome").textContent=nome.split(" ")[0];
- document.getElementById("av").textContent=(nome.trim()[0]||"?").toUpperCase();
+ var _ini=(nome.trim()[0]||"?").toUpperCase();
+ setAv("av",me.avatar,_ini);setAv("av2",me.avatar,_ini);
+ var _pn=document.getElementById("pd-nome");if(_pn)_pn.textContent=nome;
+ var _pe=document.getElementById("pd-email");if(_pe)_pe.textContent=me.email||"";
  document.getElementById("d-saldo").textContent=(c.colecionador+c.apostas+c.arena);
  document.getElementById("d-pos").textContent=d.ranking&&d.ranking.pos?("#"+d.ranking.pos):"-";
  document.getElementById("d-pts").textContent=(d.ranking&&d.ranking.pontos)||0;
@@ -479,11 +565,7 @@ async function loadDados(){
  var pb=document.getElementById("d-prox");
  if(d.proximo){var p=d.proximo;pb.innerHTML='<h3>Pr&oacute;ximo jogo &middot; Rodada '+(p.rodada||"-")+'</h3><div style="display:flex;align-items:center;gap:8px;font-weight:700;margin-top:6px">'+fl(p.casa.iso)+' '+esc(p.casa.pt)+' <span class="muted">x</span> '+esc(p.visitante.pt)+' '+fl(p.visitante.iso)+'</div><div class="muted" style="margin-top:4px">'+fmtData(p.inicio)+'</div>';}
  else{pb.innerHTML='<h3>Pr&oacute;ximo jogo</h3><div class="muted">sem jogos futuros agora.</div>';}
- document.getElementById("p-nome").textContent=nome;
- document.getElementById("p-email").textContent=me.email||"";
- document.getElementById("p-col").textContent=c.colecionador;
- document.getElementById("p-apo").textContent=c.apostas;
- document.getElementById("p-are").textContent=c.arena;
+ setProfile(me,c,d.acessoFull);
 }
 var COR_ROD={1:"#14a06a",2:"#e0a008",3:"#e23744"};
 function fl2(iso){return iso?('<img class="jflag" src="https://flagcdn.com/40x30/'+iso+'.png" onerror="this.style.visibility=\\'hidden\\'">'):'<span class="jflag"></span>';}
