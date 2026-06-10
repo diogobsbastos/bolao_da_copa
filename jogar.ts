@@ -256,6 +256,45 @@ export async function rotasJogar(app: FastifyInstance) {
     return { ok: true, preenchidos: palpites.length, erros, palpites, gastoBrl };
   });
 
+  app.post("/jogar/ia/palpitar-jogo", async (req, reply) => {
+    const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    const id = Number((req.body as any)?.jogo || 0); if (!id) return { ok: false, erro: "jogo?" };
+    const ctx = await montarContexto(id); if (!ctx) return { ok: false, erro: "jogo nao existe" };
+    const base: any = { ok: true, jogo_id: id, casa: ctx.jogo.casa.pt, visitante: ctx.jogo.visitante.pt, isoC: ctx.jogo.casa.iso, isoV: ctx.jogo.visitante.iso };
+    const prov = (await pool.query("SELECT provedor, modelo, api_key, base_url FROM usuarios_llm WHERE usuario_id=$1", [u.id])).rows[0] as any;
+    const logico = (): any => {
+      const p = palpiteAuto1(ctx.odds, ctx.jogo.casa.en, ctx.jogo.visitante.en);
+      let resumo = "Palpite pela logica das odds.";
+      const pr = ctx.probabilidade;
+      if (pr) { if (pr.casa >= pr.fora && pr.casa >= pr.empate) resumo = ctx.jogo.casa.pt + " favorito pelas odds."; else if (pr.fora >= pr.casa && pr.fora >= pr.empate) resumo = ctx.jogo.visitante.pt + " favorito pelas odds."; else resumo = "Jogo equilibrado, tende ao empate."; }
+      return { ...base, pc: p.pc, pv: p.pv, resumo, fonte: "logica" };
+    };
+    if (!prov || !prov.api_key) return logico();
+    try {
+      const prompt = "Voce e um analista de futebol. Com base no CONTEXTO (JSON) do jogo da Copa, preveja o placar final mais provavel (considere odds, probabilidade, escalacao, forma e noticias). Responda SOMENTE com JSON valido {\"pc\":N,\"pv\":N,\"resumo\":\"...\"} onde pc=gols " + ctx.jogo.casa.pt + ", pv=gols " + ctx.jogo.visitante.pt + " e resumo = no maximo 8 palavras em portugues dizendo o porque. Nada fora do JSON. CONTEXTO: " + JSON.stringify(ctx);
+      const t0 = Date.now();
+      const r = await invocarTexto({ provedor: prov.provedor, modelo: prov.modelo, api_key: prov.api_key, base_url: prov.base_url } as any, prompt);
+      try { await registrarGasto({ modelo: prov.modelo, tokens_in: r.usage.in, tokens_out: r.usage.out, tokens_cache: r.usage.cache, processo: String(u.id), origem: "jogador", tempo: (Date.now() - t0) / 1000 }); } catch {}
+      const m = String(r.texto).match(/\{[\s\S]*\}/);
+      if (m) {
+        const o = JSON.parse(m[0]);
+        const pc = Math.max(0, Math.min(20, Math.round(+o.pc))), pv = Math.max(0, Math.min(20, Math.round(+o.pv)));
+        if (!isNaN(pc) && !isNaN(pv)) {
+          let resumo = String(o.resumo || "").trim().replace(/\s+/g, " ");
+          const w = resumo.split(" "); if (w.length > 9) resumo = w.slice(0, 8).join(" ") + "...";
+          if (!resumo) resumo = "Palpite da sua IA.";
+          return { ...base, pc, pv, resumo, fonte: "ia" };
+        }
+      }
+      return logico();
+    } catch (e: any) {
+      const t = String(e?.message ?? e).toLowerCase();
+      const lo = logico();
+      lo.aviso = (t.indexOf("quota") >= 0 || t.indexOf("exceeded") >= 0 || t.indexOf("rate") >= 0 || t.indexOf("429") >= 0) ? "Cota gratis da IA no limite agora — usei a logica." : "Sua IA falhou aqui — usei a logica.";
+      return lo;
+    }
+  });
+
   app.get("/jogar/copa", async (req, reply) => {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
     const rows = (await pool.query("SELECT selecao_casa, selecao_visitante, inicio, placar_casa, placar_visitante FROM jogos WHERE fase='grupos' AND selecao_casa<>'A definir' AND selecao_visitante<>'A definir'")).rows as any[];
