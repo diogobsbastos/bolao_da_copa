@@ -706,7 +706,7 @@ async function salvar(id){
  var d=await r.json();
  if(d&&d.ok){toast("Palpite salvo");loadDados();}else{toast((d&&d.erro)||"erro",1);}
 }
-function confirmPreencher(){modal('<div class="lphd"><span class="lphdic">&#127919;</span><b>Preencher pela lógica?</b></div><p class="lpsub" style="margin:0">Isto vai <b>substituir</b> os palpites ainda não travados desta rodada pelo placar sugerido (odds/ranking). Jogos já travados não mudam.</p>','<button class="btn ghost" onclick="fecha()">Cancelar</button> <button class="btn" onclick="fecha();preencherAuto()">Preencher</button>');}
+function confirmPreencher(){modal('<div class="lphd"><span class="lphdic">&#127919;</span><b>Preencher pela lógica?</b></div><p class="lpsub" style="margin:0">Isto vai <b>substituir</b> seus palpites desta rodada pelo placar sugerido (odds/ranking). Jogos que <b>já começaram</b> não mudam (o palpite fecha no apito).</p>','<button class="btn ghost" onclick="fecha()">Cancelar</button> <button class="btn" onclick="fecha();preencherAuto()">Preencher</button>');}
 async function preencherAuto(){
  var r=await fetch(BASE+"/jogar/palpite-auto",{method:"POST",headers:H(),body:JSON.stringify({rodada:CURROD})});
  var d=await r.json();
