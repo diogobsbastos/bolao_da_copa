@@ -268,17 +268,20 @@ export async function probeGame(gid: string | number): Promise<void> {
 }
 
 export async function probeAthlete(ath: string | number): Promise<void> {
-  const dump = async (label: string, path: string) => {
-    try {
-      const r = await s365(path); const j = JSON.stringify(r || {});
-      const hit = /statistic|appearance|rating|"saves"|"goals"|participa|"stats"/i.test(j);
-      console.log("[stat-find]", label, "len", j.length, "TOPKEYS", JSON.stringify(Object.keys(r || {})), "temStats?", hit);
-      for (const k of Object.keys(r || {})) { const v = (r as any)[k]; if (v && typeof v === "object") { const sj = JSON.stringify(v); if (/statistic|appearance|rating|"saves"|participa/i.test(sj)) console.log("[stat-find]", label, "-> achou em", k, ":", sj.slice(0, 800)); } }
-    } catch (e: any) { console.log("[stat-find]", label, "erro", String(e?.message ?? e).slice(0, 60)); }
-  };
-  await dump("withStats", `/athletes/?appTypeId=5&langId=1&athletes=${ath}&withStats=true`);
-  await dump("stats-ath", `/stats/?appTypeId=5&langId=1&athletes=${ath}&competitions=&isCalculated=true`);
-  await dump("ath-comp", `/athletes/?appTypeId=5&langId=1&athletes=${ath}&competitions=true&withStats=true`);
+  try {
+    const prof = await s365(`/athletes/?appTypeId=5&langId=1&athletes=${ath}&withStats=true`);
+    const comps = Array.isArray(prof?.competitions) ? prof.competitions : [];
+    const clubId = (prof?.athletes || [])[0]?.clubId;
+    console.log("[stat-c] competicoes do atleta:", JSON.stringify(comps.map((c: any) => ({ id: c.id, n: c.name })).slice(0, 8)), "clubId", clubId);
+    const tryp = async (label: string, path: string) => { try { const r = await s365(path); const j = JSON.stringify(r || {}); console.log("[stat-c]", label, "len", j.length, "stats?", /statistic|appearance|rating|participa|"saves"/i.test(j), j.length > 50 ? ("SAMPLE " + j.slice(0, 350)) : "vazio"); } catch (e: any) { console.log("[stat-c]", label, "erro", String(e?.message ?? e).slice(0, 50)); } };
+    const cid = comps[0]?.id;
+    if (cid) {
+      await tryp("ath+comp", `/stats/?appTypeId=5&langId=1&athletes=${ath}&competitions=${cid}`);
+      await tryp("club+ath+comp", `/stats/?appTypeId=5&langId=1&competitors=${clubId}&athletes=${ath}&competitions=${cid}`);
+      await tryp("club+comp", `/stats/?appTypeId=5&langId=1&competitors=${clubId}&competitions=${cid}`);
+      await tryp("comp-only", `/stats/?appTypeId=5&langId=1&competitions=${cid}&athletes=${ath}&isCalculated=true`);
+    } else console.log("[stat-c] sem competicoes no perfil");
+  } catch (e: any) { console.log("[stat-c] erro", String(e?.message ?? e).slice(0, 120)); }
 }
 
 export async function mapearGameIds(): Promise<any> {
