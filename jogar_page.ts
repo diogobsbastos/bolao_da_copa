@@ -63,7 +63,7 @@ h1{font-size:18px;margin:0 0 12px}
 .lock{font-size:11px;color:var(--no);font-weight:700}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th,td{padding:8px 8px;border-bottom:1px solid var(--bd);text-align:left}th{color:var(--mut);font-size:11px}
-.rkme{background:rgba(31,170,89,.14)}
+.rkme{background:rgba(31,170,89,.10);border-left:3px solid var(--rkc,#1faa59)}
 .pos{font-weight:800;width:30px}
 .medal{font-size:15px}
 .qr{width:190px;height:190px;border-radius:12px;background:
@@ -410,7 +410,8 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
   </section>
 
   <section class="sec" id="s-rank">
-   <h1>Ranking do Bol&atilde;o</h1>
+   <h1>Ranking</h1>
+   <div class="tabs" id="rank-tabs"><span class="tab on" data-t="geral" onclick="loadRank('geral')">Geral</span><span class="tab" data-t="bolao" onclick="loadRank('bolao')">Bol&atilde;o</span><span class="tab" data-t="arena" onclick="loadRank('arena')">Arena</span></div>
    <div id="rank-box" class="muted">carregando...</div>
   </section>
 
@@ -686,10 +687,15 @@ function selProv(p){var sel=document.getElementById("ia-prov");if(sel)sel.value=
 function setModelo(m,el){var e=document.getElementById("ia-modelo");if(e)e.value=m;document.querySelectorAll("#ia-recs .rec").forEach(function(c){c.classList.remove("sel");});if(el)el.classList.add("sel");toast("Modelo: "+m);}
 function renderRecs(){var p=document.getElementById("ia-prov").value;var box=document.getElementById("ia-recs");if(!box)return;var list=RECS[p]||[];if(!list.length){box.style.display="none";box.innerHTML="";return;}box.style.display="";box.innerHTML='<div class="muted" style="font-size:12px;margin:2px 0 6px">&#128161; <b>Escolha um modelo</b> (toque). A IA precisa raciocinar bem, mas gasta pouco &mdash; o <b>recomendado</b> &eacute; o melhor equil&iacute;brio:</div><div class="recrow">'+list.map(function(m,i){return '<div class="rec'+(i===0?" sel":"")+'" onclick="setModelo(&#39;'+m[0]+'&#39;,this)"><b>'+(i===0?"&#11088; ":"")+esc(m[0])+'</b><small>'+esc(m[1])+'</small></div>';}).join("")+'</div>';}
 
-async function loadRank(){
- var box=document.getElementById("rank-box");box.textContent="carregando...";
- var r=await fetch(BASE+"/jogar/ranking",{headers:H()});var d=await r.json();
- if(!d||!d.ok||!d.ranking.length){box.innerHTML='<div class="muted">ranking ainda vazio. Palpite na Rodada 1!</div>';return;}
+var COR_RANK={geral:"#e0a008",bolao:"#1faa59",arena:"#e23744"};
+var RANKTIPO="geral";
+async function loadRank(tipo){
+ RANKTIPO=tipo||RANKTIPO;
+ var cc=COR_RANK[RANKTIPO]||"#1faa59";
+ document.querySelectorAll("#rank-tabs .tab").forEach(function(t){var on=t.getAttribute("data-t")===RANKTIPO;t.classList.toggle("on",on);t.style.background=on?cc:"";t.style.color=on?"#fff":"";t.style.borderColor=on?cc:"";});
+ var box=document.getElementById("rank-box");box.style.setProperty("--rkc",cc);box.textContent="carregando...";
+ var r=await fetch(BASE+"/jogar/ranking?tipo="+RANKTIPO,{headers:H()});var d=await r.json();
+ if(!d||!d.ok||!d.ranking.length){box.innerHTML='<div class="muted">ranking ainda vazio'+(RANKTIPO==="arena"?" (a Arena come\u00e7a nas batalhas)":"")+'.</div>';return;}
  var med=["&#129351;","&#129352;","&#129353;"];
  box.innerHTML='<table><thead><tr><th>#</th><th>Jogador</th><th style="text-align:right">Pts</th></tr></thead><tbody>'
   +d.ranking.map(function(x){return '<tr class="'+(x.eu?"rkme":"")+'"><td class="pos">'+(x.pos<=3?('<span class="medal">'+med[x.pos-1]+'</span>'):x.pos)+'</td><td>'+esc(x.nome)+(x.eu?' <span class="muted">(voc&ecirc;)</span>':'')+'</td><td style="text-align:right;font-weight:800">'+x.pts+'</td></tr>';}).join("")
