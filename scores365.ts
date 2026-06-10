@@ -352,6 +352,24 @@ export async function coletarJogadores365(): Promise<any> {
     return { ok: true, atletas: n, times: ids.length };
   } finally { RODANDO_J365 = false; }
 }
+export async function coletarTime365(cid: number, selNome?: string): Promise<any> {
+  let n = 0;
+  try {
+    const r = await s365(`/squads/?appTypeId=5&langId=1&competitors=${cid}`);
+    const squads = Array.isArray(r?.squads) ? r.squads : [];
+    for (const sq of squads) {
+      const sel = selNome || sq?.competitorName || "";
+      for (const a of (Array.isArray(sq.athletes) ? sq.athletes : [])) {
+        await pool.query("INSERT INTO jogadores_365 (athlete_id,nome,short_name,selecao,selecao_id,posicao,posicao_det,posicao_ord,idade,clube_id,num_camisa,raw,atualizado_em) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,now()) ON CONFLICT (athlete_id) DO UPDATE SET nome=$2,short_name=$3,selecao=$4,selecao_id=$5,posicao=$6,posicao_det=$7,posicao_ord=$8,idade=$9,clube_id=$10,num_camisa=$11,raw=$12,atualizado_em=now()",
+          [a.id, a.name, a.shortName, sel, a.nationalTeamId ?? sq.competitorId, a.position?.name ?? "", a.formationPosition?.name ?? "", a.formationPosition?.order ?? null, a.age ?? null, a.clubId ?? null, a.jerseyNum ?? a.jerseyNumber ?? null, JSON.stringify(a)]);
+        n++;
+      }
+    }
+  } catch (e: any) { console.log("[time365] erro", String(e?.message ?? e).slice(0, 100)); }
+  console.log("[time365] competitor", cid, "->", n, "jogadores");
+  return { ok: true, jogadores: n };
+}
+export function coletarTime365SeFlag(): void { (async () => { try { const v = await cfg("coletar_time_365"); if (v) { await setCfg("coletar_time_365", ""); const [id, ...rest] = v.split("|"); await coletarTime365(Number(id.trim()), rest.join("|").trim() || undefined); } } catch {} })(); }
 export function coletarJogadores365SeFlag(): void { (async () => { try { if ((await cfg("coletar_jogadores365")) === "go" && !RODANDO_J365) { coletarJogadores365().catch((e: any) => console.log("[jogadores365] erro", String(e?.message ?? e))); } } catch {} })(); }
 
 export async function rotasScores365(app: FastifyInstance) {
@@ -388,6 +406,7 @@ export async function rotasScores365(app: FastifyInstance) {
   (async () => { try { const g = await cfg("lineup_probe"); if (g) for (const id of g.split(",").map((s) => s.trim()).filter(Boolean)) await probeLineup(id); } catch {} })();
   mapearGameIdsSeFlag();
   coletarJogadores365SeFlag();
+  coletarTime365SeFlag();
   (async () => { try { const g = await cfg("game_probe"); if (g) for (const id of g.split(",").map((s) => s.trim()).filter(Boolean)) await probeGame(id); } catch {} })();
   (async () => { try { const g = await cfg("athlete_probe"); if (g) for (const id of g.split(",").map((s) => s.trim()).filter(Boolean)) await probeAthlete(id); } catch {} })();
 }
