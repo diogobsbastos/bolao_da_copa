@@ -16,9 +16,9 @@ export const PAGINA_RESULTADOS = `<!doctype html><html lang="pt-br"><head><meta 
 .bar .st{font-size:13px}.bar b{font-weight:800}
 .btn{border:0;border-radius:9px;padding:9px 14px;font-weight:700;font-size:13px;cursor:pointer;color:#fff;background:var(--pri)}
 .btn.g{background:var(--ok)}.btn.ghost{background:#eef1f6;color:var(--tx)}
-.tabs{display:flex;gap:6px;margin:14px 0 0;border-bottom:1px solid var(--bd)}
-.tb{border:0;background:none;padding:9px 16px;font-weight:800;font-size:14px;color:var(--mut);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
-.tb.on{color:var(--pri);border-bottom-color:var(--pri)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 0}
+.tab{padding:9px 16px;border-radius:11px 11px 0 0;border:1px solid var(--bd);border-bottom:0;background:#eef1f6;color:var(--mut);font-weight:700;font-size:13px;cursor:pointer}
+.tab.on{background:var(--card);color:var(--pri);box-shadow:0 -2px 0 var(--pri) inset}
 .tcont{padding-top:16px}.hide{display:none}
 .phases{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
 .ch{border:1px solid var(--bd);background:#fff;color:var(--mut);border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:700;cursor:pointer}
@@ -71,9 +71,9 @@ ${NAV_CSS}
    </div>
 
    <div class="tabs">
-    <button class="tb on" id="tb-jogos" onclick="tab('jogos')">Jogos</button>
-    <button class="tb" id="tb-classif" onclick="tab('classif')">Classificacao</button>
-    <button class="tb" id="tb-artil" onclick="tab('artil')">Artilharia</button>
+    <button class="tab on" id="tb-jogos" onclick="tab('jogos')">Jogos</button>
+    <button class="tab" id="tb-classif" onclick="tab('classif')">Classificacao</button>
+    <button class="tab" id="tb-artil" onclick="tab('artil')">Artilharia</button>
    </div>
 
    <div id="t-jogos" class="tcont">
@@ -104,6 +104,10 @@ function fl(iso){return iso?('<img class="fl" src="https://flagcdn.com/w40/'+iso
 function fmtH(s){if(!s)return "";var d=new Date(s);if(isNaN(d))return esc(String(s).slice(11,16));return d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});}
 function dayLabel(s){if(!s)return "Sem data";var d=new Date(s);if(isNaN(d))return esc(String(s).slice(0,10));return d.toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"2-digit"});}
 function inFase(j,f){if(f==="grupos")return j.fase==="grupos";return j.fase!=="grupos"&&(j.rodada_mm===f);}
+var COR={1:"#14a06a",2:"#e0a008",3:"#e23744",r32:"#2f6fed",oitavas:"#7a5cff",quartas:"#d4537e",semi:"#1d9e75",ter:"#b87333",final:"#caa63a"};
+function corDe(j){return (j.fase==="grupos"?COR[j.rodada]:COR[j.rodada_mm])||"#9aa3b2";}
+var RROT={r32:"Rodada de 32",oitavas:"Oitavas",quartas:"Quartas",semi:"Semi",ter:"3o e 4o",final:"Final"};
+function rotuloRodada(j){return j.fase==="grupos"?("Rodada "+j.rodada):(RROT[j.rodada_mm]||"Mata-mata");}
 function tab(t){
  ["jogos","classif","artil"].forEach(function(x){
   document.getElementById("t-"+x).classList.toggle("hide",x!==t);
@@ -130,7 +134,7 @@ function card(j){
  var vc=real?j.real_c:"&ndash;",vv=real?j.real_v:"&ndash;";
  var ivc=real?j.real_c:"",ivv=real?j.real_v:"";
  var apu=real?(j.apurado?'<span class="apu ok" title="apurado">&#10003;</span>':'<span class="apu no" title="aguardando apuracao">&#8230;</span>'):'';
- return '<div class="jg" id="jg-'+j.id+'">'
+ var cor=corDe(j);return '<div class="jg" id="jg-'+j.id+'" style="border-left:3px solid '+cor+'">'
   +'<div class="jghd"><span class="hr">&#9200; '+fmtH(j.inicio)+'</span>'
   +'<span class="hd-r">'+stPill(j)+apu
   +'<button class="edbtn" id="ed-'+j.id+'" onclick="editar('+j.id+')">&#9998; Editar</button>'
@@ -152,7 +156,7 @@ function renderJogos(){
  var js=JOGOS.filter(function(j){return inFase(j,FASE);});
  if(!js.length){var msg=(FASE==="grupos")?"sem jogos (importe os jogos primeiro).":"Os jogos desta fase aparecem aqui quando a chave do mata-mata for definida (apos os grupos).";L.innerHTML='<div class="muted" style="padding:6px 2px">'+msg+'</div>';return;}
  var html="";var cur="";var aberto=false;
- js.forEach(function(j){var dl=dayLabel(j.inicio);if(dl!==cur){if(aberto)html+="</div>";cur=dl;html+='<div class="dayh">'+dl+'</div><div class="grid">';aberto=true;}html+=card(j);});
+ js.forEach(function(j){var dl=dayLabel(j.inicio);if(dl!==cur){if(aberto)html+="</div>";cur=dl;var cor=corDe(j),rot=rotuloRodada(j);html+='<div class="dayh" style="border-left:4px solid '+cor+';padding-left:9px"><span>'+dl+'</span> <span style="color:'+cor+'">&middot; '+rot+'</span></div><div class="grid">';aberto=true;}html+=card(j);});
  if(aberto)html+="</div>";L.innerHTML=html;
 }
 async function load(){

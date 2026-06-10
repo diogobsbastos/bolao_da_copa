@@ -316,12 +316,19 @@ export async function rotasJogosPlacar(app: FastifyInstance) {
       const rows = (await pool.query(
         `SELECT id, fase, rodada, selecao_casa, selecao_visitante, inicio, status,
                 placar_casa, placar_visitante, resultado_casa, resultado_visitante, apurado, resultado_em
-           FROM jogos WHERE selecao_casa<>'A definir' AND selecao_visitante<>'A definir'
-           ORDER BY inicio NULLS LAST, id`)).rows as any[];
+           FROM jogos ORDER BY inicio NULLS LAST, id`)).rows as any[];
+      const mm = rows.filter((r) => r.fase !== "grupos").slice().sort((a, b) => (new Date(a.inicio).getTime() || 0) - (new Date(b.inicio).getTime() || 0));
+      const buckets: Array<[string, number]> = [["r32", 16], ["oitavas", 8], ["quartas", 4], ["semi", 2], ["ter", 1], ["final", 1]];
+      const rmm = new Map<number, string>();
+      let i = 0;
+      for (const [key, cnt] of buckets) { for (let k = 0; k < cnt && i < mm.length; k++, i++) rmm.set(mm[i].id, key); }
+      for (; i < mm.length; i++) rmm.set(mm[i].id, "final");
+      const nome = (s: string) => (s && s !== "A definir" ? timePT(s) : { pt: "A definir", iso: "" });
       const jogos = rows.map((j) => {
-        const c = timePT(j.selecao_casa), v = timePT(j.selecao_visitante);
+        const c = nome(j.selecao_casa), v = nome(j.selecao_visitante);
         return {
-          id: j.id, fase: j.fase, rodada: j.rodada, inicio: j.inicio, status: j.status,
+          id: j.id, fase: j.fase, rodada: j.rodada, rodada_mm: j.fase === "grupos" ? null : (rmm.get(j.id) || null),
+          inicio: j.inicio, status: j.status,
           casa_pt: c.pt, casa_iso: c.iso, visit_pt: v.pt, visit_iso: v.iso,
           palpite_c: j.placar_casa, palpite_v: j.placar_visitante,
           real_c: j.resultado_casa, real_v: j.resultado_visitante,
