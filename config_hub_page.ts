@@ -72,6 +72,14 @@ ${NAV_CSS}
       <div class="sub">Odds 1X2 de mercado por jogo (a Copa ja tem odds aqui). API publica, sem chave. Exibida como "mercado (365scores)". Em breve: escalacao/stats.</div></div>
       <a style="text-decoration:none;background:#eef1fb;color:#4361ee;padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;white-space:nowrap;align-self:flex-start" href="https://www.365scores.com/pt-br/football" target="_blank">Ir ao site &#8599;</a></div>
      <div class="save"><button class="sm gh" onclick="pingS365()">&#128268; Testar</button><span id="m-s365" class="muted"></span></div></div>
+    <div class="card"><div class="cardhead"><div><h3>&#128240; Not&iacute;cias &mdash; ESPN <span class="pill local">gr&aacute;tis &middot; sem chave</span></h3>
+      <div class="sub">Feed oficial da Copa (ESPN), filtrado por sele&ccedil;&atilde;o (PT+EN). T&iacute;tulo + descri&ccedil;&atilde;o. Embutido no c&oacute;digo, sem configura&ccedil;&atilde;o. Alimenta o popup de not&iacute;cias e o contexto da LLM.</div></div>
+      <a style="text-decoration:none;background:#eef1fb;color:#4361ee;padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;white-space:nowrap;align-self:flex-start" href="https://www.espn.com.br/futebol/" target="_blank">Ir ao site &#8599;</a></div>
+     <div class="save"><button class="sm gh" onclick="pingEspn()">&#128268; Testar</button><span id="m-espn" class="muted"></span></div></div>
+    <div class="card"><div class="cardhead"><div><h3>&#128202; Copa 2022 &mdash; StatsBomb <span class="pill local">gr&aacute;tis &middot; sem chave</span></h3>
+      <div class="sub">Dados abertos da Copa 2022 (resultados e fases). Usado no hist&oacute;rico/forma de cada sele&ccedil;&atilde;o. Embutido, sem chave.</div></div>
+      <a style="text-decoration:none;background:#eef1fb;color:#4361ee;padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;white-space:nowrap;align-self:flex-start" href="https://github.com/statsbomb/open-data" target="_blank">Ir ao site &#8599;</a></div>
+     <div class="save"><button class="sm gh" onclick="pingStatsbomb()">&#128268; Testar</button><span id="m-statsbomb" class="muted"></span></div></div>
     <div class="card"><div class="cardhead"><div><h3>&#128203; Dados por time &mdash; API-Football <span class="pill ativo">pago p/ 2026</span></h3>
       <div class="sub">Elenco, lesoes, forma, escalacao provavel e artilheiros por selecao. ATENCAO: o plano free so cobre 2022-2024 &mdash; a Copa 2026 exige plano PAGO.</div></div>
       <a style="text-decoration:none;background:#eef1fb;color:#4361ee;padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;white-space:nowrap;align-self:flex-start" href="https://dashboard.api-football.com/register" target="_blank">Criar chave gratis &#8599;</a></div>
@@ -212,6 +220,8 @@ async function pingS365(){
  var j=await r.json().catch(function(){return{};});
  m.textContent=(j.ok?"OK ":"Falhou ")+(j.detalhe||"");m.style.color=j.ok?"#14794a":"#c01f2e";
 }
+async function pingEspn(){var m=document.getElementById("m-espn");m.textContent="testando...";m.style.color="";var r=await fetch(BASE+"/admin/fontes/espn",{headers:H()});var j=await r.json().catch(function(){return{};});m.textContent=(j.ok?"OK ":"Falhou ")+(j.detalhe||"");m.style.color=j.ok?"#14794a":"#c01f2e";}
+async function pingStatsbomb(){var m=document.getElementById("m-statsbomb");m.textContent="testando...";m.style.color="";var r=await fetch(BASE+"/admin/fontes/statsbomb",{headers:H()});var j=await r.json().catch(function(){return{};});m.textContent=(j.ok?"OK ":"Falhou ")+(j.detalhe||"");m.style.color=j.ok?"#14794a":"#c01f2e";}
 async function salvarCorte(){
  var v=(val("corte_grade")||"").trim();var m=document.getElementById("m-corte");
  if(v){try{JSON.parse(v);}catch(e){m.textContent="JSON invalido";m.style.color="#e23744";return;}}

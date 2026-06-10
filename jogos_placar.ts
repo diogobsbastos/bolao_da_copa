@@ -381,6 +381,14 @@ export async function rotasJogosPlacar(app: FastifyInstance) {
     return { ok: true, preenchidos, viaOdds, viaRanking };
   });
 
+  app.get("/admin/fontes/espn", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    try { const a = await espnFeed(); return { ok: a.length > 0, detalhe: "feed da Copa (ESPN) - " + a.length + " materias" }; } catch (e: any) { return { ok: false, detalhe: String(e?.message ?? e).slice(0, 120) }; }
+  });
+  app.get("/admin/fontes/statsbomb", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    try { const m = await copa2022(); return { ok: m.length > 0, detalhe: "Copa 2022 (StatsBomb) - " + m.length + " jogos" }; } catch (e: any) { return { ok: false, detalhe: String(e?.message ?? e).slice(0, 120) }; }
+  });
   app.get("/admin/jogos-placar/noticias", async (req, reply) => {
     if (!(await logado(req))) return reply.code(401).send({ erro: "nao autenticado" });
     const en = String((req.query as any)?.en ?? "").trim();
