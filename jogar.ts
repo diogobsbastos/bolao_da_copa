@@ -64,6 +64,7 @@ export async function autoPreencherTick(): Promise<void> {
 }
 
 
+function medias5(arr: any[]): any { if (!Array.isArray(arr) || !arr.length) return null; let gp = 0, gc = 0, pts = 0; for (const m of arr) { gp += Number(m.gp) || 0; gc += Number(m.gc) || 0; pts += (m.res === "V" ? 3 : (m.res === "E" ? 1 : 0)); } const n = arr.length; return { n, gpM: gp / n, gcM: gc / n, pts, aprov: pts / (n * 3) }; }
 async function montarContexto(id: number): Promise<any | null> {
   const j = (await pool.query("SELECT id, selecao_casa, selecao_visitante, inicio, rodada, fase, odds, lineup_casa, lineup_visitante, dados365 FROM jogos WHERE id=$1", [id])).rows[0] as any;
   if (!j) return null;
@@ -80,7 +81,8 @@ async function montarContexto(id: number): Promise<any | null> {
     noticiasTime(c.pt, j.selecao_casa).catch(() => []), noticiasTime(v.pt, j.selecao_visitante).catch(() => []),
     classifGrupoDe(j.selecao_casa).catch(() => null),
   ]);
-  return { ok: true, jogo: { id: j.id, rodada: j.rodada, fase: j.fase, inicio: j.inicio, casa: { pt: c.pt, en: j.selecao_casa, iso: c.iso, rankFifa: rankOf(j.selecao_casa) }, visitante: { pt: v.pt, en: j.selecao_visitante, iso: v.iso, rankFifa: rankOf(j.selecao_visitante) } }, odds, probabilidade: prob, escalacao: { casa: lineup(j.lineup_casa), visitante: lineup(j.lineup_visitante) }, forma2022: { casa: forCasa, visitante: forVisi }, classificacao: clas, noticias: { casa: nCasa, visitante: nVisi }, extra365: j.dados365 || null };
+  const f5 = (l: any) => { const m = medias5(l?.ultimas5); return m ? { jogos: m.n, golsPro: +m.gpM.toFixed(2), golsContra: +m.gcM.toFixed(2), aproveitamento: Math.round(m.aprov * 100) } : null; };
+  return { ok: true, jogo: { id: j.id, rodada: j.rodada, fase: j.fase, inicio: j.inicio, casa: { pt: c.pt, en: j.selecao_casa, iso: c.iso, rankFifa: rankOf(j.selecao_casa) }, visitante: { pt: v.pt, en: j.selecao_visitante, iso: v.iso, rankFifa: rankOf(j.selecao_visitante) } }, odds, probabilidade: prob, escalacao: { casa: lineup(j.lineup_casa), visitante: lineup(j.lineup_visitante) }, forma2022: { casa: forCasa, visitante: forVisi }, classificacao: clas, noticias: { casa: nCasa, visitante: nVisi }, extra365: j.dados365 || null, forma5: { casa: f5(j.dados365?.casa), visitante: f5(j.dados365?.visitante) } };
 }
 
 export async function rotasJogar(app: FastifyInstance) {
@@ -264,24 +266,47 @@ export async function rotasJogar(app: FastifyInstance) {
     const prov = (await pool.query("SELECT provedor, modelo, api_key, base_url FROM usuarios_llm WHERE usuario_id=$1", [u.id])).rows[0] as any;
     const logico = (): any => {
       const c = ctx.jogo.casa.pt, v = ctx.jogo.visitante.pt;
-      const od = ctx.odds; let pc = 1, pv = 1, resumo = "Jogo equilibrado, empate provável.";
+      const od = ctx.odds, ex = ctx.extra365 || {};
+      const mc = medias5(ex?.casa?.ultimas5), mv = medias5(ex?.visitante?.ultimas5);
+      const passos: string[] = [];
+      let favCasa = true, fodd = 2.0; const pr = ctx.probabilidade;
       if (od && od.casa != null && od.fora != null) {
         const oc = Number(od.casa), of = Number(od.fora);
-        const favCasa = oc <= of; const fodd = favCasa ? oc : of; const diff = Math.abs(oc - of);
-        if (diff < 0.25) { pc = 1; pv = 1; resumo = "Jogo equilibrado, empate provável."; }
-        else {
-          let gv: number, gp: number;
-          if (fodd <= 1.4) { gv = 2; gp = 0; } else if (fodd <= 1.9) { gv = 2; gp = 1; } else { gv = 1; gp = 0; }
-          pc = favCasa ? gv : gp; pv = favCasa ? gp : gv;
-          resumo = (favCasa ? c : v) + " favorito pelas odds, vitória provável.";
+        favCasa = oc <= of; fodd = favCasa ? oc : of;
+        const prFav = pr ? (favCasa ? pr.casa : pr.fora) : null;
+        passos.push("Favorito pelas odds: " + (favCasa ? c : v) + (prFav != null ? (" (~" + prFav + "% de vitória)") : ""));
+        if (Math.abs(oc - of) < 0.25) {
+          let pc = 1, pv = 1, resumo = "Jogo equilibrado, empate provável.";
+          passos.push("Odds quase iguais → jogo muito parelho.");
+          if (mc && mv) {
+            if (mc.aprov - mv.aprov >= 0.34) { pc = 2; pv = 1; favCasa = true; resumo = c + " em melhor fase, leva por pouco."; }
+            else if (mv.aprov - mc.aprov >= 0.34) { pc = 1; pv = 2; favCasa = false; resumo = v + " em melhor fase, leva por pouco."; }
+            passos.push("Forma desempata: " + c + " " + Math.round(mc.aprov * 100) + "% x " + v + " " + Math.round(mv.aprov * 100) + "% de aproveitamento (últimos 5).");
+          } else passos.push("Sem forma recente p/ desempatar → mantém empate.");
+          passos.push("Placar final: " + pc + "-" + pv);
+          return { ...base, pc, pv, resumo, fonte: "logica", passos };
         }
+      } else if (ctx.jogo.casa.rankFifa && ctx.jogo.visitante.rankFifa) {
+        favCasa = ctx.jogo.casa.rankFifa <= ctx.jogo.visitante.rankFifa; fodd = 1.9;
+        passos.push("Sem odds — favorito pelo ranking FIFA: " + (favCasa ? c : v) + " (#" + (favCasa ? ctx.jogo.casa.rankFifa : ctx.jogo.visitante.rankFifa) + ").");
       } else {
-        const rc = ctx.jogo.casa.rankFifa || 999, rv = ctx.jogo.visitante.rankFifa || 999;
-        if (Math.abs(rc - rv) <= 3) { pc = 1; pv = 1; resumo = "Times parelhos no ranking, empate provável."; }
-        else if (rc < rv) { pc = 2; pv = 1; resumo = c + " melhor ranqueado, leve favorito."; }
-        else { pc = 1; pv = 2; resumo = v + " melhor ranqueado, leve favorito."; }
+        return { ...base, pc: 1, pv: 1, resumo: "Sem dados suficientes, empate.", fonte: "logica", passos: ["Sem odds nem ranking — palpite conservador 1-1."] };
       }
-      return { ...base, pc, pv, resumo, fonte: "logica" };
+      let gv: number, gp: number;
+      if (fodd <= 1.4) { gv = 2; gp = 0; } else if (fodd <= 1.9) { gv = 2; gp = 1; } else { gv = 1; gp = 0; }
+      passos.push("Placar base pela força das odds: " + gv + "-" + gp + " para o favorito.");
+      const favM = favCasa ? mc : mv, undM = favCasa ? mv : mc;
+      const aj: string[] = [];
+      if (favM && undM) {
+        if (favM.gpM >= 2.2 && undM.gcM >= 1.4) { gv = Math.min(gv + 1, 4); aj.push("favorito marca muito (" + favM.gpM.toFixed(1) + "/jogo) e o rival sofre (" + undM.gcM.toFixed(1) + ") → +1 gol do favorito"); }
+        if (undM.gpM >= 1.6 && favM.gcM >= 1.4) { gp = Math.min(gp + 1, 3); aj.push("azarão tem ataque (" + undM.gpM.toFixed(1) + ") e o favorito sofre (" + favM.gcM.toFixed(1) + ") → azarão balança a rede"); }
+        if (favM.gcM <= 0.6 && gp > 0) { gp = Math.max(0, gp - 1); aj.push("favorito quase não sofre gols (" + favM.gcM.toFixed(1) + ") → -1 do azarão"); }
+        passos.push("Ajuste pela forma (últimos 5): " + (aj.length ? aj.join("; ") : "sem mudança relevante") + ".");
+      } else passos.push("Sem forma recente suficiente → mantém o placar base.");
+      const pc = favCasa ? gv : gp, pv = favCasa ? gp : gv;
+      passos.push("Placar final: " + pc + "-" + pv);
+      const resumo = (favCasa ? c : v) + " favorito" + (favM && favM.aprov >= 0.6 ? " e em boa fase" : "") + ", vitória provável.";
+      return { ...base, pc, pv, resumo, fonte: "logica", passos };
     };
     const soLogica = !!((req.body as any)?.soLogica);
     if (soLogica || !prov || !prov.api_key) return logico();
