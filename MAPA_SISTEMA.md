@@ -261,3 +261,14 @@ Bolão agora paga **ponto E token** no acerto (regra CLAUDE §0.1). Motor + cole
 - A tela do jogador ainda não mostra "quantos pontos fiz por jogo" — só **saldo (header) e ranking** atualizam após a apuração.
 - Correção manual de resultado (`/admin/bolao/resultado`) re-apura, mas token é **one-shot por palpite** (`creditado`): não estorna/reajusta crédito antigo.
 - Drip **+50/rodada** ainda não existe no código.
+
+---
+
+## 18. Ajustes 10/jun (tarde): coletor por horário, ranking e Copa em abas (commits 861cb90, 73e761b)
+
+- **Coletor de resultados agora é POR HORÁRIO** (não mais poll de 20min). `scores365.agendarResultados()` arma um `setTimeout` por jogo em `inicio + 115min`; se não terminou (prorrogação/pênaltis) re-tenta a cada 5min até ~16x. Janela de 26h (evita overflow do setTimeout); re-armado no boot, de hora em hora e após o `refreshDiario`. Boot faz catch-up dos jogos já passados. (sem crontab do SO — o MCP não edita crontab.)
+- **Ranking #1**: `.rkrow.top1` agora usa a cor da aba (`--rkc`, via `color-mix`) com borda+glow — antes era um amarelo fixo apagado. Vale p/ Geral(verde)/Bolão(amarelo)/Arena(vermelho).
+- **Copa do Mundo em ABAS** (`#copa-tabs`, reusa `.tab/.tabs`): **Grupos** (tabelas **2 por linha**, `.gcols` grid), **Calendário** (todos os jogos de grupos por rodada, mostra placar real quando houver), **Artilheiros** e **Eliminatórias** = "em breve" (faltam feed de gols e a chave).
+- **`/jogar/copa`**: classificação agora calculada a partir do **resultado real** (`resultado_casa/visitante` aliasado p/ placar_casa/visitante em `calcClassificacao`) e passa a devolver `calendario` (todos os jogos de grupos, com rodada e placar real). Isso corrige o quirk da §17 para a tela do jogador.
+
+Pendências Copa: aba **Artilheiros** (usar stats/FC26 até ter gols reais) e **Eliminatórias** (montar/reusar a chave).
