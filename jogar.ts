@@ -417,9 +417,20 @@ export async function rotasJogar(app: FastifyInstance) {
     const selRows = (await pool.query("SELECT DISTINCT s FROM (SELECT selecao_casa s FROM jogos WHERE selecao_casa<>'A definir' UNION SELECT selecao_visitante FROM jogos WHERE selecao_visitante<>'A definir') q")).rows as any[];
     const selecoes = selRows.map((r: any) => r.s as string);
     if (modo !== "ia") {
-      const ord = selecoes.slice().sort((a, b) => rankOf(a) - rankOf(b));
-      const art = (await pool.query("SELECT j.id, j.nome, j.figurinha FROM jogadores_365 g JOIN jogadores j ON j.id=g.jogador_id WHERE g.shooting IS NOT NULL ORDER BY g.shooting DESC NULLS LAST, g.overall DESC NULLS LAST LIMIT 1")).rows[0] as any;
-      return { ok: true, modo: "logica", campeao: ord[0] || "", vice: ord[1] || "", terceiro: ord[2] || "", quarto: ord[3] || "", artilheiro_id: art?.id || null, artilheiro_nome: art?.nome || "", artilheiro_fig: art?.figurinha || "" };
+      // sorteio PONDERADO pela forca (ranking FIFA): favorito tem muito mais chance, mas cada clique varia
+      const peso = (en: string) => 1 / Math.pow(rankOf(en) || 50, 1.3);
+      const cand = selecoes.map((en) => ({ en, w: peso(en) }));
+      const pick: string[] = [];
+      for (let n = 0; n < 4 && cand.length; n++) {
+        let tot = cand.reduce((acc, x) => acc + x.w, 0);
+        let rnd = Math.random() * tot, idx = 0;
+        for (let i = 0; i < cand.length; i++) { rnd -= cand[i].w; if (rnd <= 0) { idx = i; break; } }
+        pick.push(cand[idx].en); cand.splice(idx, 1);
+      }
+      const arts = (await pool.query("SELECT j.id, j.nome, j.figurinha, g.shooting FROM jogadores_365 g JOIN jogadores j ON j.id=g.jogador_id WHERE g.shooting IS NOT NULL ORDER BY g.shooting DESC NULLS LAST LIMIT 20")).rows as any[];
+      let tota = arts.reduce((acc, a) => acc + Number(a.shooting || 0), 0), rnda = Math.random() * tota, art: any = arts[0] || null;
+      for (const a of arts) { rnda -= Number(a.shooting || 0); if (rnda <= 0) { art = a; break; } }
+      return { ok: true, modo: "logica", campeao: pick[0] || "", vice: pick[1] || "", terceiro: pick[2] || "", quarto: pick[3] || "", artilheiro_id: art?.id || null, artilheiro_nome: art?.nome || "", artilheiro_fig: art?.figurinha || "" };
     }
     const prov = (await pool.query("SELECT provedor, modelo, api_key, base_url FROM usuarios_llm WHERE usuario_id=$1", [u.id])).rows[0] as any;
     if (!prov || !prov.api_key) return { ok: false, erro: "conecte sua IA primeiro (menu Conectar IA)" };
