@@ -103,6 +103,9 @@ th,td{padding:8px 8px;border-bottom:1px solid var(--bd);text-align:left}th{color
 .o365sm{height:19px;width:auto;border-radius:3px;cursor:pointer;transition:.15s}.o365sm:hover{transform:scale(1.12)}
 .sbtn{background:var(--surface2);color:var(--pri2);border:0;border-radius:6px;width:26px;height:26px;font-size:12px;cursor:pointer;flex:none}.sbtn:hover{background:var(--pri);color:#fff}
 .jfav{cursor:pointer}
+.live365{position:relative;display:inline-flex;border-radius:50%}
+.live365::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;animation:radar365 1.9s ease-out infinite}
+@keyframes radar365{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--rc,#0e9488) 50%,transparent)}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
 </style></head><body>
 <div class="top">
  <button class="burger" onclick="drawer()">&#9776;</button>
@@ -263,7 +266,7 @@ function cardBolao(j,cor){
  var pc=(j.meu&&j.meu.pc!=null)?j.meu.pc:"";var pv=(j.meu&&j.meu.pv!=null)?j.meu.pv:"";
  function cn(tm){return '<div class="cn">'+fl2(tm.iso)+'<span class="nm">'+esc(tm.pt)+'</span></div>';}
  function cs(casa,val){var fld=casa?"pc":"pv";var en=casa?j.casa.en:j.visitante.en;var step=j.travado?"":'<span class="step"><button class="su" onclick="stp('+j.id+','+(casa?1:0)+',1)">&#9650;</button><button class="su" onclick="stp('+j.id+','+(casa?1:0)+',-1)">&#9660;</button></span>';return '<div class="cs"><button class="sbtn" title="Stats e notícias" onclick="info(&#39;'+esc(en)+'&#39;)">&#128202;</button><input class="pl" id="'+fld+'-'+j.id+'" type="number" min="0" max="99" value="'+val+'" '+dis+' onchange="salvar('+j.id+')">'+step+'</div>';}
- var ball=(j.odds&&/365/.test(j.odds.fonte||""))?('<img class="o365sm" src="'+S365LOGO+'" title="ver odds (365scores)" onclick="odds('+j.id+')">'):"";
+ var ball=(j.odds&&/365/.test(j.odds.fonte||""))?('<span class="live365"><img class="o365sm" src="'+S365LOGO+'" title="ver odds (365scores)" onclick="odds('+j.id+')"></span>'):"";
  var tag=j.travado?'<span class="tag lk">&#128274; fechado</span>':'<span class="tag">&#128336; '+esc(fmtHora(j.inicio))+'</span>';
  var gt='<div class="gtab">GRUPO '+esc(j.grupo||"")+'</div>';
  var jb='<div class="jbody">'+cn(j.casa)+cs(1,pc)+'<div class="cm cmtop">'+tag+ball+'</div>'+cn(j.visitante)+cs(0,pv)+'<div class="cm cmbot">'+favOdds(j)+'</div></div>';
