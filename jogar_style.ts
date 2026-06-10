@@ -368,4 +368,4 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
 .provcard.gem{border-color:var(--gold)}.provcard.gem.sel{border-color:var(--pri)}
 .reco{position:absolute;top:0;right:0;background:linear-gradient(135deg,var(--gold),#e0a008);color:#1a1200;font-size:8px;font-weight:800;padding:3px 8px;border-bottom-left-radius:9px;letter-spacing:.3px}
 .iarow.rgt{justify-content:flex-end}
-.side a .tag,.side a .free{margin-left:auto!important}`;
+.side a .lbl{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;text-align:left}body.mcol .side a .lbl{display:none}`;
