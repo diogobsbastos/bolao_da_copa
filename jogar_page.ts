@@ -401,7 +401,7 @@ function odds(id){
  var j=JOGOS_BOLAO.find(function(x){return String(x.id)===String(id);}); if(!j||!j.odds){toast("sem odds para este jogo",1);return;}
  var o=j.odds;
  function ro(lbl,v){return '<div class="mr"><span style="flex:1">'+lbl+'</span><b style="font-size:16px">'+esc(v||"-")+'</b></div>';}
- modal('<h3>'+fl(j.casa.iso)+' '+esc(j.casa.pt)+' &times; '+esc(j.visitante.pt)+' '+fl(j.visitante.iso)+'</h3><div class="muted" style="font-size:12px;margin-bottom:8px">Odds 1X2 &middot; '+esc(o.fonte||"")+'</div>'+ro(fl(j.casa.iso)+' '+esc(j.casa.pt)+' (vitória)',o.casa)+ro('Empate',o.empate)+ro(fl(j.visitante.iso)+' '+esc(j.visitante.pt)+' (vitória)',o.fora)+(o.gid?('<a class="s365link" href="https://www.365scores.com/pt-br/football/match/g-'+esc(o.gid)+'#id='+esc(o.gid)+'" target="_blank"><img src="'+S365LOGO+'" style="height:18px;margin-right:7px;vertical-align:middle">Ver tudo no 365scores &#8599;</a>'):''));
+ modal('<h3>'+fl(j.casa.iso)+' '+esc(j.casa.pt)+' &times; '+esc(j.visitante.pt)+' '+fl(j.visitante.iso)+'</h3><div class="muted" style="font-size:12px;margin-bottom:8px">Odds 1X2 &middot; '+esc(o.fonte||"")+'</div>'+ro(fl(j.casa.iso)+' '+esc(j.casa.pt)+' (vitória)',o.casa)+ro('Empate',o.empate)+ro(fl(j.visitante.iso)+' '+esc(j.visitante.pt)+' (vitória)',o.fora)+((o.url||o.gid)?('<a class="s365link" href="'+esc(o.url||('https://www.365scores.com/pt-br/football/match/g-'+o.gid+'#id='+o.gid))+'" target="_blank"><img src="'+S365LOGO+'" style="height:18px;margin-right:7px;vertical-align:middle">Ver tudo no 365scores &#8599;</a>'):''));
 }
 
 function tema(){var l=document.body.classList.toggle("light");localStorage.setItem("tema",l?"light":"dark");var t=document.getElementById("tgl");if(t)t.textContent=l?"\u2600\uFE0F":"\uD83C\uDF19";}

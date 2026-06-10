@@ -23,6 +23,12 @@ async function s365(path: string): Promise<any> {
   const r = await fetch(S365 + path, { headers: HDRS });
   return await r.json().catch(() => ({}));
 }
+function game365Url(g: any): string {
+  const h = g?.homeCompetitor, a = g?.awayCompetitor;
+  const hn = h?.nameForURL, an = a?.nameForURL;
+  const slug = (hn && an) ? (hn + "-" + an + "-" + (h?.id || "") + "-" + (a?.id || "") + "-" + (g?.competitionId || "")) : ("g-" + (g?.id || ""));
+  return "https://www.365scores.com/pt-br/football/match/" + slug + "#id=" + (g?.id || "");
+}
 function odds1x2(g: any): any {
   const bo = Array.isArray(g?.bestOdds) ? g.bestOdds : [];
   const line = bo.find((x: any) => x?.lineTypeId === 1);
@@ -30,7 +36,7 @@ function odds1x2(g: any): any {
   const dec = (nm: string) => { const o = line.options.find((o: any) => String(o?.name) === nm); return o?.rate?.decimal ?? null; };
   const casa = dec("1"), empate = dec("X"), fora = dec("2");
   if (casa == null && empate == null && fora == null) return null;
-  return { casa, empate, fora, fonte: "mercado (365scores)", gid: g?.id || null, em: new Date().toISOString() };
+  return { casa, empate, fora, fonte: "mercado (365scores)", gid: g?.id || null, url: game365Url(g), em: new Date().toISOString() };
 }
 
 export async function syncOdds(): Promise<any> {
