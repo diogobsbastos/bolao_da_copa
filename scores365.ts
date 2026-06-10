@@ -269,18 +269,18 @@ export async function probeAthlete(gid: string | number): Promise<void> {
   try {
     const gj = await s365(`/game?appTypeId=5&langId=1&userCountryId=21&timezoneName=America/Sao_Paulo&gameId=${gid}`);
     const g = gj?.game; if (!g) { console.log("[ath-probe] sem game"); return; }
-    const hcId = g.homeCompetitor?.id;
-    const mem = (Array.isArray(g?.members) ? g.members : [])[0] || {};
-    const athId = mem?.athleteId || mem?.id;
-    console.log("[ath-probe] hcId", hcId, "member0", JSON.stringify({ id: mem?.id, athleteId: mem?.athleteId, name: mem?.name, keys: Object.keys(mem) }));
-    const tryp = async (label: string, path: string) => { try { const r = await s365(path); const k = Object.keys(r || {}); console.log("[ath-probe]", label, "KEYS", JSON.stringify(k), "SAMPLE", JSON.stringify(r).slice(0, 700)); } catch (e: any) { console.log("[ath-probe]", label, "erro", String(e?.message ?? e).slice(0, 80)); } };
-    await tryp("squad", `/squads/?appTypeId=5&langId=1&competitor=${hcId}`);
-    await tryp("competitor", `/competitors/?appTypeId=5&langId=1&competitor=${hcId}`);
-    await tryp("athlete", `/athletes/?appTypeId=5&langId=1&athletes=${athId}`);
-    await tryp("athlete2", `/athlete/?appTypeId=5&langId=1&athleteId=${athId}`);
+    const mems = (Array.isArray(g?.members) ? g.members : []);
+    const a1 = mems[0]?.athleteId, a2 = mems[1]?.athleteId, comp = g.homeCompetitor?.id;
+    console.log("[ath-probe] nMembers", mems.length, "a1", a1, "a2", a2, "comp", comp);
+    const tryp = async (label: string, path: string) => { try { const r = await s365(path); console.log("[ath-probe]", label, "KEYS", JSON.stringify(Object.keys(r || {})), "SAMPLE", JSON.stringify(r).slice(0, 600)); } catch (e: any) { console.log("[ath-probe]", label, "erro", String(e?.message ?? e).slice(0, 80)); } };
+    await tryp("batch2", `/athletes/?appTypeId=5&langId=1&athletes=${a1},${a2}`);
+    await tryp("ath-stats", `/athletesstatistics/?appTypeId=5&langId=1&athlete=${a1}&competition=${g.competitionId}`);
+    await tryp("ath-stats2", `/stats/?appTypeId=5&langId=1&athletes=${a1}`);
+    await tryp("ath-career", `/athletes/career/?appTypeId=5&langId=1&athlete=${a1}`);
+    await tryp("ath-games", `/athletes/games/?appTypeId=5&langId=1&athlete=${a1}`);
+    await tryp("squad2", `/competitors/squads/?appTypeId=5&langId=1&competitor=${comp}`);
   } catch (e: any) { console.log("[ath-probe] erro", String(e?.message ?? e).slice(0, 120)); }
 }
-
 export async function rotasScores365(app: FastifyInstance) {
   app.post("/admin/scores365/coletar", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); return await coletarDados365(); });
   app.post("/admin/scores365/odds", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); return await syncOdds(); });
