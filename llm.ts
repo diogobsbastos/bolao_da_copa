@@ -30,6 +30,13 @@ export async function invocarTexto(p: Prov, prompt: string): Promise<Resp> {
       usage: { in: Number(u.promptTokenCount || 0), out: Number(u.candidatesTokenCount || 0), cache: Number(u.cachedContentTokenCount || 0) },
     };
   }
+  if (p.provedor === "anthropic") {
+    const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "x-api-key": p.api_key, "anthropic-version": "2023-06-01", "content-type": "application/json" }, body: JSON.stringify({ model: p.modelo, max_tokens: 300, messages: [{ role: "user", content: prompt }] }) });
+    const j: any = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j?.error?.message || ("http " + r.status));
+    const u = j?.usage || {};
+    return { texto: j?.content?.[0]?.text ?? "", usage: { in: Number(u.input_tokens || 0), out: Number(u.output_tokens || 0), cache: Number(u.cache_read_input_tokens || 0) } };
+  }
   const base = (p.base_url || "").replace(/\/+$/, "");
   if (!base) throw new Error("sem base_url");
   const r = await fetch(base + "/chat/completions", {
@@ -57,6 +64,12 @@ export async function listarModelos(provedor: string, api_key: string, base_url:
     if (papel === "imagem") mods = mods.filter((m: any) => /image|imagen|nano/i.test(m.id));
     else mods = mods.filter((m: any) => (m.met || []).includes("generateContent") && !/embedding/i.test(m.id) && !/image|imagen/i.test(m.id));
     return mods.map((m: any) => m.id);
+  }
+  if (provedor === "anthropic") {
+    const r = await fetch("https://api.anthropic.com/v1/models?limit=100", { headers: { "x-api-key": api_key, "anthropic-version": "2023-06-01" } });
+    const j: any = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j?.error?.message || ("http " + r.status));
+    return (j.data || []).map((m: any) => m.id).filter(Boolean);
   }
   const base = (base_url || "").replace(/\/+$/, "");
   if (!base) throw new Error("informe a Base URL do provedor local/openai-compativel");
