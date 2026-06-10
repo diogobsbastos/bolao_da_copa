@@ -247,6 +247,12 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
 .pdrop a svg{width:18px;height:18px;color:var(--mut)}
 .pdrop a.dang{color:#e23744}.pdrop a.dang svg{color:#e23744}
 .pdsep{height:1px;background:var(--bd);margin:6px 4px}
+.pdfoot{display:flex;align-items:center;gap:8px}
+.pdfoot a{flex:1}
+.thsw{display:inline-flex;gap:2px;background:var(--card2);border:1px solid var(--bd);border-radius:999px;padding:2px;flex:none}
+.thbtn{width:27px;height:27px;border:0;background:none;border-radius:50%;color:var(--mut);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
+.thbtn svg{width:15px;height:15px}
+.thbtn.on{background:var(--pri);color:#fff}
 .profwrap{max-width:560px}
 .profhead{display:flex;align-items:center;gap:16px;margin-bottom:16px}
 .profava{width:84px;height:84px;border-radius:50%;background:linear-gradient(135deg,var(--pri),var(--pri2));display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:800;color:#fff;position:relative;overflow:hidden;flex:none;cursor:pointer}
@@ -334,9 +340,8 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
     <a onclick="nav('deposito')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg> Dep&oacute;sito</a>
     <a onclick="nav('convidar')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="1"/><path d="M2 9h20v3H2zM12 9v11M9 9a2.5 2.5 0 1 1 3-3.5A2.5 2.5 0 1 1 15 9"/></svg> Convidar <span class="free">FULL</span></a>
     <a onclick="nav('perfil')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M16 12h3"/><path d="M3 9h12a2 2 0 0 1 0 4"/></svg> Carteira</a>
-    <a onclick="tema()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg> <span id="themelbl">Modo claro</span></a>
     <div class="pdsep"></div>
-    <a class="dang" onclick="sair()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4"/><path d="m9 16-4-4 4-4M5 12h11"/></svg> Sair</a>
+    <div class="pdfoot"><a class="dang" onclick="sair()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4"/><path d="m9 16-4-4 4-4M5 12h11"/></svg> Sair</a><div class="thsw"><button class="thbtn" id="th-l" onclick="setTema('light')" title="Modo claro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button><button class="thbtn" id="th-d" onclick="setTema('dark')" title="Modo escuro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button></div></div>
    </div>
   </div>
  </div>
@@ -895,8 +900,10 @@ function odds(id){
  modal('<h3>'+fl(j.casa.iso)+' '+esc(j.casa.pt)+' &times; '+esc(j.visitante.pt)+' '+fl(j.visitante.iso)+'</h3><div class="muted" style="font-size:12px;margin-bottom:8px">Odds 1X2 &middot; '+esc(o.fonte||"")+'</div>'+ro(fl(j.casa.iso)+' '+esc(j.casa.pt)+' (vitória)',o.casa)+ro('Empate',o.empate)+ro(fl(j.visitante.iso)+' '+esc(j.visitante.pt)+' (vitória)',o.fora)+((o.url||o.gid)?('<a class="s365link" href="'+esc(o.url||('https://www.365scores.com/pt-br/football/match/g-'+o.gid+'#id='+o.gid))+'" target="_blank"><img src="'+S365LOGO+'" style="height:18px;margin-right:7px;vertical-align:middle">Ver tudo no 365scores &#8599;</a>'):''));
 }
 
-function tema(){var l=document.body.classList.toggle("light");localStorage.setItem("tema",l?"light":"dark");var lb=document.getElementById("themelbl");if(lb)lb.textContent=l?"Modo escuro":"Modo claro";}
-if(localStorage.getItem("tema")==="light"){document.body.classList.add("light");var _tl=document.getElementById("themelbl");if(_tl)_tl.textContent="Modo escuro";}
+function setTema(m){var light=(m==="light");document.body.classList.toggle("light",light);localStorage.setItem("tema",light?"light":"dark");thRefresh();}
+function tema(){setTema(document.body.classList.contains("light")?"dark":"light");}
+function thRefresh(){var l=document.body.classList.contains("light");var a=document.getElementById("th-l"),b=document.getElementById("th-d");if(a)a.classList.toggle("on",l);if(b)b.classList.toggle("on",!l);}
+if(localStorage.getItem("tema")==="light"){document.body.classList.add("light");}thRefresh();
 if(localStorage.getItem("mcol")==="1"&&window.innerWidth>760){document.body.classList.add("mcol");}
 if(!TOKEN){location.href=(BASE||"")+"/";}else{loadDados();}
 </script></body></html>`;
