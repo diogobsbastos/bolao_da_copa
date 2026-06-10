@@ -74,12 +74,12 @@ Confronto só abre quando a fase anterior acaba → palpite **por fase**, trava 
 - R1 **11–17/jun (7d)** · R2 **18–23/jun (6d)** · R3 **24–27/jun (4d, jogos simultâneos)** · Mata-mata **28/jun–19/jul (32 jogos)**.
 
 ### Estado de implementação (o que falta construir desta seção)
-- [ ] Colapsar 3 carteiras → 1 token (banco + UI do header).
-- [ ] Bolão passar a **creditar token** no acerto (hoje só pontua ranking).
-- [ ] **Marketplace** + saquinhos (Normal/Especial/Lendário) + abrir/fechar por fase.
+- [x] Colapsar 3 carteiras → 1 token (banco + UI do header). **FEITO 10/jun** (coluna `usuarios_carteiras.saldo`, header/perfil 1 saldo). Ver MAPA §16.
+- [x] Bolão **creditar token** no acerto. **FEITO 10/jun**: motor `pontuacao.ts` (calcPontos 10/7/5/1, testado) + coletor de resultados `scores365.coletarResultados`/`agendarResultados` (por horário do jogo) → credita token (`tipo='premio_bolao'`) + ranking. Ver MAPA §17 e §18.
+- [ ] **Marketplace** + saquinhos (Normal/Especial/Lendário) + abrir/fechar por fase. *(próximo — passo 3)*
 - [ ] **Arena**: stake/rake, arena garantida, pontos 25/15/8, teto de XI, matchmaking.
-- [ ] **Mata-mata**: palpite por fase + multiplicador (Cron por fase).
-- [ ] **Longo prazo**: tela de palpite (trava fim R2) + Cron 04 de liquidação.
+- [~] **Mata-mata**: abas previstas no front (Oitavas→Final, travadas). FALTA palpite por fase + multiplicador (Cron por fase).
+- [~] **Longo prazo**: **tela/popup de palpite FEITA 10/jun** (botão "Cravar Campeões & Artilheiro", tabela `palpites_longo`, `/jogar/longo`, trava `config.longo_trava`=fim R2). FALTA **Cron 04** de liquidação (200/150/100/75 + 100/60/40).
 - [ ] **Pote**: cálculo do Geral final + split 50/30/20.
 
 ---

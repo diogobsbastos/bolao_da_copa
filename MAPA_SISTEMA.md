@@ -272,3 +272,13 @@ Bolão agora paga **ponto E token** no acerto (regra CLAUDE §0.1). Motor + cole
 - **`/jogar/copa`**: classificação agora calculada a partir do **resultado real** (`resultado_casa/visitante` aliasado p/ placar_casa/visitante em `calcClassificacao`) e passa a devolver `calendario` (todos os jogos de grupos, com rodada e placar real). Isso corrige o quirk da §17 para a tela do jogador.
 
 Pendências Copa: aba **Artilheiros** (usar stats/FC26 até ter gols reais) e **Eliminatórias** (montar/reusar a chave).
+
+
+---
+
+## 19. Longo prazo (palpite) + Calendário em cards — 10/jun (commits c25dfd2, d7aaf34)
+
+- **Calendário (Copa)**: cards por jogo reusando `.jogo`+`.gtab` (faixa do grupo) + corpo enxuto (bandeira/nome/placar/horário), agrupado por DIA (cabeçalho `.diah`), **2 por linha** (`.gcols`). `/jogar/copa` agora também devolve `grupo` por jogo (via `mapaGrupos`).
+- **Palpites de longo prazo**: botão dourado **"Cravar Campeões & Artilheiro"** no fim da barra de abas do Bolão → popup (`modal()`) com Campeão/Vice/3º/4º (selects de seleção) + Artilheiro (input com `datalist` dos jogadores). Tabela **`palpites_longo`** (usuario_id PK, campeao/vice/terceiro/quarto [EN], artilheiro_id/nome). Endpoints **`GET/POST /jogar/longo`**. Trava em `config.longo_trava` (default `2026-06-23T23:59:00-03:00` = fim R2); depois fica só-leitura. **FALTA Cron 04** de liquidação dos pontos (Campeão 200/Vice 150/3º 100/4º 75 + Artilheiro 100/60/40).
+
+**Pendências de UX pedidas:** **Página de Regras** no front (aba Início + botão no menu do topo) — a fazer. Cache: a tela `/jogar` é `no-store`; se UI antiga aparecer, é cache do navegador (Ctrl+F5).
