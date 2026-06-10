@@ -15,7 +15,7 @@ import { rotasTokenomics } from "./tokenomics.js";
 import { rotasCriadorFig } from "./criador_fig.js";
 import { rotasCartas } from "./cartas.js";
 import { rotasJogosPlacar } from "./jogos_placar.js";
-import { rotasJogar } from "./jogar.js";
+import { rotasJogar, autoPreencherTick } from "./jogar.js";
 import { rotasDeploy, runDeployCmd } from "./deploy.js";
 import { rotasApiFootball, syncSeFlag } from "./apifootball.js";
 import { rotasScores365, syncOddsSeFlag, agendadorDiario } from "./scores365.js";
@@ -84,6 +84,8 @@ await runDeployCmd().catch((e) => app.log.error(e));
 await syncSeFlag().catch((e) => app.log.error(e));
 await syncOddsSeFlag().catch((e) => app.log.error(e));
 agendadorDiario(); // refresh diário interno: odds + lineups -> banco (jogadores só leem)
+setTimeout(() => { autoPreencherTick().catch(() => {}); }, 8000); // auto-preencher no boot
+setInterval(() => { autoPreencherTick().catch(() => {}); }, 15 * 60 * 1000); // a cada 15min: preenche faltantes 1h antes do jogo
 
 const port = Number(process.env.PORT ?? 8510);
 const host = process.env.HOST ?? "127.0.0.1";

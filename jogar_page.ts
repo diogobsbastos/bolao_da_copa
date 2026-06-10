@@ -119,6 +119,16 @@ body.mcol .side a .tag{display:none}
 .su:hover{background:color-mix(in srgb,var(--rc,#1faa59) 18%,var(--surface2));color:var(--rc,#1faa59)}
 .tag{color:var(--rc,#1faa59)}
 .pl:focus{outline:none;border-color:var(--rc,#1faa59);box-shadow:0 0 0 3px color-mix(in srgb,var(--rc,#1faa59) 20%,transparent)}
+.autobar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.sw{position:relative;display:inline-block;width:42px;height:24px;flex:none;cursor:pointer}
+.sw input{opacity:0;width:0;height:0;position:absolute}
+.sl{position:absolute;inset:0;background:var(--surface2);border:1px solid var(--bd);border-radius:999px;transition:.2s}
+.sl:before{content:"";position:absolute;height:18px;width:18px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.2s}
+.sw input:checked+.sl{background:var(--pri);border-color:var(--pri)}
+.sw input:checked+.sl:before{transform:translateX(18px)}
+.swlbl{font-size:13px;font-weight:600;color:var(--mut)}
+.qmark{width:22px;height:22px;border-radius:50%;background:var(--surface2);border:1px solid var(--bd);color:var(--mut);font-weight:800;font-size:12px;cursor:pointer;flex:none}.qmark:hover{background:var(--pri);color:#fff}
+.autob{font-size:8px;font-weight:800;background:var(--surface2);color:var(--mut);padding:1px 5px;border-radius:6px;letter-spacing:.5px}
 </style></head><body>
 <div class="top">
  <button class="burger" onclick="menuBtn()" title="Menu">&#9776;</button>
@@ -162,7 +172,7 @@ body.mcol .side a .tag{display:none}
    <h1>Bol&atilde;o &mdash; palpite da rodada</h1>
    <div class="muted" style="margin-bottom:10px">Coloque o placar que voc&ecirc; acha. Risco zero: erro n&atilde;o tira token, acerto soma pontos no ranking. Trava no apito.</div>
    <div class="tabs" id="bolao-tabs"><span class="tab on" data-r="1" onclick="loadBolao(1)">Rodada 1</span><span class="tab" data-r="2" onclick="loadBolao(2)">Rodada 2</span><span class="tab" data-r="3" onclick="loadBolao(3)">Rodada 3</span></div>
-   <div style="margin-bottom:10px"><button class="btn ghost" id="btn-auto" onclick="preencherAuto()">&#127919; Preencher pela l&oacute;gica das odds</button></div>
+   <div class="autobar"><button class="btn ghost" id="btn-auto" onclick="preencherAuto()">&#127919; Preencher pela l&oacute;gica das odds</button><label class="sw" title="Auto-preencher"><input type="checkbox" id="autochk" onchange="setAuto(this.checked)"><span class="sl"></span></label><span class="swlbl">Auto-preencher</span><button class="qmark" onclick="ajudaAuto()" title="O que &eacute;?">?</button></div>
    <div id="bolao-box" class="muted">carregando...</div>
   </section>
 
@@ -261,6 +271,7 @@ async function loadDados(){
  document.getElementById("d-pos").textContent=d.ranking&&d.ranking.pos?("#"+d.ranking.pos):"-";
  document.getElementById("d-pts").textContent=(d.ranking&&d.ranking.pontos)||0;
  document.getElementById("d-pend").textContent=d.palpitesPendentes||0;
+ var _ac=document.getElementById("autochk");if(_ac)_ac.checked=!!d.autoPreencher;
  var pb=document.getElementById("d-prox");
  if(d.proximo){var p=d.proximo;pb.innerHTML='<h3>Pr&oacute;ximo jogo &middot; Rodada '+(p.rodada||"-")+'</h3><div style="display:flex;align-items:center;gap:8px;font-weight:700;margin-top:6px">'+fl(p.casa.iso)+' '+esc(p.casa.pt)+' <span class="muted">x</span> '+esc(p.visitante.pt)+' '+fl(p.visitante.iso)+'</div><div class="muted" style="margin-top:4px">'+fmtData(p.inicio)+'</div>';}
  else{pb.innerHTML='<h3>Pr&oacute;ximo jogo</h3><div class="muted">sem jogos futuros agora.</div>';}
@@ -281,9 +292,10 @@ function cardBolao(j,cor){
  function cn(tm){return '<div class="cn">'+fl2(tm.iso)+'<span class="nm">'+esc(tm.pt)+'</span></div>';}
  function cs(casa,val){var fld=casa?"pc":"pv";var en=casa?j.casa.en:j.visitante.en;var step=j.travado?"":'<span class="step"><button class="su" onclick="stp('+j.id+','+(casa?1:0)+',1)">&#9650;</button><button class="su" onclick="stp('+j.id+','+(casa?1:0)+',-1)">&#9660;</button></span>';return '<div class="cs"><button class="sbtn" title="Stats e notícias" onclick="info(&#39;'+esc(en)+'&#39;)">&#128202;</button><input class="pl" id="'+fld+'-'+j.id+'" type="number" min="0" max="99" value="'+val+'" '+dis+' onchange="salvar('+j.id+')">'+step+'</div>';}
  var ball=(j.odds&&/365/.test(j.odds.fonte||""))?('<span class="live365"><img class="o365sm" src="'+S365LOGO+'" title="ver odds (365scores)" onclick="odds('+j.id+')"></span>'):"";
+ var au=(j.meu&&j.meu.auto)?'<span class="autob" title="preenchido automaticamente">auto</span>':"";
  var tag=j.travado?'<span class="tag lk">&#128274; fechado</span>':'<span class="tag">&#128336; '+esc(fmtHora(j.inicio))+'</span>';
  var gt='<div class="gtab">GRUPO '+esc(j.grupo||"")+'</div>';
- var jb='<div class="jbody">'+cn(j.casa)+cs(1,pc)+'<div class="cm cmtop">'+tag+ball+'</div>'+cn(j.visitante)+cs(0,pv)+'<div class="cm cmbot">'+favOdds(j)+'</div></div>';
+ var jb='<div class="jbody">'+cn(j.casa)+cs(1,pc)+'<div class="cm cmtop">'+au+tag+ball+'</div>'+cn(j.visitante)+cs(0,pv)+'<div class="cm cmbot">'+favOdds(j)+'</div></div>';
  return '<div class="jogo" style="--rc:'+cor+'">'+gt+jb+'</div>';
 }
 async function loadBolao(rod){
@@ -312,6 +324,8 @@ async function preencherAuto(){
  var d=await r.json();
  if(d&&d.ok){toast("Preenchido pela l&oacute;gica: "+d.preenchidos+" jogos");loadBolao(CURROD);loadDados();}else{toast("erro",1);}
 }
+async function setAuto(on){var r=await fetch(BASE+"/jogar/auto",{method:"POST",headers:H(),body:JSON.stringify({on:on})});var d=await r.json().catch(function(){return{};});if(d&&d.ok){toast(on?"Auto-preencher ligado":"Auto-preencher desligado");}else{toast("erro",1);var a=document.getElementById("autochk");if(a)a.checked=!on;}}
+function ajudaAuto(){modal('<h3>&#129302; Auto-preencher</h3><div class="muted" style="line-height:1.6">Quando <b>ligado</b>, at&eacute; <b>1 hora antes</b> de cada jogo que voc&ecirc; ainda n&atilde;o palpitou, o sistema preenche por voc&ecirc; <b>pela l&oacute;gica das odds mais atualizadas</b> &mdash; com varia&ccedil;&atilde;o inteligente (favorito costuma vencer, mas <b>zebra acontece</b>), ent&atilde;o seu placar n&atilde;o fica igual ao dos outros.<br><br>Voc&ecirc; pode <b>editar at&eacute; o apito</b>. Palpites que voc&ecirc; j&aacute; fez <b>nunca</b> s&atilde;o sobrescritos.</div>');}
 async function loadRank(){
  var box=document.getElementById("rank-box");box.textContent="carregando...";
  var r=await fetch(BASE+"/jogar/ranking",{headers:H()});var d=await r.json();

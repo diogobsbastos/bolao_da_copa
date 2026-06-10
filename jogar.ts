@@ -6,6 +6,55 @@ import { timePT, rankOf, palpiteOdds, calcClassificacao, mapaGrupos } from "./jo
 
 async function jogador(req: FastifyRequest) { return await usuarioDaReq(req); }
 function palpiteDetLite(rkC: number, rkV: number) { const d = rkV - rkC, ad = Math.abs(d); if (ad < 4) return { pc: 1, pv: 1 }; const gf = Math.min(3, 1 + Math.round(ad / 12)), gc = Math.max(0, 1 - Math.round(ad / 22)); return d > 0 ? { pc: gf, pv: gc } : { pc: gc, pv: gf }; }
+function jitter(pc: number, pv: number): [number, number] { const r = Math.random(); let a = pc, b = pv; if (r < 0.5) return [a, b]; if (r < 0.78) a = Math.max(0, a + (Math.random() < 0.5 ? 1 : -1)); else b = Math.max(0, b + (Math.random() < 0.5 ? 1 : -1)); return [a, b]; }
+// Palpite ALEATÓRIO inteligente: sorteia o resultado PONDERADO pelas odds (zebra possível) e a margem por faixa de força. Cada chamada varia.
+function palpiteAleatorio(o: any): { pc: number; pv: number } | null {
+  const c = Number(o?.casa), e = Number(o?.empate), f = Number(o?.fora);
+  if (!(c > 0) || !(f > 0)) return null;
+  const ic = 1 / c, ie = e > 0 ? 1 / e : 0, iff = 1 / f; const tot = ic + ie + iff;
+  const wc = ic / tot, we = ie / tot;
+  const r = Math.random();
+  const outcome = r < wc ? "casa" : (r < wc + we ? "empate" : "fora");
+  if (outcome === "empate") { const g = Math.floor(Math.random() * 3); return { pc: g, pv: g }; }
+  const venceCasa = outcome === "casa";
+  const od = venceCasa ? c : f;
+  let gv: number;
+  if (od <= 1.30) gv = 2 + Math.floor(Math.random() * 3);
+  else if (od <= 1.70) gv = 1 + Math.floor(Math.random() * 3);
+  else if (od <= 2.40) gv = 1 + Math.floor(Math.random() * 2);
+  else gv = 1;
+  const maxLoser = Math.min(gv - 1, 2);
+  const gp = maxLoser <= 0 ? 0 : Math.floor(Math.random() * (maxLoser + 1));
+  return venceCasa ? { pc: gv, pv: gp } : { pc: gp, pv: gv };
+}
+function palpiteAuto1(o: any, enC: string, enV: string): { pc: number; pv: number } {
+  let p = palpiteAleatorio(o);
+  if (!p) { const d = palpiteDetLite(rankOf(enC), rankOf(enV)); const j = jitter(d.pc, d.pv); p = { pc: j[0], pv: j[1] }; }
+  return p;
+}
+// Cron: 1h antes do jogo, preenche os FALTANTES de quem ligou o auto (odds do banco + sorteio). Nao sobrescreve manual.
+export async function autoPreencherTick(): Promise<void> {
+  let jogos: any[] = [], users: any[] = [];
+  try {
+    jogos = (await pool.query("SELECT id, selecao_casa, selecao_visitante, odds FROM jogos WHERE selecao_casa<>'A definir' AND selecao_visitante<>'A definir' AND inicio > now() AND inicio <= now() + interval '60 minutes'")).rows as any[];
+    if (!jogos.length) return;
+    users = (await pool.query("SELECT id FROM usuarios WHERE auto_preencher=true")).rows as any[];
+    if (!users.length) return;
+  } catch { return; }
+  let n = 0;
+  for (const j of jogos) {
+    for (const u of users) {
+      try {
+        const ex = await pool.query("SELECT 1 FROM palpites_bolao WHERE usuario_id=$1 AND jogo_id=$2", [u.id, j.id]);
+        if (ex.rowCount) continue;
+        const p = palpiteAuto1(j.odds, j.selecao_casa, j.selecao_visitante);
+        await pool.query("INSERT INTO palpites_bolao (usuario_id, jogo_id, placar_casa, placar_visitante, auto) VALUES ($1,$2,$3,$4,true) ON CONFLICT (usuario_id, jogo_id) DO NOTHING", [u.id, j.id, p.pc, p.pv]); n++;
+      } catch {}
+    }
+  }
+  if (n) console.log("[auto-preencher]", n, "palpites em", jogos.length, "jogo(s)");
+}
+
 
 export async function rotasJogar(app: FastifyInstance) {
   app.get("/jogar", async (_req, reply) => reply.header("cache-control", "no-store").type("text/html").send(PAGINA_JOGAR));
@@ -25,14 +74,15 @@ export async function rotasJogar(app: FastifyInstance) {
     let proximo: any = null;
     if (pj) { const c = timePT(pj.selecao_casa), v = timePT(pj.selecao_visitante); proximo = { casa: { pt: c.pt, iso: c.iso }, visitante: { pt: v.pt, iso: v.iso }, inicio: pj.inicio, rodada: pj.rodada }; }
     const pend = Number(((await pool.query("SELECT count(*) n FROM jogos j WHERE j.fase='grupos' AND j.selecao_casa<>'A definir' AND j.inicio>=now() AND NOT EXISTS (SELECT 1 FROM palpites_bolao pb WHERE pb.jogo_id=j.id AND pb.usuario_id=$1)", [u.id])).rows[0] as any)?.n || 0);
-    return { ok: true, me: { id: u.id, nome: u.nome || u.email, email: u.email, papel: u.papel }, carteiras: { colecionador: Number(cart.c || 0), apostas: Number(cart.a || 0), arena: Number(cart.ar || 0) }, ranking: { pos, pontos, total }, proximo, palpitesPendentes: pend };
+    let autoP = false; try { autoP = !!((await pool.query("SELECT auto_preencher FROM usuarios WHERE id=$1", [u.id])).rows[0] as any)?.auto_preencher; } catch {}
+    return { ok: true, autoPreencher: autoP, me: { id: u.id, nome: u.nome || u.email, email: u.email, papel: u.papel }, carteiras: { colecionador: Number(cart.c || 0), apostas: Number(cart.a || 0), arena: Number(cart.ar || 0) }, ranking: { pos, pontos, total }, proximo, palpitesPendentes: pend };
   });
 
   app.get("/jogar/bolao", async (req, reply) => {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
     const rod = Number((req.query as any)?.rodada || 0);
     const args: any[] = [u.id];
-    let q = `SELECT j.id, j.selecao_casa, j.selecao_visitante, j.inicio, j.status, j.rodada, j.odds, pb.placar_casa pc, pb.placar_visitante pv
+    let q = `SELECT j.id, j.selecao_casa, j.selecao_visitante, j.inicio, j.status, j.rodada, j.odds, pb.placar_casa pc, pb.placar_visitante pv, pb.auto pauto
       FROM jogos j LEFT JOIN palpites_bolao pb ON pb.jogo_id=j.id AND pb.usuario_id=$1
       WHERE j.selecao_casa<>'A definir' AND j.selecao_visitante<>'A definir' AND j.fase='grupos'`;
     if (rod) { args.push(rod); q += ` AND j.rodada=$${args.length}`; }
@@ -41,7 +91,7 @@ export async function rotasJogar(app: FastifyInstance) {
     const allg = (await pool.query("SELECT selecao_casa, selecao_visitante, inicio FROM jogos WHERE fase='grupos' AND selecao_casa<>'A definir' AND selecao_visitante<>'A definir'")).rows as any[];
     let gmap = new Map<string, string>(); try { gmap = mapaGrupos(allg); } catch {}
     const agora = Date.now();
-    const jogos = rows.map((j) => { const c = timePT(j.selecao_casa), v = timePT(j.selecao_visitante); const travado = j.inicio ? new Date(j.inicio).getTime() <= agora : false; const od = j.odds && j.odds.casa != null ? { casa: j.odds.casa, empate: j.odds.empate, fora: j.odds.fora, fonte: j.odds.fonte || "" } : null; return { id: j.id, rodada: j.rodada, inicio: j.inicio, travado, grupo: gmap.get(j.selecao_casa) || "", casa: { pt: c.pt, iso: c.iso, en: j.selecao_casa }, visitante: { pt: v.pt, iso: v.iso, en: j.selecao_visitante }, odds: od, meu: (j.pc != null && j.pv != null) ? { pc: j.pc, pv: j.pv } : null }; });
+    const jogos = rows.map((j) => { const c = timePT(j.selecao_casa), v = timePT(j.selecao_visitante); const travado = j.inicio ? new Date(j.inicio).getTime() <= agora : false; const od = j.odds && j.odds.casa != null ? { casa: j.odds.casa, empate: j.odds.empate, fora: j.odds.fora, fonte: j.odds.fonte || "" } : null; return { id: j.id, rodada: j.rodada, inicio: j.inicio, travado, grupo: gmap.get(j.selecao_casa) || "", casa: { pt: c.pt, iso: c.iso, en: j.selecao_casa }, visitante: { pt: v.pt, iso: v.iso, en: j.selecao_visitante }, odds: od, meu: (j.pc != null && j.pv != null) ? { pc: j.pc, pv: j.pv, auto: !!j.pauto } : null }; });
     return { ok: true, jogos, rodada: rod || null };
   });
 
@@ -65,11 +115,18 @@ export async function rotasJogar(app: FastifyInstance) {
     const jogos = (await pool.query(q, args)).rows as any[]; let n = 0;
     for (const j of jogos) {
       if (j.inicio && new Date(j.inicio).getTime() <= Date.now()) continue;
-      let pal: any = palpiteOdds(j.odds); if (!pal) { const d = palpiteDetLite(rankOf(j.selecao_casa), rankOf(j.selecao_visitante)); pal = { pc: d.pc, pv: d.pv }; }
+      const pal = palpiteAuto1(j.odds, j.selecao_casa, j.selecao_visitante);
       await pool.query(`INSERT INTO palpites_bolao (usuario_id, jogo_id, placar_casa, placar_visitante) VALUES ($1,$2,$3,$4)
         ON CONFLICT (usuario_id, jogo_id) DO UPDATE SET placar_casa=$3, placar_visitante=$4, atualizado_em=now()`, [u.id, j.id, pal.pc, pal.pv]); n++;
     }
     return { ok: true, preenchidos: n };
+  });
+
+  app.post("/jogar/auto", async (req, reply) => {
+    const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    const on = !!(req.body as any)?.on;
+    try { await pool.query("UPDATE usuarios SET auto_preencher=$1 WHERE id=$2", [on, u.id]); } catch (e: any) { return { ok: false, erro: String(e?.message ?? e).slice(0,120) }; }
+    return { ok: true, on };
   });
 
   app.get("/jogar/ranking", async (req, reply) => {
