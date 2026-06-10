@@ -249,10 +249,10 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
 .tag{color:var(--rc,#1faa59)}
 .pl:focus{outline:none;border-color:var(--rc,#1faa59);box-shadow:0 0 0 3px color-mix(in srgb,var(--rc,#1faa59) 20%,transparent)}
 .autobar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-.pghead{border-left:3px solid var(--pri2);padding-left:12px;margin-bottom:14px;display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}.pghl{flex:1;min-width:200px}.pgsteps{margin-left:auto;display:flex;gap:11px;flex-wrap:wrap;align-items:center}.step{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:800;white-space:nowrap}.step.ok{color:var(--bar,#14a06a)}.step.no{color:#e23744}.step.done{color:var(--bar,#14a06a)}
+.pghead{border-left:3px solid var(--pri2);padding-left:12px;margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}.pghl{flex:1;min-width:200px}.pgsteps{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap;align-items:center;border:1px solid var(--bd);border-radius:10px;padding:6px 11px;background:var(--surface)}.steplab{font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--mut);font-weight:800}.step{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:800;white-space:nowrap}
 .pghead h1{margin:0 0 5px;font-size:20px;line-height:1.15}
 .pgchip{font-size:11.5px;font-weight:800;color:var(--bar,#14a06a);background:transparent;padding:0;vertical-align:middle;margin-left:7px;text-transform:uppercase;letter-spacing:.3px}
-.modal .btn{background:var(--bar,#14a06a);box-shadow:0 4px 12px rgba(0,0,0,.18)}
+.modal .btn:not(.ghost){background:var(--bar,#14a06a);box-shadow:0 4px 12px rgba(0,0,0,.18)}
 .pgsub{margin:0;color:var(--mut);font-size:13px;line-height:1.5}
 .actpanel{display:grid;grid-template-columns:1.05fr 0.95fr;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--bd);border-radius:14px;padding:10px 12px;margin-bottom:14px}
 .act-ia{display:flex;align-items:center;gap:10px;min-width:0}
@@ -657,7 +657,7 @@ async function loadDados(){
  document.getElementById("d-pts").textContent=(d.ranking&&d.ranking.pontos)||0;
  document.getElementById("d-pend").textContent=d.palpitesPendentes||0;
  var _ac=document.getElementById("autochk");if(_ac)_ac.checked=!!d.autoPreencher;
- IA_ON=!!d.iaConectada;setMascote();MATA=!!d.mataAberto;LONGO_FEITO=!!d.longoFeito;renderTabs();(function(){var el=document.getElementById("lp-steps");if(!el)return;var st=d.steps||{rod:[0,0,0],ca:false};var cp=function(lab,f){var ok=f===0;return '<span class="step '+(ok?"ok":"no")+'">'+lab+' '+(ok?"&#10003;":("&#9679;"+f))+'</span>';};var allok=st.rod[0]===0&&st.rod[1]===0&&st.rod[2]===0&&!!st.ca;var pre=allok?'<span class="step done">&#127881; Tudo pronto</span>':'';el.innerHTML=pre+cp("R1",st.rod[0])+cp("R2",st.rod[1])+cp("R3",st.rod[2])+'<span class="step '+(st.ca?"ok":"no")+'">C&amp;A '+(st.ca?"&#10003;":"&#9679;")+'</span>';})();
+ IA_ON=!!d.iaConectada;setMascote();MATA=!!d.mataAberto;LONGO_FEITO=!!d.longoFeito;renderTabs();(function(){var el=document.getElementById("lp-steps");if(!el)return;var st=d.steps||{rod:[0,0,0],ca:false};var C=["#14a06a","#e0a008","#e23744"];var cp=function(lab,col,f){var ok=f===0;return '<span class="step" style="color:'+col+(ok?"":";opacity:.45")+'">'+lab+' '+(ok?"&#10003;":("&#9679;"+f))+'</span>';};var caok=!!st.ca;var allok=st.rod[0]===0&&st.rod[1]===0&&st.rod[2]===0&&caok;var pre=allok?'<span class="step" style="color:var(--pri)">&#127881; Tudo pronto</span>':'';el.innerHTML='<span class="steplab">Progresso</span>'+pre+cp("R1",C[0],st.rod[0])+cp("R2",C[1],st.rod[1])+cp("R3",C[2],st.rod[2])+'<span class="step" style="color:#2f6fed'+(caok?"":";opacity:.45")+'">C&amp;A '+(caok?"&#10003;":"&#9679;")+'</span>';})();
  var _bq=document.getElementById("bloqueio");if(_bq)_bq.style.display=d.acessoFull?"none":"flex";
  var pb=document.getElementById("d-prox");
  if(d.proximo){var p=d.proximo;pb.innerHTML='<h3>Pr&oacute;ximo jogo &middot; Rodada '+(p.rodada||"-")+'</h3><div style="display:flex;align-items:center;gap:8px;font-weight:700;margin-top:6px">'+fl(p.casa.iso)+' '+esc(p.casa.pt)+' <span class="muted">x</span> '+esc(p.visitante.pt)+' '+fl(p.visitante.iso)+'</div><div class="muted" style="margin-top:4px">'+fmtData(p.inicio)+'</div>';}
