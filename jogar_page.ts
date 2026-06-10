@@ -114,10 +114,11 @@ body.mcol .side{width:58px;padding:10px 6px}
 body.mcol .side a{justify-content:center;font-size:0;gap:0;padding:10px 0}
 body.mcol .side a .ic{font-size:18px}
 body.mcol .side a .tag{display:none}
-.sbtn{background:color-mix(in srgb,var(--rc,#1faa59) 14%,var(--surface2));color:var(--rc,#1faa59)}
-.sbtn:hover{background:var(--rc,#1faa59);color:#fff}
+.sbtn{background:var(--surface2);color:var(--rc,#1faa59)}
+.sbtn:hover{background:color-mix(in srgb,var(--rc,#1faa59) 18%,var(--surface2));color:var(--rc,#1faa59)}
+.su:hover{background:color-mix(in srgb,var(--rc,#1faa59) 18%,var(--surface2));color:var(--rc,#1faa59)}
 .tag{color:var(--rc,#1faa59)}
-.pl:focus{outline:none;border-color:var(--rc,#1faa59);box-shadow:0 0 0 3px color-mix(in srgb,var(--rc,#1faa59) 25%,transparent)}
+.pl:focus{outline:none;border-color:var(--rc,#1faa59);box-shadow:0 0 0 3px color-mix(in srgb,var(--rc,#1faa59) 20%,transparent)}
 </style></head><body>
 <div class="top">
  <button class="burger" onclick="menuBtn()" title="Menu">&#9776;</button>
