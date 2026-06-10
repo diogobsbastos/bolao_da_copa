@@ -73,6 +73,27 @@ th,td{padding:8px 8px;border-bottom:1px solid var(--bd);text-align:left}th{color
 .qr b{background:#fff;color:#000;padding:4px 8px;border-radius:6px;font-size:11px}
 .pack{border:1px solid var(--bd);border-radius:14px;padding:16px;background:linear-gradient(160deg,var(--card2),var(--card))}
 .pack.base{border-color:var(--gold)}
+.mpframe{background:var(--surface);border:1px solid var(--bd);border-radius:16px;overflow:hidden;max-width:420px;margin:0 auto}
+.mphead{background:#009ee3;display:flex;align-items:center;gap:10px;padding:11px 16px}
+.mplogo{height:26px;display:block}
+.mpwm{color:#fff;font-weight:800;font-size:16px;letter-spacing:.3px;align-items:center}
+.mplock{margin-left:auto;color:#fff;font-size:11px;font-weight:700;background:rgba(255,255,255,.22);padding:3px 9px;border-radius:999px;white-space:nowrap}
+.mpbody{padding:18px 16px}
+.mpprod{text-align:center;margin-bottom:14px}
+.mpprice{font-size:30px;font-weight:800}
+.mppay{width:100%;background:#009ee3;justify-content:center;font-size:15px;padding:13px;box-shadow:0 4px 12px rgba(0,158,227,.3)}
+.mppay:hover{background:#0089c7;filter:none}
+.mptrust{display:flex;align-items:flex-start;gap:7px;justify-content:center;font-size:11.5px;color:var(--mut);margin-top:12px;text-align:center;line-height:1.45}
+.mpqr{display:flex;justify-content:center;margin:6px 0 10px}
+.mpqr img{width:208px;height:208px;border-radius:12px;border:1px solid var(--bd);background:#fff;padding:6px}
+.mpcopy{display:flex;gap:8px;margin:6px 0 4px}
+.mpcopy input{flex:1;min-width:0;font-size:11px;background:var(--surface2);border:1px solid var(--bd);color:var(--tx);border-radius:8px;padding:8px}
+.mpstatus{display:flex;align-items:center;justify-content:center;gap:8px;font-size:13px;font-weight:700;color:var(--mut);margin:12px 0}
+.mpstatus .dot{width:9px;height:9px;border-radius:50%;background:var(--gold);animation:pulsedot 1.2s infinite}
+@keyframes pulsedot{0%,100%{opacity:1}50%{opacity:.25}}
+.mpsim{width:100%;background:var(--card2);color:var(--tx);border:1px dashed var(--bd);box-shadow:none;font-size:13px}
+.mpok{text-align:center;padding:8px 0}
+.okcheck{width:56px;height:56px;border-radius:50%;background:#1faa59;color:#fff;font-size:30px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-weight:900}
 .custgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
 .custcard{background:var(--surface);border:1px solid var(--bd);border-radius:13px;padding:13px 14px}
 .custlbl{font-size:12px;color:var(--mut);font-weight:700}
@@ -319,14 +340,15 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
 
   <section class="sec" id="s-deposito">
    <h1>Dep&oacute;sito</h1>
-   <div class="card" style="text-align:center">
-    <div style="font-weight:800;font-size:16px">R$ 10,00 &rarr; Pacote Base</div>
-    <div class="muted" style="margin-top:4px">Pague via PIX e receba seu time inicial de 11 cartas.</div>
-    <div class="qr"><b>QR de teste</b></div>
-    <div class="muted">PIX de teste &mdash; integra&ccedil;&atilde;o real ainda n&atilde;o ligada.</div>
-    <div style="margin-top:12px"><button class="btn" onclick="toast('Simula&ccedil;&atilde;o: pagamento confirmado (teste).')">J&aacute; paguei (simular)</button></div>
+   <div class="mpframe">
+    <div class="mphead">
+     <img class="mplogo" src="https://http2.mlstatic.com/frontend-assets/mp-web-navigation/ui-navigation/6.6.143/mercadopago/logo__large.png" alt="Mercado Pago" onerror="this.style.display='none';var w=document.getElementById('mpwm');if(w)w.style.display='inline-flex'">
+     <span id="mpwm" class="mpwm" style="display:none">mercado pago</span>
+     <span class="mplock">&#128274; Ambiente seguro</span>
+    </div>
+    <div class="mpbody"><div id="dep-body" class="muted" style="text-align:center;padding:14px">carregando&hellip;</div></div>
    </div>
-   <div class="card" style="margin-top:12px"><h3>Como funciona</h3><div class="muted">No cadastro voc&ecirc; j&aacute; recebe 500 tokens (200 Colecionador / 200 Apostas / 100 Arena) e a cada rodada +50. O dep&oacute;sito serve pra adquirir o Pacote Base e conte&uacute;do do &aacute;lbum.</div></div>
+   <div class="muted" style="max-width:420px;margin:12px auto 0;font-size:12px;text-align:center;line-height:1.5">&#128274; Pagamento processado e protegido pelo <b>Mercado Pago</b> &middot; PIX criptografado. O Bol&atilde;o Copa 26 <b>n&atilde;o</b> armazena seus dados banc&aacute;rios.</div>
   </section>
 
   <section class="sec" id="s-ia">
@@ -414,6 +436,7 @@ function nav(sec){
  if(sec==="copa")loadCopa();
  if(sec==="ia")loadIA();
  if(sec==="custo")loadCusto();
+ if(sec==="deposito")loadDeposito();
 }
 async function loadDados(){
  var r=await fetch(BASE+"/jogar/dados",{headers:H()});
@@ -636,6 +659,31 @@ async function tourAudit(){
  modal(auditHtml(c));
 }
 
+var DEPID=null,DEPTIMER=null;
+function loadDeposito(){var b=document.getElementById("dep-body");if(!b)return;if(DEPTIMER){clearTimeout(DEPTIMER);DEPTIMER=null;}DEPID=null;
+ b.innerHTML='<div class="mpprod"><div class="mpprice">R$ 10,00</div><div class="muted" style="margin-top:4px">Pacote Base &middot; 11 figurinhas (1 goleiro, 4 defesa, 4 meio, 2 ataque)</div></div>'
+ +'<button class="btn mppay" onclick="depCriar()">&#9889; Pagar com PIX</button>'
+ +'<div class="mptrust">&#128179; Aprova&ccedil;&atilde;o na hora pelo Mercado Pago. Voc&ecirc; paga no app do seu banco lendo o QR ou colando o c&oacute;digo PIX.</div>';}
+async function depCriar(){var b=document.getElementById("dep-body");b.innerHTML='<div class="muted" style="padding:24px">gerando seu PIX seguro&hellip; &#128274;</div>';
+ var r=await fetch(BASE+"/jogar/deposito/criar",{method:"POST",headers:H()});var d=await r.json().catch(function(){return{};});
+ if(!d||!d.ok){b.innerHTML='<div class="muted">'+esc((d&&d.erro)||"n\u00e3o consegui gerar o PIX")+'</div><button class="btn ghost" style="margin-top:10px" onclick="loadDeposito()">Voltar</button>';return;}
+ DEPID=d.id;
+ b.innerHTML='<div class="mpprod"><div style="font-weight:800;font-size:15px">R$ '+Number(d.valor).toFixed(2).replace(".",",")+' &middot; Pacote Base</div></div>'
+ +(d.qr_base64?('<div class="mpqr"><img src="data:image/png;base64,'+d.qr_base64+'" alt="QR PIX"></div>'):"")
+ +'<div class="muted" style="text-align:center;margin:2px 0 8px;font-size:12px">Escaneie no app do seu banco ou copie o c\u00f3digo:</div>'
+ +'<div class="mpcopy"><input id="dep-cc" value="'+esc(d.qr_code||"")+'" readonly onclick="this.select()"><button class="btn ghost" onclick="depCopiar()">Copiar</button></div>'
+ +'<div id="dep-status" class="mpstatus"><span class="dot"></span> Aguardando pagamento&hellip;</div>'
+ +(d.teste?'<button class="btn mpsim" onclick="depSimular()">&#129514; Simular pagamento aprovado (sandbox)</button>':"");
+ depPoll();}
+function depCopiar(){var i=document.getElementById("dep-cc");if(!i)return;try{if(navigator.clipboard)navigator.clipboard.writeText(i.value);else{i.select();document.execCommand("copy");}}catch(e){i.select();}toast("C\u00f3digo PIX copiado \u2705");}
+async function depPoll(){if(!DEPID)return;if(!document.getElementById("s-deposito").classList.contains("on")){return;}
+ var r=await fetch(BASE+"/jogar/deposito/status?id="+DEPID,{headers:H()});var d=await r.json().catch(function(){return{};});
+ if(d&&d.ok&&d.creditado){depSucesso(d.figurinhas);return;}
+ DEPTIMER=setTimeout(depPoll,3500);}
+async function depSimular(){var r=await fetch(BASE+"/jogar/deposito/simular",{method:"POST",headers:H(),body:JSON.stringify({id:DEPID})});var d=await r.json().catch(function(){return{};});if(d&&d.ok)depPoll();else toast((d&&d.erro)||"erro",1);}
+function depSucesso(figs){if(DEPTIMER){clearTimeout(DEPTIMER);DEPTIMER=null;}var b=document.getElementById("dep-body");
+ b.innerHTML='<div class="mpok"><div class="okcheck">&#10003;</div><div style="font-size:17px;font-weight:800">Pagamento aprovado!</div><div class="muted" style="margin:6px 0 14px">Seu <b>Pacote Base</b> foi liberado &mdash; <b>'+figs+'</b> figurinhas no seu invent\u00e1rio.</div><button class="btn" onclick="nav(\'time\')">Ver meu time &#8594;</button></div>';
+ loadDados();}
 function modal(html,foot){document.getElementById("mbody").innerHTML=html;document.getElementById("mfoot").innerHTML=foot||"";var _m=document.querySelector(".modal");if(_m){_m.style.setProperty("--rc",COR_ROD[CURROD]||"#14794a");_m.style.maxWidth="";}document.getElementById("mov").classList.add("show");}
 function fecha(){document.getElementById("mov").classList.remove("show");}
 function faseCurta(s){var m={"Group Stage":"Grupos","Round of 16":"Oitavas","Quarter-finals":"Quartas","Semi-finals":"Semi","Final":"Final","3rd Place Final":"3o lugar"};return m[s]||s||"";}
