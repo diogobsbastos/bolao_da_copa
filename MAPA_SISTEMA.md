@@ -237,3 +237,27 @@ Colapso das 3 carteiras → 1 saldo. Regra fechada em CLAUDE.md §0.1.
 - `pagamento.ts`: no-op de "touch" trocado p/ `SET saldo=saldo`.
 
 **PENDENTE / próximos:** drip **+50/rodada** (somar no `saldo`, tipo `recarga_rodada`) ainda não existe no código. Passo 2 (Bolão creditar token no acerto) vai precisar de um **tipo novo no CHECK** (ex.: adicionar `premio_bolao`) antes de inserir no ledger.
+
+---
+
+## 17. Pontuação do Bolão + Coletor de resultados — PASSO 2 FEITO (10/jun, commit 343f570)
+
+Bolão agora paga **ponto E token** no acerto (regra CLAUDE §0.1). Motor + coletor automático.
+
+**`pontuacao.ts` (novo):**
+- `calcPontos(pc,pv,rc,rv,regra)` — PURA, testada (11/11). Camadas (vale a MAIOR): exato 10 · vencedor+saldo 7 (só quando NÃO é empate) · vencedor/empate 5 · acertou gols de 1 time 1 · senão 0. Regra vem de `config.pontos_regra`. (Empate com placar diferente = 5, não 7.)
+- `apurarJogo(id)` / `apurarPendentes()` — **idempotentes**: `jogos.apurado` trava re-apuração; `palpites_bolao.creditado` trava re-crédito de token. Credita token = pontos no ledger (`tipo='premio_bolao'`, `referencia='jogo:<id>'`) e recalcula `ranking.pontos_bolao = sum(pontos)`.
+
+**`scores365.ts` — `coletarResultados(force)`:** por jogo com `odds->>'gid'` e `resultado_casa IS NULL`, lê placar final no 365 (`game.homeCompetitor.score`), define orientação pelo nome (`al`/`casaLado`), grava **`jogos.resultado_casa/visitante` + `status='final'`** e dispara `apurarJogo`. "Terminou" = `statusFinal365` (statusText/statusGroup) OU `inicio < now-150min`, sempre com placar presente. Engatado no **`agendadorDiario`** (boot +12s e a cada 20min). Rotas admin: `POST /admin/bolao/{coletar,apurar,resultado}`, `GET /admin/bolao/status`.
+
+**Banco:** CHECK `transacoes_tokens.tipo` += `premio_bolao`; CHECK `jogos.status` += `final`; novas cols `jogos.apurado`/`jogos.resultado_em`/`palpites_bolao.creditado`.
+
+**DISTINÇÃO DE COLUNAS (importante):**
+- `jogos.placar_casa/visitante` = **PALPITE/preview do admin** (tela `/admin/jogos-placar`, `status='encerrado'`). NÃO é resultado real.
+- `jogos.resultado_casa/visitante` = **RESULTADO REAL** (coletor, `status='final'`). A apuração compara `palpites_bolao` × `resultado_*`.
+
+**Quirks / pendências:**
+- `calcClassificacao` (aba Copa) ainda usa `placar_*` (palpite), não `resultado_*` → a classificação dos grupos ainda não reflete o resultado real. (corrigir depois)
+- A tela do jogador ainda não mostra "quantos pontos fiz por jogo" — só **saldo (header) e ranking** atualizam após a apuração.
+- Correção manual de resultado (`/admin/bolao/resultado`) re-apura, mas token é **one-shot por palpite** (`creditado`): não estorna/reajusta crédito antigo.
+- Drip **+50/rodada** ainda não existe no código.
