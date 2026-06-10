@@ -312,47 +312,44 @@ export async function coletarJogadores365(): Promise<any> {
   RODANDO_J365 = true;
   const setStatus = (o: any) => setCfg("jogadores365_status", JSON.stringify({ ...o, em: new Date().toISOString() }));
   try {
-    await setStatus({ rodando: true, fase: "elencos", feitos: 0, total: 0, atletas: 0 });
+    await setStatus({ rodando: true, fase: "mapeando times", feitos: 0, total: 0, times: 0 });
     const jogos = (await pool.query("SELECT odds->>'gid' gid FROM jogos WHERE odds->>'gid' IS NOT NULL")).rows as any[];
-    const membros = new Map<number, any>(); const compName = new Map<number, string>();
+    const comps = new Map<number, string>();
     let gi = 0;
     for (const j of jogos) {
       try {
         const gj = await s365(`/game?appTypeId=5&langId=1&userCountryId=21&timezoneName=America/Sao_Paulo&gameId=${j.gid}`);
         const g = gj?.game;
-        if (g) {
-          if (g.homeCompetitor) compName.set(g.homeCompetitor.id, g.homeCompetitor.name);
-          if (g.awayCompetitor) compName.set(g.awayCompetitor.id, g.awayCompetitor.name);
-          for (const m of (Array.isArray(g.members) ? g.members : [])) { if (m?.athleteId && !membros.has(m.athleteId)) membros.set(m.athleteId, { nome: m.name, jersey: m.jerseyNumber, competitorId: m.competitorId }); }
-        }
+        if (g) { if (g.homeCompetitor) comps.set(g.homeCompetitor.id, g.homeCompetitor.name); if (g.awayCompetitor) comps.set(g.awayCompetitor.id, g.awayCompetitor.name); }
       } catch {}
-      gi++; if (gi % 4 === 0) await setStatus({ rodando: true, fase: "elencos (mapeando jogadores)", feitos: gi, total: jogos.length, atletas: membros.size });
-      await sleep(150 + Math.random() * 220);
+      gi++; if (gi % 5 === 0) await setStatus({ rodando: true, fase: "mapeando times", feitos: gi, total: jogos.length, times: comps.size });
+      await sleep(140 + Math.random() * 180);
     }
-    const ids = [...membros.keys()];
-    await setStatus({ rodando: true, fase: "fichas dos jogadores", feitos: 0, total: ids.length, atletas: ids.length, salvos: 0 });
-    let n = 0;
-    for (let i = 0; i < ids.length; i += 40) {
-      const chunk = ids.slice(i, i + 40);
+    const ids = [...comps.keys()];
+    await setStatus({ rodando: true, fase: "convocados por selecao", feitos: 0, total: ids.length, times: ids.length, salvos: 0 });
+    let n = 0, ti = 0;
+    for (const cid of ids) {
       try {
-        const r = await s365(`/athletes/?appTypeId=5&langId=1&athletes=${chunk.join(",")}`);
-        const ats = Array.isArray(r?.athletes) ? r.athletes : [];
-        for (const a of ats) {
-          const mem = membros.get(a.id) || {}; const sel = a.nationalityName || compName.get(mem.competitorId) || "";
-          await pool.query("INSERT INTO jogadores_365 (athlete_id,nome,short_name,selecao,selecao_id,posicao,posicao_det,posicao_ord,idade,clube_id,num_camisa,raw,atualizado_em) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,now()) ON CONFLICT (athlete_id) DO UPDATE SET nome=$2,short_name=$3,selecao=$4,selecao_id=$5,posicao=$6,posicao_det=$7,posicao_ord=$8,idade=$9,clube_id=$10,num_camisa=$11,raw=$12,atualizado_em=now()",
-            [a.id, a.name, a.shortName, sel, a.nationalTeamId ?? null, a.position?.name ?? "", a.formationPosition?.name ?? "", a.formationPosition?.order ?? null, a.age ?? null, a.clubId ?? null, mem.jersey ?? null, JSON.stringify(a)]);
-          n++;
+        const r = await s365(`/squads/?appTypeId=5&langId=1&competitors=${cid}`);
+        const squads = Array.isArray(r?.squads) ? r.squads : [];
+        for (const sq of squads) {
+          const sel = comps.get(sq.competitorId) || "";
+          for (const a of (Array.isArray(sq.athletes) ? sq.athletes : [])) {
+            await pool.query("INSERT INTO jogadores_365 (athlete_id,nome,short_name,selecao,selecao_id,posicao,posicao_det,posicao_ord,idade,clube_id,num_camisa,raw,atualizado_em) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,now()) ON CONFLICT (athlete_id) DO UPDATE SET nome=$2,short_name=$3,selecao=$4,selecao_id=$5,posicao=$6,posicao_det=$7,posicao_ord=$8,idade=$9,clube_id=$10,num_camisa=$11,raw=$12,atualizado_em=now()",
+              [a.id, a.name, a.shortName, sel, a.nationalTeamId ?? sq.competitorId, a.position?.name ?? "", a.formationPosition?.name ?? "", a.formationPosition?.order ?? null, a.age ?? null, a.clubId ?? null, a.jerseyNum ?? a.jerseyNumber ?? null, JSON.stringify(a)]);
+            n++;
+          }
         }
       } catch {}
-      await setStatus({ rodando: true, fase: "fichas dos jogadores", feitos: Math.min(i + 40, ids.length), total: ids.length, atletas: ids.length, salvos: n });
-      await sleep(450 + Math.random() * 350);
+      ti++; await setStatus({ rodando: true, fase: "convocados por selecao", feitos: ti, total: ids.length, times: ids.length, salvos: n });
+      await sleep(350 + Math.random() * 320);
     }
     try { await pool.query("UPDATE jogadores_365 g SET jogador_id=j.id FROM jogadores j WHERE g.jogador_id IS NULL AND lower(j.nome)=lower(g.nome)"); } catch {}
     await setCfg("jogadores365_em", new Date().toISOString());
-    await setStatus({ rodando: false, fase: "concluido", feitos: ids.length, total: ids.length, atletas: ids.length, salvos: n });
+    await setStatus({ rodando: false, fase: "concluido", feitos: ids.length, total: ids.length, times: ids.length, salvos: n });
     await setCfg("coletar_jogadores365", "");
-    console.log("[jogadores365] CONCLUIDO", n, "fichas de", ids.length, "atletas");
-    return { ok: true, atletas: n, ids: ids.length };
+    console.log("[jogadores365] CONCLUIDO", n, "convocados de", ids.length, "selecoes");
+    return { ok: true, atletas: n, times: ids.length };
   } finally { RODANDO_J365 = false; }
 }
 export function coletarJogadores365SeFlag(): void { (async () => { try { if ((await cfg("coletar_jogadores365")) === "go" && !RODANDO_J365) { coletarJogadores365().catch((e: any) => console.log("[jogadores365] erro", String(e?.message ?? e))); } } catch {} })(); }
