@@ -59,6 +59,7 @@ ${NAV_CSS}
    <div class="tab" data-t="img" onclick="aba('img')">&#127912; Motor de Imagem</div>
    <div class="tab" data-t="cortes" onclick="aba('cortes')">&#9986;&#65039; Cortes</div>
    <div class="tab" data-t="banco" onclick="aba('banco')">&#128190; Banco</div>
+   <div class="tab" data-t="pay" onclick="aba('pay')">&#128179; Hub de Pagamento</div>
   </div>
   <div class="pad">
 
@@ -158,6 +159,19 @@ ${NAV_CSS}
      <div id="banco-info" class="muted">carregando...</div></div>
    </section>
 
+   <section id="pg-pay" class="hide">
+    <div class="card"><div class="cardhead"><div><h3>&#128179; Mercado Pago &mdash; PIX <span id="pay-pill" class="pill">&hellip;</span></h3>
+      <div class="sub">Recebe os dep&oacute;sitos via PIX (QR din&acirc;mico). O jogador paga <b>R$ <span id="pay-preco">10</span></b> e ganha o <b>pacote base</b> (11 figurinhas).</div></div>
+      <a style="text-decoration:none;background:#eef1fb;color:#4361ee;padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;white-space:nowrap;align-self:flex-start" href="https://www.mercadopago.com.br/developers/panel/app" target="_blank">Editar no Mercado Pago &#8599;</a></div>
+     <div id="pay-conta" class="muted" style="margin:4px 0 12px">carregando&hellip;</div>
+     <label>Access Token (em branco mant&eacute;m o atual)</label><input id="pay-token" placeholder="TEST-... (teste) ou APP_USR-... (produ&ccedil;&atilde;o)">
+     <label>Pre&ccedil;o do pacote base (R$)</label><input id="pay-precoin" type="number" min="1" step="1" placeholder="10">
+     <div class="save"><button class="sm" onclick="savePay()">Salvar</button><button class="sm gh" onclick="testPay()">&#128268; Testar conex&atilde;o</button><span id="pay-msg" class="muted"></span></div>
+     <div id="pay-stats" class="muted" style="margin-top:12px;border-top:1px solid #e6e8f0;padding-top:10px"></div>
+     <div class="muted" style="margin-top:8px;font-size:12px">&#128274; Token guardado no servidor (config), nunca no front. Sandbox move s&oacute; dinheiro de teste &mdash; troque pelo token de produ&ccedil;&atilde;o no lan&ccedil;amento.</div>
+    </div>
+   </section>
+
   </div>
  </main>
 </div>
@@ -173,7 +187,7 @@ function N(v){return v==null||v===""?0:Number(v);}
 function num(v,c){c=c==null?4:c;return N(v).toLocaleString("pt-BR",{minimumFractionDigits:c,maximumFractionDigits:c});}
 var DOLAR=5.2;
 function ehImg(m){return (m.papel==="imagem")||/image|imagen|nano[- ]?banana/i.test(m.modelo);}
-function aba(t){document.querySelectorAll("section").forEach(function(s){s.classList.add("hide");});document.getElementById("pg-"+t).classList.remove("hide");document.querySelectorAll(".tab").forEach(function(a){a.classList.toggle("on",a.getAttribute("data-t")===t);});if(t==="banco")loadBanco();if(t==="llms")loadLLM("texto");if(t==="img")loadLLM("imagem");if(t==="custos")loadCustos();}
+function aba(t){document.querySelectorAll("section").forEach(function(s){s.classList.add("hide");});document.getElementById("pg-"+t).classList.remove("hide");document.querySelectorAll(".tab").forEach(function(a){a.classList.toggle("on",a.getAttribute("data-t")===t);});if(t==="banco")loadBanco();if(t==="llms")loadLLM("texto");if(t==="img")loadLLM("imagem");if(t==="custos")loadCustos();if(t==="pay")loadPay();}
 function togManual(){var b=document.getElementById("man-body");var oculto=b.classList.toggle("hide");document.getElementById("man-tog").textContent=oculto?"abrir":"fechar";}
 async function init(){
  var r=await fetch(BASE+"/admin/config",{headers:H()});
@@ -228,6 +242,21 @@ async function salvarCorte(){
  m.style.color="";var r=await fetch(BASE+"/admin/config",{method:"POST",headers:H(),body:JSON.stringify({corte_grade:v})});
  m.textContent=r.ok?"salvo!":"erro";
 }
+function esc(v){return String(v==null?"":v).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
+async function loadPay(){
+ var r=await fetch(BASE+"/admin/pagamento",{headers:H()});var d=await r.json().catch(function(){return{};});
+ if(!d||!d.ok){document.getElementById("pay-conta").textContent="erro ao carregar.";return;}
+ var pill=document.getElementById("pay-pill");
+ if(d.configurado){pill.textContent=d.teste?"TESTE (sandbox)":"PRODU\u00c7\u00c3O";pill.className="pill "+(d.teste?"":"uso");}else{pill.textContent="n\u00e3o configurado";pill.className="pill";}
+ document.getElementById("pay-preco").textContent=d.preco;document.getElementById("pay-precoin").value=d.preco;
+ var ct=document.getElementById("pay-conta");
+ if(d.conta){ct.innerHTML='&#9989; <b>Conta conectada:</b> '+esc(d.conta.nick||d.conta.email||d.conta.id)+(d.conta.email?(' &middot; '+esc(d.conta.email)):'')+' &middot; id '+esc(d.conta.id)+(d.tokenMasc?(' &middot; token <code>'+esc(d.tokenMasc)+'</code>'):'');}
+ else if(d.configurado){ct.innerHTML='Token salvo (<code>'+esc(d.tokenMasc)+'</code>), mas n\u00e3o li a conta &mdash; clique em <b>Testar conex\u00e3o</b>.';}
+ else{ct.textContent="Sem token. Cole o Access Token do Mercado Pago abaixo e salve.";}
+ document.getElementById("pay-stats").innerHTML='Dep\u00f3sitos pagos: <b>'+d.depositosPagos+'</b> &middot; Arrecadado: <b>R$ '+Number(d.arrecadado||0).toFixed(2).replace(".",",")+'</b>';
+}
+async function savePay(){var t=document.getElementById("pay-token").value;var p=document.getElementById("pay-precoin").value;var r=await fetch(BASE+"/admin/pagamento",{method:"POST",headers:H(),body:JSON.stringify({token:t,preco:p})});var d=await r.json().catch(function(){return{};});toast(d.ok?"Salvo":"erro",d.ok?"ok":"err");document.getElementById("pay-token").value="";loadPay();}
+async function testPay(){var m=document.getElementById("pay-msg");m.textContent="testando...";var r=await fetch(BASE+"/admin/pagamento/testar",{method:"POST",headers:H()});var d=await r.json().catch(function(){return{};});m.innerHTML=d.ok?('\u2705 '+esc(d.conta.nick||d.conta.email||d.conta.id)):('\u274c '+esc(d.erro||"falhou"));loadPay();}
 async function loadBanco(){
  var b=document.getElementById("banco-info");
  var r=await fetch(BASE+"/admin/status",{headers:H()});
