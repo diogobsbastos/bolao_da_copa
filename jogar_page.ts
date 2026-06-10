@@ -757,7 +757,7 @@ var COR_RANK={geral:"#1faa59",bolao:"#e0a008",arena:"#e23744"};
 var RANKTIPO="geral";
 async function loadRank(tipo){
  RANKTIPO=tipo||RANKTIPO;
- var cc=COR_RANK[RANKTIPO]||"#1faa59";document.documentElement.style.setProperty("--bar",cc);var _rr=document.getElementById("rk-rules");if(_rr)_rr.style.color=cc;
+ var cc=COR_RANK[RANKTIPO]||"#1faa59";document.documentElement.style.setProperty("--bar",cc);var _rr=document.getElementById("rk-rules");if(_rr){_rr.style.color=cc;_rr.style.setProperty("--rkc",cc);}
  document.querySelectorAll("#rank-tabs .tab").forEach(function(t){var on=t.getAttribute("data-t")===RANKTIPO;t.classList.toggle("on",on);t.style.background=on?cc:"";t.style.color=on?"#fff":"";t.style.borderColor=on?cc:"";});
  var box=document.getElementById("rank-box");box.style.setProperty("--rkc",cc);box.textContent="carregando...";
  var r=await fetch(BASE+"/jogar/ranking?tipo="+RANKTIPO,{headers:H()});var d=await r.json();
