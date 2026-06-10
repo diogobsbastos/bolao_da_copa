@@ -201,6 +201,12 @@ export async function rotasJogar(app: FastifyInstance) {
     return { ok: true };
   });
 
+  app.post("/jogar/ia/desconectar", async (req, reply) => {
+    const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    try { await pool.query("DELETE FROM usuarios_llm WHERE usuario_id=$1", [u.id]); } catch (e: any) { return { ok: false, erro: String(e?.message ?? e).slice(0, 120) }; }
+    return { ok: true };
+  });
+
   app.post("/jogar/ia/modelos", async (req, reply) => {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
     const b = (req.body ?? {}) as any;
