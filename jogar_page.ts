@@ -23,7 +23,7 @@ a{color:inherit;text-decoration:none}
 .side a:hover{background:var(--card)}
 .side a.on{background:var(--pri);color:#fff}
 .side a.soon{opacity:.5;cursor:not-allowed}
-.side a .tag{margin-left:auto;font-size:9px;background:var(--bd);color:var(--mut);padding:2px 6px;border-radius:6px}
+.side a .tag{margin-left:auto;font-size:8px;background:var(--bd);color:var(--mut);padding:1px 5px;border-radius:5px}
 .main{flex:1;min-width:0;padding:16px;max-width:840px}
 .sec{display:none}.sec.on{display:block;animation:fade .25s ease}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -227,7 +227,7 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
 .mascbar{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--bd);border-radius:14px;padding:10px 12px;margin-bottom:12px}
 .masc{width:46px;height:46px;flex:none;cursor:pointer;transition:filter .3s,opacity .3s}.masc svg{width:100%;height:100%;display:block}
 .grow{flex:1;min-width:0}
-.free{margin-left:auto;background:#d6f5e3;color:#0f7a45;font-size:8px;font-weight:800;padding:1px 5px;border-radius:5px;letter-spacing:.2px;line-height:1.5}
+.free{margin-left:auto;background:#d6f5e3;color:#0f7a45;font-size:7px;font-weight:800;padding:1px 4px;border-radius:5px;letter-spacing:.2px;line-height:1.5}
 .side{gap:1px}
 .side a{padding:7px 10px;font-size:13px;border-radius:10px;gap:10px;transition:background .12s}
 .side a .ic{width:20px;height:20px;display:flex;align-items:center;justify-content:center}
@@ -336,7 +336,7 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
   <a data-s="arena" onclick="nav('arena')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.4 3 7.9 7 9.6 4-1.7 7-5.2 7-9.6V6z"/><path d="m12.5 8.5-2 3.2h3l-2 3.3"/></svg></span> Arena</a>
   <a data-s="rank" onclick="nav('rank')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v4a5 5 0 0 1-10 0z"/><path d="M7 5H4.5v1.5A3 3 0 0 0 7.5 9.5M17 5h2.5v1.5a3 3 0 0 1-3 3"/><path d="M9.5 14.5h5M12 12v2.5M8.5 20h7"/></svg></span> Ranking</a>
   <div class="sdiv"></div>
-  <a data-s="ia" onclick="nav('ia')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/><path d="M9 3v2M15 3v2M9 19v2M15 19v2M3 9h2M3 15h2M19 9h2M19 15h2"/></svg></span> IA <span class="free">GR&Aacute;TIS</span></a>
+  <a data-s="ia" onclick="nav('ia')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/><path d="M9 3v2M15 3v2M9 19v2M15 19v2M3 9h2M3 15h2M19 9h2M19 15h2"/></svg></span> Conectar IA <span class="free">GR&Aacute;TIS</span></a>
   <a class="soon"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1.1"/><circle cx="15" cy="15" r="1.1"/><circle cx="12" cy="12" r="1.1"/></svg></span> Bet <span class="tag">Em breve</span></a>
  </nav>
  <div class="scrim" id="scrim" onclick="drawer()"></div>
