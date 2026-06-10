@@ -64,6 +64,7 @@ h1{font-size:18px;margin:0 0 12px}
 .lpbtn{display:inline-flex;align-items:center;gap:7px;margin:0 0 14px;padding:10px 18px;border:0;border-radius:999px;background:linear-gradient(135deg,#f6c83a,#e0a008);color:#3a2a00;font-weight:800;font-size:13px;cursor:pointer;box-shadow:0 5px 16px rgba(224,160,8,.45)}
 .lpbtn:hover{filter:brightness(1.06)}
 .lpf{margin-bottom:11px}.lpf label{display:block;font-size:12px;font-weight:700;color:var(--mut);margin-bottom:4px}.lpf select,.lpf input{width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:9px;background:var(--card);color:inherit;font-size:14px}
+.rrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--bd);font-size:13.5px}.rrow:first-of-type{border-top:0}.rrow b{font-weight:800;white-space:nowrap}
 .tab.on{background:var(--pri);color:#fff;border-color:var(--pri)}
 .lock{font-size:11px;color:var(--no);font-weight:700}
 table{width:100%;border-collapse:collapse;font-size:13px}
@@ -371,6 +372,7 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
     <a onclick="nav('deposito')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg> Dep&oacute;sito</a>
     <a onclick="nav('convidar')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="1"/><path d="M2 9h20v3H2zM12 9v11M9 9a2.5 2.5 0 1 1 3-3.5A2.5 2.5 0 1 1 15 9"/></svg> Convidar <span class="free">FULL</span></a>
     <a onclick="nav('perfil')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M16 12h3"/><path d="M3 9h12a2 2 0 0 1 0 4"/></svg> Carteira</a>
+    <a onclick="nav('regras')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4a2 2 0 0 1 2-2h11v18H7a2 2 0 0 0-2 2z"/><path d="M9 7h6M9 11h5"/></svg> Regras</a>
     <div class="pdsep"></div>
     <div class="pdfoot"><a class="dang" onclick="sair()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4"/><path d="m9 16-4-4 4-4M5 12h11"/></svg> Sair</a><div class="thsw"><button class="thbtn" id="th-l" onclick="setTema('light')" title="Modo claro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button><button class="thbtn" id="th-d" onclick="setTema('dark')" title="Modo escuro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button></div></div>
    </div>
@@ -401,7 +403,18 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
     <div class="card"><h3>Palpites pendentes</h3><div class="stat" id="d-pend">0</div><div class="muted">jogos sem palpite</div></div>
    </div>
    <div class="card" style="margin-top:14px" id="d-prox"><h3>Pr&oacute;ximo jogo</h3><div class="muted">carregando...</div></div>
-   <div style="margin-top:14px"><button class="btn" onclick="nav('bolao')">&#9917; Palpitar agora</button></div>
+   <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="nav('bolao')">&#9917; Palpitar agora</button><button class="btn ghost" onclick="nav('regras')">&#128220; Regras &amp; pontua&ccedil;&atilde;o</button></div>
+  </section>
+
+  <section class="sec" id="s-regras">
+   <div class="pghead"><h1>Regras &amp; Pontuação</h1><p class="pgsub">Tudo que vale ponto e token no Hub da Copa. <b>Risco zero</b> no bolão: errar não tira token.</p></div>
+   <div class="card" style="margin-bottom:12px"><h3>🪙 Moeda</h3><p class="muted">Token único — um saldo só. Você começa com <b>500 tokens</b>. Sem dinheiro real e sem saque. (Gotejamento de +50 por rodada chega em breve.)</p></div>
+   <div class="card" style="margin-bottom:12px"><h3>⚽ Bolão — fase de grupos</h3><p class="muted" style="margin-bottom:6px">Cada acerto vale <b>ponto no ranking E token</b>. Trava no apito; se você não preencher, o robô preenche por você.</p><div class="rrow"><span>Placar exato</span><b>10</b></div><div class="rrow"><span>Vencedor + saldo de gols</span><b>7</b></div><div class="rrow"><span>Vencedor certo</span><b>5</b></div><div class="rrow"><span>Acertou os gols de um time</span><b>1</b></div></div>
+   <div class="card" style="margin-bottom:12px"><h3>🏆 Mata-mata <span class="tag">em breve</span></h3><p class="muted" style="margin-bottom:6px">Mesma pontuação do bolão, multiplicada por fase:</p><div class="rrow"><span>Oitavas</span><b>×2</b></div><div class="rrow"><span>Quartas</span><b>×4</b></div><div class="rrow"><span>Semifinal</span><b>×8</b></div><div class="rrow"><span>Disputa de 3º</span><b>×5</b></div><div class="rrow"><span>Final</span><b>×10</b></div></div>
+   <div class="card" style="margin-bottom:12px"><h3>🥇 Palpites de longo prazo</h3><p class="muted" style="margin-bottom:6px">Crave uma vez — trava no fim da Rodada 2 (23/jun). Use o botão <b>Cravar Campeões &amp; Artilheiro</b> no Bolão.</p><div class="rrow"><span>Campeão</span><b>200</b></div><div class="rrow"><span>Vice-campeão</span><b>150</b></div><div class="rrow"><span>3º lugar</span><b>100</b></div><div class="rrow"><span>4º lugar</span><b>75</b></div><div class="rrow"><span>Artilheiro (top 3)</span><b>100 / 60 / 40</b></div></div>
+   <div class="card" style="margin-bottom:12px"><h3>⚔️ Arena (PvP) <span class="tag">em breve</span></h3><p class="muted" style="margin-bottom:6px">Batalha pela soma das notas do seu XI. Aposta de 50, o vencedor leva 90.</p><div class="rrow"><span>1ª vitória na rodada</span><b>25</b></div><div class="rrow"><span>2ª vitória</span><b>15</b></div><div class="rrow"><span>3ª vitória</span><b>8</b></div></div>
+   <div class="card" style="margin-bottom:12px"><h3>🎁 Marketplace <span class="tag">em breve</span></h3><p class="muted" style="margin-bottom:6px">Saquinhos de figurinhas (fecham no fim da fase de grupos):</p><div class="rrow"><span>Normal — 5 cartas</span><b>50</b></div><div class="rrow"><span>Especial — 7 cartas</span><b>120</b></div><div class="rrow"><span>Lendário — garante 1 craque</span><b>250</b></div></div>
+   <div class="card"><h3>💰 Pote de Ouro</h3><p class="muted">O ranking <b>Geral</b> (Bolão + Arena + Mata-mata + Longo prazo) define o Pote. Os 3 primeiros dividem: <b>50% / 30% / 20%</b>.</p></div>
   </section>
 
   <section class="sec" id="s-bolao">
