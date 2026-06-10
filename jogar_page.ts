@@ -137,7 +137,7 @@ body.mcol .side a .tag{display:none}
 .tag{color:var(--rc,#1faa59)}
 .pl:focus{outline:none;border-color:var(--rc,#1faa59);box-shadow:0 0 0 3px color-mix(in srgb,var(--rc,#1faa59) 20%,transparent)}
 .autobar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-.sw{position:relative;display:inline-block;width:42px;height:24px;flex:none;cursor:pointer;margin-left:auto}
+.sw{position:relative;display:inline-block;width:42px;height:24px;flex:none;cursor:pointer}
 .sw input{opacity:0;width:0;height:0;position:absolute}
 .sl{position:absolute;inset:0;background:var(--surface2);border:1px solid var(--bd);border-radius:999px;transition:.2s}
 .sl:before{content:"";position:absolute;height:18px;width:18px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.2s}
@@ -150,12 +150,13 @@ body.mcol .side a .tag{display:none}
 .ialbl{font-size:12px;color:var(--mut);font-weight:700;margin:10px 0 4px;display:block}
 .iarow{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
 .mascbar{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--bd);border-radius:14px;padding:10px 12px;margin-bottom:12px}
-.masc{width:54px;height:54px;flex:none;cursor:pointer;transition:filter .3s,opacity .3s}.masc svg{width:100%;height:100%;display:block}
-.masc.off{filter:grayscale(1);opacity:.45}
+.masc{width:46px;height:46px;flex:none;cursor:pointer;transition:filter .3s,opacity .3s}.masc svg{width:100%;height:100%;display:block}
+.grow{flex:1;min-width:0}
+.masc.off{opacity:.82}
 .masc.on{animation:bob 2.4s ease-in-out infinite;filter:drop-shadow(0 4px 10px rgba(31,170,89,.35))}
 .masc.think{animation:bob .55s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-6px) rotate(3deg)}}
-.bubble{position:relative;background:var(--surface2);border:1px solid var(--bd);border-radius:12px;padding:9px 12px;font-size:13px;font-weight:600;flex:1;line-height:1.45}
+.bubble{position:relative;background:var(--surface2);border:1px solid var(--bd);border-radius:12px;padding:8px 12px;font-size:12.5px;font-weight:600;flex:0 1 auto;max-width:360px;line-height:1.4}
 .bubble:before{content:"";position:absolute;left:-7px;top:18px;border:7px solid transparent;border-right-color:var(--bd)}
 .mbtn{background:var(--pri);color:#fff;border:0;border-radius:8px;padding:6px 11px;font-weight:800;font-size:12px;cursor:pointer;margin-left:4px}
 .mlink{color:var(--pri2);font-weight:800;cursor:pointer}
@@ -226,13 +227,9 @@ body.mcol .side a .tag{display:none}
   <section class="sec" id="s-bolao">
    <h1>Bol&atilde;o &mdash; palpite da rodada</h1>
    <div class="muted" style="margin-bottom:10px">Coloque o placar que voc&ecirc; acha. Risco zero: erro n&atilde;o tira token, acerto soma pontos no ranking. Trava no apito.</div>
-   <div class="mascbar">
-    <div class="masc off" id="masc" onclick="mascClick()"><svg viewBox="0 0 64 64"><defs><radialGradient id="mg" cx="40%" cy="35%" r="75%"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#cfd6e4"/></radialGradient></defs><circle cx="32" cy="33" r="26" fill="url(#mg)" stroke="#0a1228" stroke-width="2.5"/><polygon points="32,11 40,17 37,27 27,27 24,17" fill="#0a1228"/><circle cx="24" cy="36" r="5" fill="#fff" stroke="#0a1228" stroke-width="1.4"/><circle cx="40" cy="36" r="5" fill="#fff" stroke="#0a1228" stroke-width="1.4"/><circle cx="25" cy="37" r="2.3" fill="#0a1228"/><circle cx="41" cy="37" r="2.3" fill="#0a1228"/><path d="M25 46 Q32 51 39 46" fill="none" stroke="#0a1228" stroke-width="2.2" stroke-linecap="round"/><path d="M53 13 l1.5 3.2 3.5 .4 -2.6 2.4 .7 3.4 -3.1 -1.7 -3.1 1.7 .7 -3.4 -2.6 -2.4 3.5 -.4z" fill="#f5c451"/></svg></div>
-    <div class="bubble" id="masc-bubble">&#128164; Conecte sua IA e eu palpito por voc&ecirc;.</div>
-   </div>
 
    <div class="tabs" id="bolao-tabs"><span class="tab on" data-r="1" onclick="loadBolao(1)">Rodada 1</span><span class="tab" data-r="2" onclick="loadBolao(2)">Rodada 2</span><span class="tab" data-r="3" onclick="loadBolao(3)">Rodada 3</span></div>
-   <div class="autobar" id="autobar"><button class="btn ghost" id="btn-auto" onclick="preencherAuto()">&#127919; Preencher pela l&oacute;gica das odds</button><label class="sw" title="Auto-preencher"><input type="checkbox" id="autochk" onchange="setAuto(this.checked)"><span class="sl"></span></label><span class="swlbl">Auto-preencher</span><button class="qmark" onclick="ajudaAuto()" title="O que &eacute;?">?</button></div>
+   <div class="autobar" id="autobar"><div class="masc off" id="masc" onclick="mascClick()" title="Seu palpiteiro de IA"><svg viewBox="0 0 64 64"><defs><linearGradient id="mgh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2bd07a"/><stop offset="1" stop-color="#0f7a45"/></linearGradient></defs><line x1="32" y1="9" x2="32" y2="16" stroke="#0f7a45" stroke-width="2.6"/><circle cx="32" cy="7" r="3.4" fill="#f5c451" stroke="#0a1228" stroke-width="1.2"/><rect x="8" y="26" width="5" height="12" rx="2.5" fill="#0f7a45" stroke="#0a1228" stroke-width="1.4"/><rect x="51" y="26" width="5" height="12" rx="2.5" fill="#0f7a45" stroke="#0a1228" stroke-width="1.4"/><rect x="12" y="15" width="40" height="34" rx="12" fill="url(#mgh)" stroke="#0a1228" stroke-width="2.2"/><rect x="18" y="24" width="28" height="15" rx="7.5" fill="#0a1228"/><circle cx="26" cy="31.5" r="3.6" fill="#7cffb0"/><circle cx="38" cy="31.5" r="3.6" fill="#7cffb0"/><circle cx="27" cy="32.6" r="1.5" fill="#0a1228"/><circle cx="39" cy="32.6" r="1.5" fill="#0a1228"/><circle cx="20" cy="44" r="2.4" fill="#f5c451" opacity=".85"/><circle cx="44" cy="44" r="2.4" fill="#f5c451" opacity=".85"/><path d="M26 44 Q32 48 38 44" fill="none" stroke="#0a1228" stroke-width="2" stroke-linecap="round"/></svg></div><div class="bubble" id="masc-bubble">&#128164; Conecte sua IA e eu palpito por voc&ecirc;.</div><span class="grow"></span><button class="btn ghost" id="btn-auto" onclick="preencherAuto()">&#127919; Preencher pela l&oacute;gica</button><label class="sw" title="Auto-preencher"><input type="checkbox" id="autochk" onchange="setAuto(this.checked)"><span class="sl"></span></label><span class="swlbl">Auto</span><button class="qmark" onclick="ajudaAuto()" title="O que &eacute;?">?</button></div>
    <div id="bolao-box" class="muted">carregando...</div>
   </section>
 
