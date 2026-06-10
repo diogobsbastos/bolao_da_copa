@@ -282,6 +282,33 @@ export async function probeAthlete(gid: string | number): Promise<void> {
   } catch (e: any) { console.log("[ath-probe] erro", String(e?.message ?? e).slice(0, 120)); }
 }
 
+
+export async function mapearGameIds(): Promise<any> {
+  const janelas = [["11/06/2026", "16/06/2026"], ["15/06/2026", "20/06/2026"], ["19/06/2026", "25/06/2026"], ["24/06/2026", "29/06/2026"]];
+  const games = new Map<number, any>();
+  for (const [ini, fim] of janelas) {
+    try {
+      const data = await s365(`/games/fixtures/?appTypeId=5&langId=1&timezoneName=America/Sao_Paulo&userCountryId=21&competitions=${COMP}&startDate=${ini}&endDate=${fim}`);
+      const gs: any[] = Array.isArray(data?.games) ? data.games : (Array.isArray(data?.fixtures) ? data.fixtures : []);
+      for (const g of gs) if (g?.id) games.set(g.id, g);
+    } catch {}
+    await sleep(300);
+  }
+  const meus = (await pool.query("SELECT id, selecao_casa, selecao_visitante FROM jogos WHERE selecao_casa<>'A definir' AND selecao_visitante<>'A definir'")).rows as any[];
+  const byKey = new Map<string, any>();
+  for (const m of meus) byKey.set(norm(m.selecao_casa) + "|" + norm(m.selecao_visitante), m);
+  let casados = 0;
+  for (const g of games.values()) {
+    const h = al(g?.homeCompetitor?.name || ""), a = al(g?.awayCompetitor?.name || "");
+    let m = byKey.get(h + "|" + a); if (!m) m = byKey.get(a + "|" + h);
+    if (m && g?.id) { await pool.query("UPDATE jogos SET odds = COALESCE(odds,'{}'::jsonb) || jsonb_build_object('gid', $1::bigint) WHERE id=$2", [g.id, m.id]); casados++; }
+  }
+  await setCfg("gids_map_em", JSON.stringify({ em: new Date().toISOString(), jogos365: games.size, casados }));
+  console.log("[mapear-gids]", games.size, "jogos do 365,", casados, "casados/gravados");
+  return { ok: true, jogos365: games.size, casados };
+}
+export function mapearGameIdsSeFlag(): void { (async () => { try { if ((await cfg("mapear_gids")) === "go") { await setCfg("mapear_gids", ""); await mapearGameIds(); } } catch {} })(); }
+
 let RODANDO_J365 = false;
 export async function coletarJogadores365(): Promise<any> {
   if (RODANDO_J365) return { ok: false, erro: "ja esta rodando" };
@@ -365,6 +392,7 @@ export async function rotasScores365(app: FastifyInstance) {
   app.post("/admin/scores365/refresh", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); return await refreshDiario(true); });
   // Sonda de boot (verificação): se config.lineup_probe tiver gids (csv), loga a estrutura crua.
   (async () => { try { const g = await cfg("lineup_probe"); if (g) for (const id of g.split(",").map((s) => s.trim()).filter(Boolean)) await probeLineup(id); } catch {} })();
+  mapearGameIdsSeFlag();
   coletarJogadores365SeFlag();
   (async () => { try { const g = await cfg("game_probe"); if (g) for (const id of g.split(",").map((s) => s.trim()).filter(Boolean)) await probeGame(id); } catch {} })();
   (async () => { try { const g = await cfg("athlete_probe"); if (g) for (const id of g.split(",").map((s) => s.trim()).filter(Boolean)) await probeAthlete(id); } catch {} })();
