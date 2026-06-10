@@ -59,11 +59,11 @@ h1{font-size:18px;margin:0 0 12px}
 .pin:disabled{opacity:.6}
 .tabs{display:inline-flex;gap:3px;margin-bottom:14px;background:var(--card2);border:1px solid var(--bd);border-radius:999px;padding:4px}
 .tab{padding:7px 18px;border-radius:999px;background:transparent;border:0;color:var(--mut);font-weight:700;font-size:13px;cursor:pointer;transition:.15s;white-space:nowrap}
-.tab.lock{opacity:.45;cursor:not-allowed}
+.tab.lock{color:#aab0ba !important;opacity:.8;cursor:not-allowed}
 #bolao-tabs{display:flex;width:100%;max-width:100%;overflow-x:auto}
 .lpbtn{display:inline-flex;align-items:center;gap:7px;margin:0 0 14px;padding:10px 18px;border:0;border-radius:999px;background:linear-gradient(135deg,#f6c83a,#e0a008);color:#3a2a00;font-weight:800;font-size:13px;cursor:pointer;box-shadow:0 5px 16px rgba(224,160,8,.45)}
 .lpbtn:hover{filter:brightness(1.06)}
-.lpbanner{display:flex;align-items:center;gap:12px;margin-bottom:12px;padding:11px 14px;border-radius:14px;cursor:pointer;background:linear-gradient(135deg,#f6c83a,#e0a008);color:#3a2a00;box-shadow:0 5px 16px rgba(224,160,8,.4)}.lpbanner:hover{filter:brightness(1.04)}.lpb-ic{font-size:24px;flex:none}.lpb-tx{display:flex;flex-direction:column;min-width:0}.lpb-tx b{font-size:14.5px}.lpb-tx span{font-size:11.5px;opacity:.85}.lpb-ar{margin-left:auto;font-size:26px;font-weight:800;flex:none;opacity:.7}
+.lpbanner{display:flex;align-items:center;gap:12px;margin-bottom:12px;padding:11px 14px;border-radius:14px;cursor:pointer;background:var(--surface);border:1px solid var(--bd);border-left:4px solid #e0a008;transition:.15s}.lpbanner:hover{border-color:#e0a008;background:var(--card)}.lpb-ic{font-size:22px;flex:none}.lpb-tx{display:flex;flex-direction:column;min-width:0}.lpb-tx b{font-size:14px}.lpb-tx span{font-size:11.5px;color:var(--mut)}.lpb-ar{margin-left:auto;font-size:24px;font-weight:800;flex:none;color:var(--mut)}
 .lpf{margin-bottom:11px}.lpf label{display:block;font-size:12px;font-weight:700;color:var(--mut);margin-bottom:4px}.lpf select,.lpf input{width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:9px;background:var(--card);color:inherit;font-size:14px}
 .rrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--bd);font-size:13.5px}.rrow:first-of-type{border-top:0}.rrow b{font-weight:800;white-space:nowrap}.rrow.rhead{border-top:0;padding:2px 0}.rrow.rhead b{font-size:10.5px;letter-spacing:.6px;color:var(--mut);text-transform:uppercase}
 .tab.on{background:var(--pri);color:#fff;border-color:var(--pri)}
