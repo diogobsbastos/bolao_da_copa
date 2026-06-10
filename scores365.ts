@@ -219,7 +219,7 @@ export async function probeGame(gid: string | number): Promise<void> {
     const tryp = async (label: string, path: string) => { try { const r = await s365(path); console.log("[probe-ep]", label, "KEYS", JSON.stringify(Object.keys(r || {})), "SAMPLE", JSON.stringify(r).slice(0, 900)); } catch (e: any) { console.log("[probe-ep]", label, "erro", String(e?.message ?? e).slice(0, 90)); } };
     const comp = g.competitionId; const rec = (hc.recentMatches || []).slice(0, 5).join(",");
     await tryp("stats-games", `/stats/?appTypeId=5&langId=1&games=${gid}`);
-    await tryp("stats-comp", `/stats/?appTypeId=5&langId=1&competitors=${hc.id},${ac.id}&games=${gid}`);
+    try { const r = await s365(`/stats/?appTypeId=5&langId=1&competitors=${hc.id},${ac.id}&games=${gid}`); const st = r?.stats || {}; console.log("[stats-full] STATSKEYS", JSON.stringify(Object.keys(st))); for (const k of Object.keys(st)) { const v = (st as any)[k]; console.log("[stats-full]", k, Array.isArray(v) ? ("arr["+v.length+"] " + JSON.stringify(v).slice(0,700)) : JSON.stringify(v).slice(0,700)); } } catch (e: any) { console.log("[stats-full] erro", String(e?.message ?? e).slice(0,90)); }
     await tryp("h2h-game", `/games/headToHead/?appTypeId=5&langId=1&gameId=${gid}`);
     await tryp("recent-games", `/games/?appTypeId=5&langId=1&games=${rec}`);
     await tryp("recent-fixtures", `/games/fixtures/?appTypeId=5&langId=1&games=${rec}`);
