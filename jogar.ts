@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 import { pool } from "./db.js";
 import { usuarioDaReq } from "./auth.js";
 import { PAGINA_JOGAR } from "./jogar_page.js";
-import { timePT, rankOf, palpiteOdds, calcClassificacao, mapaGrupos } from "./jogos_placar.js";
+import { timePT, rankOf, palpiteOdds, calcClassificacao, mapaGrupos, forma2022, noticiasTime, classifGrupoDe } from "./jogos_placar.js";
 
 async function jogador(req: FastifyRequest) { return await usuarioDaReq(req); }
 function palpiteDetLite(rkC: number, rkV: number) { const d = rkV - rkC, ad = Math.abs(d); if (ad < 4) return { pc: 1, pv: 1 }; const gf = Math.min(3, 1 + Math.round(ad / 12)), gc = Math.max(0, 1 - Math.round(ad / 22)); return d > 0 ? { pc: gf, pv: gc } : { pc: gc, pv: gf }; }
@@ -133,6 +133,41 @@ export async function rotasJogar(app: FastifyInstance) {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
     const rows = (await pool.query(`SELECT r.usuario_id uid, COALESCE(us.nome, us.email) nome, r.pontos_bolao pts FROM ranking r JOIN usuarios us ON us.id=r.usuario_id ORDER BY r.pontos_bolao DESC, us.nome LIMIT 50`)).rows as any[];
     return { ok: true, eu: u.id, ranking: rows.map((x, i) => ({ pos: i + 1, nome: x.nome, pts: Number(x.pts || 0), eu: x.uid === u.id })) };
+  });
+
+  // Contexto completo do jogo (pacote pra LLM) — tudo do banco, enxuto.
+  app.get("/jogar/contexto", async (req, reply) => {
+    const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    const id = Number((req.query as any)?.jogo || 0);
+    if (!id) return reply.code(400).send({ erro: "jogo?" });
+    const j = (await pool.query("SELECT id, selecao_casa, selecao_visitante, inicio, rodada, fase, odds, lineup_casa, lineup_visitante FROM jogos WHERE id=$1", [id])).rows[0] as any;
+    if (!j) return reply.code(404).send({ erro: "jogo nao existe" });
+    const c = timePT(j.selecao_casa), v = timePT(j.selecao_visitante);
+    let odds: any = null, prob: any = null;
+    if (j.odds && j.odds.casa != null) {
+      odds = { casa: j.odds.casa, empate: j.odds.empate, fora: j.odds.fora, fonte: j.odds.fonte || "", url: j.odds.url || null };
+      const ic = 1 / Number(j.odds.casa), ie = j.odds.empate ? 1 / Number(j.odds.empate) : 0, iff = 1 / Number(j.odds.fora), tot = ic + ie + iff;
+      prob = { casa: Math.round(100 * ic / tot), empate: Math.round(100 * ie / tot), fora: Math.round(100 * iff / tot) };
+    }
+    const lineup = (l: any) => (l && Array.isArray(l.titulares)) ? { formacao: l.formacao, confirmada: !!l.confirmada, titulares: l.titulares.map((t: any) => ({ nome: t.nome, posicao: t.posicao })) } : null;
+    const [forCasa, forVisi, nCasa, nVisi, clas] = await Promise.all([
+      forma2022(j.selecao_casa).catch(() => []),
+      forma2022(j.selecao_visitante).catch(() => []),
+      noticiasTime(c.pt, j.selecao_casa).catch(() => []),
+      noticiasTime(v.pt, j.selecao_visitante).catch(() => []),
+      classifGrupoDe(j.selecao_casa).catch(() => null),
+    ]);
+    return {
+      ok: true,
+      jogo: { id: j.id, rodada: j.rodada, fase: j.fase, inicio: j.inicio,
+        casa: { pt: c.pt, en: j.selecao_casa, iso: c.iso, rankFifa: rankOf(j.selecao_casa) },
+        visitante: { pt: v.pt, en: j.selecao_visitante, iso: v.iso, rankFifa: rankOf(j.selecao_visitante) } },
+      odds, probabilidade: prob,
+      escalacao: { casa: lineup(j.lineup_casa), visitante: lineup(j.lineup_visitante) },
+      forma2022: { casa: forCasa, visitante: forVisi },
+      classificacao: clas,
+      noticias: { casa: nCasa, visitante: nVisi },
+    };
   });
 
   app.get("/jogar/copa", async (req, reply) => {

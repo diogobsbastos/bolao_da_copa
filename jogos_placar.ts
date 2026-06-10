@@ -147,7 +147,7 @@ async function newsRaw(nomePT: string, en: string): Promise<{ status: string; to
   }
   return { status: "ok", total: items.length, items, msg: items.length ? "" : ("nenhuma materia citou " + nomePT + " no feed da Copa (" + arts.length + " materias)") };
 }
-async function noticiasTime(nomePT: string, en: string): Promise<string[]> {
+export async function noticiasTime(nomePT: string, en: string): Promise<string[]> {
   const c = CACHE_NEWS.get(en);
   if (c && Date.now() - c.t < 6 * 3600 * 1000) return c.linhas;
   const d = await newsRaw(nomePT, en);
@@ -259,6 +259,19 @@ export function calcClassificacao(rows: any[]) {
 function filtroEscopo(b: any, args: any[]): string {
   if (b?.escopo === "rodada" && b?.fase === "grupos" && b?.rodada) { args.push(Number(b.rodada)); return " AND fase='grupos' AND rodada=$" + args.length; }
   return "";
+}
+
+export async function forma2022(en: string): Promise<any[]> {
+  const ms = await copa2022();
+  return ms.filter((m) => igual(m?.home_team?.home_team_name || "", en) || igual(m?.away_team?.away_team_name || "", en))
+    .sort((a, b) => String(a.match_date || "").localeCompare(String(b.match_date || "")))
+    .map((m) => { const hn = m?.home_team?.home_team_name || "", an = m?.away_team?.away_team_name || ""; const souCasa = igual(hn, en); const meu = souCasa ? m.home_score : m.away_score, dele = souCasa ? m.away_score : m.home_score; let res = "-"; if (meu != null && dele != null) res = meu > dele ? "V" : meu < dele ? "D" : "E"; const advNome = souCasa ? an : hn; const advEn = matchEn(advNome, TODOS); const ap = advEn ? timePT(advEn) : { pt: advNome, iso: "" }; return { data: m?.match_date || null, adversario: ap.pt, placar: (meu ?? "-") + "x" + (dele ?? "-"), res, fase: m?.competition_stage?.name || "" }; });
+}
+export async function classifGrupoDe(en: string): Promise<any> {
+  const gr = (await pool.query(`SELECT selecao_casa, selecao_visitante, inicio, placar_casa, placar_visitante FROM jogos WHERE fase='grupos' AND selecao_casa<>'A definir' AND selecao_visitante<>'A definir'`)).rows as any[];
+  const tabela = calcClassificacao(gr);
+  for (const g of tabela) { const idx = g.times.findIndex((t: any) => t.en === en); if (idx >= 0) return { grupo: g.grupo, pos: idx + 1, tabela: g.times.map((t: any, i: number) => ({ pos: i + 1, pt: t.pt, p: t.p, j: t.j, v: t.v, e: t.e, d: t.d, sg: t.sg })) }; }
+  return null;
 }
 
 export async function rotasJogosPlacar(app: FastifyInstance) {
