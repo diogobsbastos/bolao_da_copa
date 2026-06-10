@@ -228,6 +228,15 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
 .masc{width:46px;height:46px;flex:none;cursor:pointer;transition:filter .3s,opacity .3s}.masc svg{width:100%;height:100%;display:block}
 .grow{flex:1;min-width:0}
 .free{margin-left:auto;background:#d6f5e3;color:#0f7a45;font-size:8px;font-weight:800;padding:1px 5px;border-radius:5px;letter-spacing:.2px;line-height:1.5}
+.convlink input{width:100%;background:var(--surface2);border:1px solid var(--bd);color:var(--tx);border-radius:9px;padding:9px;font-size:12px;margin:4px 0 10px}
+.convbtns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.cbtn{display:flex;align-items:center;justify-content:center;gap:5px;border:0;border-radius:10px;padding:11px 6px;font-weight:800;font-size:12.5px;cursor:pointer;text-decoration:none}
+.cbtn.zap{background:#25d366;color:#04321a}.cbtn.mail{background:#2f6fed;color:#fff}.cbtn.cp{background:var(--surface2);color:var(--tx);border:1px solid var(--bd)}
+.bloqov{position:fixed;inset:0;background:var(--bgrad);display:none;align-items:center;justify-content:center;z-index:250;padding:18px}
+.bloqcard{width:380px;max-width:94vw;background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:22px 20px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.bloqtitle{font-size:19px;font-weight:800;margin-bottom:4px}
+.bloqor{color:var(--mut);font-size:12px;margin:12px 0;position:relative}
+.bloqcode{display:flex;gap:8px}.bloqcode input{flex:1;min-width:0;background:var(--surface2);border:1px solid var(--bd);color:var(--tx);border-radius:9px;padding:10px;font-size:13px}
 .masc.off{opacity:.85;filter:drop-shadow(0 2px 5px var(--rc,#14794a))}
 .masc.on{animation:bob 2.4s ease-in-out infinite;filter:drop-shadow(0 4px 12px var(--rc,#14794a))}
 .masc.think{animation:bob .55s ease-in-out infinite}
@@ -282,6 +291,7 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
   <a data-s="arena" onclick="nav('arena')"><span class="ic">&#9876;</span> Arena</a>
   <a data-s="rank" onclick="nav('rank')"><span class="ic">&#127942;</span> Ranking</a>
   <a data-s="deposito" onclick="nav('deposito')"><span class="ic">&#128179;</span> Dep&oacute;sito</a>
+  <a data-s="convidar" onclick="nav('convidar')"><span class="ic">&#127873;</span> Convidar <span class="free">FULL</span></a>
   <a data-s="ia" onclick="nav('ia')"><span class="ic">&#129302;</span> Conectar IA <span class="free">GR&Aacute;TIS</span></a>
   <a data-s="custo" onclick="nav('custo')"><span class="ic">&#128176;</span> Custo da IA</a>
   <a class="soon"><span class="ic">&#127920;</span> Bet <span class="tag">Em breve</span></a>
@@ -355,6 +365,11 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
    <div class="muted" style="max-width:420px;margin:8px auto 0;font-size:10.5px;text-align:center;line-height:1.4">&#128274; Processado pelo <b>Mercado Pago</b> &middot; PIX criptografado &middot; n&atilde;o guardamos dados banc&aacute;rios.</div>
   </section>
 
+  <section class="sec" id="s-convidar">
+   <h1>Convidar</h1>
+   <div id="conv-body" class="muted">carregando&hellip;</div>
+  </section>
+
   <section class="sec" id="s-ia">
    <h1>&#129302; Conectar minha IA</h1>
    <div class="muted" style="margin-bottom:10px">Conecte sua pr&oacute;pria LLM (chave sua, custo seu). Ela palpita por voc&ecirc; usando o contexto de cada jogo: odds, probabilidade, escala&ccedil;&atilde;o, forma e not&iacute;cias.</div>
@@ -417,6 +432,7 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
  </main>
 </div>
 <div class="mov" id="mov" onclick="if(event.target===this)fecha()"><div class="modal"><button class="mx" onclick="fecha()" title="Fechar">&times;</button><div id="mbody"></div><div id="mfoot" style="margin-top:12px;text-align:right"></div></div></div>
+<div class="bloqov" id="bloqueio"><div class="bloqcard"><div class="bloqtitle">&#128274; Desbloqueie pra jogar</div><div class="muted" style="margin:6px 0 14px;line-height:1.5">O Bol&atilde;o Copa 26 &eacute; s&oacute; pra quem &eacute; <b>full</b>. Pague <b>R$10</b> (uma vez) ou use um <b>convite full</b> de um amigo.</div><button class="btn" style="width:100%" onclick="bloqPagar()">&#128179; Pagar com PIX (R$10)</button><div class="bloqor">ou</div><div class="bloqcode"><input id="bloq-code" placeholder="cole seu convite full"><button class="btn ghost" onclick="bloqResgatar()">Resgatar</button></div><div id="bloq-msg" class="muted" style="margin-top:8px;font-size:12px"></div></div></div>
 <div class="tourov" id="tour" onclick="if(event.target===this)tourClose()"><div class="tourcard" id="tourcard"><div class="tourtop"><span id="tour-prog">&mdash;</span><span class="tourtbtns"><button class="tourq" onclick="tourAudit()" title="Ver os dados que a IA recebeu">?</button><button class="tourx" onclick="tourClose()" title="Fechar">&times;</button></span></div><div class="tourgame"><div class="tg-side"><span class="flagw" id="tour-flagC"></span><span id="tour-nomeC">&mdash;</span></div><div class="tg-score"><div class="tg-stepper"><button onclick="tourStep('c',1)">&#9650;</button><input id="tpc" inputmode="numeric" value="0"><button onclick="tourStep('c',-1)">&#9660;</button></div><span class="tg-x">&times;</span><div class="tg-stepper"><button onclick="tourStep('v',1)">&#9650;</button><input id="tpv" inputmode="numeric" value="0"><button onclick="tourStep('v',-1)">&#9660;</button></div></div><div class="tg-side"><span class="flagw" id="tour-flagV"></span><span id="tour-nomeV">&mdash;</span></div></div><div class="tourbubble"><span class="trb" id="tour-robo"><svg viewBox="0 0 64 64"><defs><linearGradient id="trg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2bd07a"/><stop offset="1" stop-color="#0f7a45"/></linearGradient></defs><line x1="32" y1="9" x2="32" y2="16" stroke="#0f7a45" stroke-width="2.6"/><circle cx="32" cy="7" r="3.4" fill="#f5c451" stroke="#0a1228" stroke-width="1.2"/><rect x="8" y="26" width="5" height="12" rx="2.5" fill="#0f7a45" stroke="#0a1228" stroke-width="1.4"/><rect x="51" y="26" width="5" height="12" rx="2.5" fill="#0f7a45" stroke="#0a1228" stroke-width="1.4"/><rect x="12" y="15" width="40" height="34" rx="12" fill="url(#trg)" stroke="#0a1228" stroke-width="2.2"/><rect x="18" y="24" width="28" height="15" rx="7.5" fill="#0a1228"/><circle cx="26" cy="31.5" r="3.6" fill="#7cffb0"/><circle cx="38" cy="31.5" r="3.6" fill="#7cffb0"/><circle cx="27" cy="32.6" r="1.5" fill="#0a1228"/><circle cx="39" cy="32.6" r="1.5" fill="#0a1228"/><path d="M26 44 Q32 48 38 44" fill="none" stroke="#0a1228" stroke-width="2" stroke-linecap="round"/></svg></span><span id="tour-resumo">analisando o jogo&hellip;</span><span class="tfont" id="tour-fonte"></span></div><div class="touraviso" id="tour-aviso" style="display:none"></div><div class="touractions"><button class="btn ghost tprev" onclick="tourPrev()" title="Anterior">&#8249;</button><button class="btn ghost" onclick="tourSkip()">Pular</button><button class="btn" id="tour-aplicar" onclick="tourApply()">Aplicar e pr&oacute;ximo &#8594;</button></div></div></div>
 <script>
 var BASE=location.pathname.replace(/\\/jogar.*$/,"");
@@ -441,6 +457,7 @@ function nav(sec){
  if(sec==="ia")loadIA();
  if(sec==="custo")loadCusto();
  if(sec==="deposito")loadDeposito();
+ if(sec==="convidar")loadConvidar();
 }
 async function loadDados(){
  var r=await fetch(BASE+"/jogar/dados",{headers:H()});
@@ -458,6 +475,7 @@ async function loadDados(){
  document.getElementById("d-pend").textContent=d.palpitesPendentes||0;
  var _ac=document.getElementById("autochk");if(_ac)_ac.checked=!!d.autoPreencher;
  IA_ON=!!d.iaConectada;setMascote();
+ var _bq=document.getElementById("bloqueio");if(_bq)_bq.style.display=d.acessoFull?"none":"flex";
  var pb=document.getElementById("d-prox");
  if(d.proximo){var p=d.proximo;pb.innerHTML='<h3>Pr&oacute;ximo jogo &middot; Rodada '+(p.rodada||"-")+'</h3><div style="display:flex;align-items:center;gap:8px;font-weight:700;margin-top:6px">'+fl(p.casa.iso)+' '+esc(p.casa.pt)+' <span class="muted">x</span> '+esc(p.visitante.pt)+' '+fl(p.visitante.iso)+'</div><div class="muted" style="margin-top:4px">'+fmtData(p.inicio)+'</div>';}
  else{pb.innerHTML='<h3>Pr&oacute;ximo jogo</h3><div class="muted">sem jogos futuros agora.</div>';}
@@ -689,6 +707,29 @@ async function depSimular(){var r=await fetch(BASE+"/jogar/deposito/simular",{me
 function depSucesso(figs){if(DEPTIMER){clearTimeout(DEPTIMER);DEPTIMER=null;}var b=document.getElementById("dep-body");
  b.innerHTML='<div class="mpok"><div class="okcheck">&#10003;</div><div style="font-size:17px;font-weight:800">Pagamento aprovado!</div><div class="muted" style="margin:6px 0 14px">Seu <b>Pacote Base</b> foi liberado &mdash; <b>'+figs+'</b> figurinhas no seu invent\u00e1rio.</div><button class="btn" onclick="nav(&#39;time&#39;)">Ver meu time &#8594;</button></div>';
  loadDados();}
+async function loadConvidar(){
+ var b=document.getElementById("conv-body");if(!b)return;b.innerHTML="carregando…";
+ var r=await fetch(BASE+"/jogar/indicacao",{headers:H()});var d=await r.json().catch(function(){return{};});
+ if(!d||!d.ok){b.textContent="erro ao carregar.";return;}
+ var html="";
+ if(d.fullLink){
+  var msg="⚽ Te dei acesso FULL ao Bolão Copa 26! Palpites, apostas e figurinhas da Copa. Entra grátis pelo meu convite: "+d.fullLink;
+  html='<div class="card"><h3>&#127873; Seu convite full</h3><div class="muted" style="margin:4px 0 10px">Voc&ecirc; tem <b>1 convite</b> pra presentear. Quem clicar entra com <b>acesso full gr&aacute;tis</b> e v&ecirc; &#127881; "voc&ecirc; ganhou acesso full pelo seu convite".</div>'
+   +'<div class="convlink"><input id="conv-link" value="'+esc(d.fullLink)+'" readonly onclick="this.select()"></div>'
+   +'<div class="convbtns"><a class="cbtn zap" href="https://wa.me/?text='+encodeURIComponent(msg)+'" target="_blank">&#128241; WhatsApp</a>'
+   +'<a class="cbtn mail" href="mailto:?subject='+encodeURIComponent("Convite full — Bolão Copa 26")+'&body='+encodeURIComponent(msg)+'">&#9993;&#65039; Email</a>'
+   +'<button class="cbtn cp" onclick="convCopiar()">&#128279; Copiar</button></div></div>';
+ } else if(d.fullUsado){
+  html='<div class="card"><h3>&#127873; Convite full</h3><div class="muted">Voc&ecirc; j&aacute; usou seu convite full &mdash; cada pagante tem 1.</div></div>';
+ } else {
+  html='<div class="card"><h3>&#127873; Convite full</h3><div class="muted">O convite full &eacute; pra quem paga os R$10. Pague pra ganhar o seu e presentear algu&eacute;m.</div><div style="margin-top:12px"><button class="btn" onclick="nav(&#39;deposito&#39;)">&#128179; Pagar e ganhar meu convite</button></div></div>';
+ }
+ if(d.convertidos!=null&&(d.indicados||d.convertidos)){html+='<div class="muted" style="margin-top:12px;font-size:12px;text-align:center">Pessoas que entraram por voc&ecirc;: <b>'+d.indicados+'</b> &middot; que viraram full: <b>'+d.convertidos+'</b></div>';}
+ b.innerHTML=html;
+}
+function convCopiar(){var i=document.getElementById("conv-link");if(!i)return;try{if(navigator.clipboard)navigator.clipboard.writeText(i.value);else{i.select();document.execCommand("copy");}}catch(e){i.select();}toast("Link copiado ✅");}
+function bloqPagar(){var b=document.getElementById("bloqueio");if(b)b.style.display="none";nav("deposito");}
+async function bloqResgatar(){var c=document.getElementById("bloq-code").value;var m=document.getElementById("bloq-msg");m.textContent="resgatando…";var r=await fetch(BASE+"/jogar/resgatar-full",{method:"POST",headers:H(),body:JSON.stringify({code:c})});var d=await r.json().catch(function(){return{};});if(d&&d.ok){m.textContent="";toast("Acesso full liberado! 🎉");var b=document.getElementById("bloqueio");if(b)b.style.display="none";loadDados();loadBolao(CURROD);}else{m.style.color="#e23744";m.textContent=(d&&d.erro)||"convite inválido";}}
 function modal(html,foot){document.getElementById("mbody").innerHTML=html;document.getElementById("mfoot").innerHTML=foot||"";var _m=document.querySelector(".modal");if(_m){_m.style.setProperty("--rc",COR_ROD[CURROD]||"#14794a");_m.style.maxWidth="";}document.getElementById("mov").classList.add("show");}
 function fecha(){document.getElementById("mov").classList.remove("show");}
 function faseCurta(s){var m={"Group Stage":"Grupos","Round of 16":"Oitavas","Quarter-finals":"Quartas","Semi-finals":"Semi","Final":"Final","3rd Place Final":"3o lugar"};return m[s]||s||"";}
