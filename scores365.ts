@@ -268,12 +268,17 @@ export async function probeGame(gid: string | number): Promise<void> {
 }
 
 export async function probeAthlete(ath: string | number): Promise<void> {
-  try {
-    const r = await s365(`/athletes/?appTypeId=5&langId=1&athletes=${ath}&withStats=true`);
-    const a = (r?.athletes || [])[0] || {};
-    console.log("[stat-full] ATHKEYS", JSON.stringify(Object.keys(a)));
-    for (const k of Object.keys(a)) { const v = (a as any)[k]; const isObj = v && typeof v === "object"; console.log("[stat-full] >", k, isObj ? (Array.isArray(v) ? ("arr[" + v.length + "] " + JSON.stringify(v).slice(0, 600)) : JSON.stringify(v).slice(0, 600)) : JSON.stringify(v)); }
-  } catch (e: any) { console.log("[stat-full] erro", String(e?.message ?? e).slice(0, 120)); }
+  const dump = async (label: string, path: string) => {
+    try {
+      const r = await s365(path); const j = JSON.stringify(r || {});
+      const hit = /statistic|appearance|rating|"saves"|"goals"|participa|"stats"/i.test(j);
+      console.log("[stat-find]", label, "len", j.length, "TOPKEYS", JSON.stringify(Object.keys(r || {})), "temStats?", hit);
+      for (const k of Object.keys(r || {})) { const v = (r as any)[k]; if (v && typeof v === "object") { const sj = JSON.stringify(v); if (/statistic|appearance|rating|"saves"|participa/i.test(sj)) console.log("[stat-find]", label, "-> achou em", k, ":", sj.slice(0, 800)); } }
+    } catch (e: any) { console.log("[stat-find]", label, "erro", String(e?.message ?? e).slice(0, 60)); }
+  };
+  await dump("withStats", `/athletes/?appTypeId=5&langId=1&athletes=${ath}&withStats=true`);
+  await dump("stats-ath", `/stats/?appTypeId=5&langId=1&athletes=${ath}&competitions=&isCalculated=true`);
+  await dump("ath-comp", `/athletes/?appTypeId=5&langId=1&athletes=${ath}&competitions=true&withStats=true`);
 }
 
 export async function mapearGameIds(): Promise<any> {
