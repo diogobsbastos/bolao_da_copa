@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { pool } from "./db.js";
 import { usuarioDaReq } from "./auth.js";
+import { apurarJogo, apurarPendentes } from "./pontuacao.js";
 
 const S365 = "https://webws.365scores.com/web";
 const COMP = 5930; // FIFA World Cup 2026
@@ -224,9 +225,52 @@ export async function refreshDiario(force = false): Promise<any> {
   return { hoje, odds, lineups };
 }
 // Agendador interno (sem crontab do SO): roda no boot se ainda não rodou hoje + checa de hora em hora.
+function statusFinal365(g: any): boolean {
+  const txt = String(g?.statusText || g?.shortStatusText || g?.gameStatusText || "").toLowerCase();
+  if (/end|final|\bft\b|aet|\bpen\b|encerr|terminad/.test(txt)) return true;
+  const sg = Number(g?.statusGroup); if (sg === 3 || sg === 4) return true;
+  return false;
+}
+
+// Coletor de RESULTADOS REAIS: por jogo com gid e sem resultado, busca o placar final no 365scores,
+// grava em jogos.resultado_casa/visitante (orientacao pelo nome) e dispara a apuracao (pontos+token).
+export async function coletarResultados(force = false): Promise<any> {
+  const jogos = (await pool.query(
+    "SELECT id, selecao_casa, selecao_visitante, odds->>'gid' AS gid, inicio FROM jogos WHERE odds->>'gid' IS NOT NULL AND resultado_casa IS NULL AND (inicio < now() - interval '100 minutes' OR $1) ORDER BY inicio NULLS LAST, id",
+    [force]
+  )).rows as any[];
+  let capturados = 0, apurados = 0; const detalhe: any[] = []; const agora = Date.now();
+  for (const j of jogos) {
+    try {
+      const gj = await s365(`/game?appTypeId=5&langId=1&userCountryId=21&timezoneName=America/Sao_Paulo&gameId=${j.gid}`);
+      const g = gj?.game; if (!g) { detalhe.push({ jogo: j.id, skip: "sem game" }); continue; }
+      const hs = numScore(g.homeCompetitor?.score), ascore = numScore(g.awayCompetitor?.score);
+      if (hs == null || ascore == null) { detalhe.push({ jogo: j.id, skip: "sem placar" }); continue; }
+      const velho = j.inicio ? (agora - new Date(j.inicio).getTime()) > 150 * 60 * 1000 : false;
+      if (!statusFinal365(g) && !velho) { detalhe.push({ jogo: j.id, skip: "em andamento" }); continue; }
+      const homeNome = String(g.homeCompetitor?.name || "");
+      let rc: number, rv: number;
+      if (casaLado(al(j.selecao_casa), homeNome)) { rc = hs; rv = ascore; }
+      else if (casaLado(al(j.selecao_visitante), homeNome)) { rc = ascore; rv = hs; }
+      else { detalhe.push({ jogo: j.id, skip: "orientacao nao casou" }); continue; }
+      await pool.query("UPDATE jogos SET resultado_casa=$2, resultado_visitante=$3, resultado_em=now(), status='final' WHERE id=$1", [j.id, rc, rv]);
+      capturados++;
+      const ap = await apurarJogo(j.id); if (ap.ok) apurados++;
+      detalhe.push({ jogo: j.id, placar: rc + "-" + rv, palpites: ap.palpites, tokens: ap.tokens });
+      await sleep(150);
+    } catch (e: any) { detalhe.push({ jogo: j.id, erro: String(e?.message ?? e).slice(0, 80) }); }
+  }
+  const status = { em: new Date().toISOString(), olhados: jogos.length, capturados, apurados, detalhe };
+  await setCfg("resultados_status", JSON.stringify(status));
+  if (capturados) console.log("[resultados]", capturados, "capturados,", apurados, "apurados");
+  return status;
+}
+
 export function agendadorDiario(): void {
   setTimeout(() => { refreshDiario(false).catch((e: any) => console.log("[refresh-diario] erro boot", String(e?.message ?? e))); }, 4000);
   setInterval(() => { refreshDiario(false).catch(() => {}); }, 60 * 60 * 1000);
+  setTimeout(() => { coletarResultados().catch((e: any) => console.log("[resultados] erro boot", String(e?.message ?? e))); }, 12000);
+  setInterval(() => { coletarResultados().catch(() => {}); }, 20 * 60 * 1000);
 }
 
 // Diagnóstico: loga a estrutura crua das lineups de um (ou vários) gid no boot, se config.lineup_probe estiver setado.
@@ -407,6 +451,10 @@ export async function rotasScores365(app: FastifyInstance) {
   app.get("/admin/scores365/lineups", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); try { return { ok: true, status: JSON.parse((await cfg("lineups_status")) || "{}") }; } catch { return { ok: true, status: {} }; } });
   // Força o refresh diário agora (odds + lineups).
   app.post("/admin/scores365/refresh", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); return await refreshDiario(true); });
+  app.post("/admin/bolao/coletar", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); return await coletarResultados(true); });
+  app.post("/admin/bolao/apurar", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); return await apurarPendentes(); });
+  app.get("/admin/bolao/status", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); let st: any = {}; try { st = JSON.parse((await cfg("resultados_status")) || "{}"); } catch {} const pend = Number(((await pool.query("SELECT count(*) n FROM jogos WHERE resultado_casa IS NOT NULL AND apurado=false")).rows[0] as any)?.n || 0); const apur = Number(((await pool.query("SELECT count(*) n FROM jogos WHERE apurado=true")).rows[0] as any)?.n || 0); return { ok: true, status: st, jogosApurados: apur, aguardandoApuracao: pend }; });
+  app.post("/admin/bolao/resultado", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); const b = (req.body ?? {}) as any; const id = Number(b.jogo_id), rc = Number(b.rc), rv = Number(b.rv); if (!Number.isInteger(id) || !Number.isInteger(rc) || !Number.isInteger(rv) || rc < 0 || rv < 0) return reply.code(400).send({ erro: "dados invalidos" }); await pool.query("UPDATE jogos SET resultado_casa=$2, resultado_visitante=$3, resultado_em=now(), status='final', apurado=false WHERE id=$1", [id, rc, rv]); const ap = await apurarJogo(id); return { ok: true, apuracao: ap }; });
   // Sonda de boot (verificação): se config.lineup_probe tiver gids (csv), loga a estrutura crua.
   (async () => { try { const g = await cfg("lineup_probe"); if (g) for (const id of g.split(",").map((s) => s.trim()).filter(Boolean)) await probeLineup(id); } catch {} })();
   mapearGameIdsSeFlag();
