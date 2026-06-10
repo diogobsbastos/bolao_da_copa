@@ -247,10 +247,6 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
 .pdrop a svg{width:18px;height:18px;color:var(--mut)}
 .pdrop a.dang{color:#e23744}.pdrop a.dang svg{color:#e23744}
 .pdsep{height:1px;background:var(--bd);margin:6px 4px}
-.tabs{display:flex;gap:4px;margin:0 0 18px;border-bottom:1px solid var(--bd)}
-.tab{background:none;border:0;border-bottom:2px solid transparent;color:var(--mut);font-weight:700;font-size:14px;padding:9px 14px;cursor:pointer;margin-bottom:-1px}
-.tab:hover{color:var(--tx)}
-.tab.on{color:var(--pri2);border-bottom-color:var(--pri)}
 .profwrap{max-width:560px}
 .profhead{display:flex;align-items:center;gap:16px;margin-bottom:16px}
 .profava{width:84px;height:84px;border-radius:50%;background:linear-gradient(135deg,var(--pri),var(--pri2));display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:800;color:#fff;position:relative;overflow:hidden;flex:none;cursor:pointer}
