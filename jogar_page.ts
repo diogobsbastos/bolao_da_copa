@@ -60,7 +60,7 @@ h1{font-size:18px;margin:0 0 12px}
 .tabs{display:inline-flex;gap:3px;margin-bottom:14px;background:var(--card2);border:1px solid var(--bd);border-radius:999px;padding:4px}
 .tab{padding:7px 18px;border-radius:999px;background:transparent;border:0;color:var(--mut);font-weight:700;font-size:13px;cursor:pointer;transition:.15s;white-space:nowrap}
 .tab.lock{color:#aab0ba !important;opacity:.8;cursor:not-allowed}
-#bolao-tabs{display:flex;width:100%;max-width:100%;overflow-x:auto}
+#bolao-tabs{display:flex;align-items:center;width:100%;max-width:100%;box-sizing:border-box;overflow-x:auto;background:var(--surface);border-radius:14px;padding:10px 12px;gap:8px}
 .lpbtn{display:inline-flex;align-items:center;gap:7px;margin:0 0 14px;padding:10px 18px;border:0;border-radius:999px;background:linear-gradient(135deg,#f6c83a,#e0a008);color:#3a2a00;font-weight:800;font-size:13px;cursor:pointer;box-shadow:0 5px 16px rgba(224,160,8,.45)}
 .lpbtn:hover{filter:brightness(1.06)}
 .lpbanner{display:flex;align-items:center;gap:12px;margin-bottom:12px;padding:11px 14px;border-radius:14px;cursor:pointer;background:var(--surface);border:1px solid var(--bd);border-left:4px solid #e0a008;transition:.15s}.lpbanner:hover{border-color:#e0a008;background:var(--card)}.lpb-ic{font-size:22px;flex:none}.lpb-tx{display:flex;flex-direction:column;min-width:0}.lpb-tx b{font-size:14px}.lpb-tx span{font-size:11.5px;color:var(--mut)}.lpb-ar{margin-left:auto;font-size:24px;font-weight:800;flex:none;color:var(--mut)}
