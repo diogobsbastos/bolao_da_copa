@@ -168,7 +168,7 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
 .bubble{position:relative;background:var(--surface2);border:1px solid var(--bd);border-radius:12px;padding:8px 12px;font-size:12.5px;font-weight:600;flex:0 1 auto;max-width:360px;line-height:1.4}
 .bubble:before{content:"";position:absolute;left:-7px;top:18px;border:7px solid transparent;border-right-color:var(--bd)}
 .mbtn{background:var(--rc,#14794a);color:#fff;border:0;border-radius:8px;padding:6px 11px;font-weight:800;font-size:12px;cursor:pointer;margin-left:4px}
-.mlink{color:var(--rc,#14794a);font-weight:800;cursor:pointer;letter-spacing:.3px}
+.mlink{color:var(--rc,#14794a);font-weight:800;cursor:pointer;letter-spacing:.2px;font-size:11px;white-space:nowrap}
 .gstep{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--bd);font-size:13px;line-height:1.5}
 .gnum{flex:none;width:24px;height:24px;border-radius:50%;background:var(--pri);color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center}
 .gopen{display:inline-flex;align-items:center;gap:6px;background:var(--pri);color:#fff;padding:8px 14px;border-radius:9px;font-weight:800;font-size:12px;text-decoration:none}
