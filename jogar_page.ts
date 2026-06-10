@@ -254,7 +254,7 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
 .pgchip{font-size:11.5px;font-weight:700;color:var(--pri2);background:var(--surface2);padding:3px 10px;border-radius:999px;vertical-align:middle;margin-left:7px}
 .pgsub{margin:0;color:var(--mut);font-size:13px;line-height:1.5}
 .actpanel{display:grid;grid-template-columns:1.05fr 0.95fr;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--bd);border-radius:14px;padding:10px 12px;margin-bottom:14px}
-.act-ia{display:flex;align-items:center;gap:10px;min-width:0;overflow:hidden}
+.act-ia{display:flex;align-items:center;gap:10px;min-width:0}
 .act-ia .bubble{flex:1;max-width:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .act-logic{display:flex;align-items:center;gap:9px;min-width:0;padding-left:12px;border-left:1px solid var(--bd)}
 #btn-auto{flex:1;height:38px;padding:0 16px;font-size:13px;border-radius:11px}
