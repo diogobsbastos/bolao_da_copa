@@ -210,15 +210,18 @@ export async function rotasJogar(app: FastifyInstance) {
   app.post("/jogar/ia/modelos", async (req, reply) => {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
     const b = (req.body ?? {}) as any;
-    try { const mods = await listarModelos(String(b.provedor || "gemini"), String(b.api_key || ""), String(b.base_url || ""), "texto"); return { ok: true, modelos: mods.slice(0, 80) }; }
+    let mkey = String(b.api_key || ""); if (!mkey) { try { mkey = String(((await pool.query("SELECT api_key FROM usuarios_llm WHERE usuario_id=$1", [u.id])).rows[0] as any)?.api_key || ""); } catch {} }
+    try { const mods = await listarModelos(String(b.provedor || "gemini"), mkey, String(b.base_url || ""), "texto"); return { ok: true, modelos: mods.slice(0, 80) }; }
     catch (e: any) { return { ok: false, erro: String(e?.message ?? e).slice(0, 140) }; }
   });
 
   app.post("/jogar/ia/testar", async (req, reply) => {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
     const b = (req.body ?? {}) as any;
-    const provedor = String(b.provedor || "gemini"), modelo = String(b.modelo || ""), api_key = String(b.api_key || ""), base_url = String(b.base_url || "");
-    if (!api_key || !modelo) return { ok: false, erro: "informe a chave e o modelo" };
+    const provedor = String(b.provedor || "gemini"), modelo = String(b.modelo || ""), base_url = String(b.base_url || "");
+    let api_key = String(b.api_key || ""); if (!api_key) { try { api_key = String(((await pool.query("SELECT api_key FROM usuarios_llm WHERE usuario_id=$1", [u.id])).rows[0] as any)?.api_key || ""); } catch {} }
+    if (!api_key) return { ok: false, erro: "conecte sua IA primeiro" };
+    if (!modelo) return { ok: false, erro: "escolha um modelo" };
     try { const r = await invocarTexto({ provedor, modelo, api_key, base_url } as any, "Responda apenas: OK"); return { ok: true, resposta: String(r.texto || "").trim().slice(0, 40) || "OK", tokens: { in: r.usage.in, out: r.usage.out } }; }
     catch (e: any) { return { ok: false, erro: String(e?.message ?? e).slice(0, 140) }; }
   });
