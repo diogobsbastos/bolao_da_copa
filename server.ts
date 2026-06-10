@@ -87,7 +87,8 @@ await app.register(rotasScores365);
 await runDeployCmd().catch((e) => app.log.error(e));
 await syncSeFlag().catch((e) => app.log.error(e));
 await syncOddsSeFlag().catch((e) => app.log.error(e));
-agendadorDiario(); // refresh diário interno: odds + lineups -> banco (jogadores só leem)
+agendadorDiario();
+casarFc26SeFlag(); // refresh diário interno: odds + lineups -> banco (jogadores só leem)
 setTimeout(() => { autoPreencherTick().catch(() => {}); }, 8000); // auto-preencher no boot
 setInterval(() => { autoPreencherTick().catch(() => {}); }, 15 * 60 * 1000); // a cada 15min: preenche faltantes 1h antes do jogo
 
