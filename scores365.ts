@@ -184,6 +184,12 @@ export async function probeGame(gid: string | number): Promise<void> {
     console.log("[game-probe] COMPKEYS", JSON.stringify(Object.keys(hc)));
     for (const k of ["statistics", "stats", "previousMeetings", "h2h", "headToHead", "standings", "predictions", "winningChances", "actualPlayTime", "venue", "topPerformers", "events", "widgets"]) console.log("[game-probe] g." + k, pick(g, k));
     for (const k of ["recentMatches", "lastMatches", "form", "statistics", "stats", "standings", "ranking"]) console.log("[game-probe] hc." + k, pick(hc, k));
+    const tryp = async (label: string, path: string) => { try { const r = await s365(path); console.log("[probe-ep]", label, "KEYS", JSON.stringify(Object.keys(r || {})), "SAMPLE", JSON.stringify(r).slice(0, 420)); } catch (e: any) { console.log("[probe-ep]", label, "erro", String(e?.message ?? e).slice(0, 90)); } };
+    const comp = g.competitionId;
+    await tryp("standings", `/standings/?appTypeId=5&langId=1&competitions=${comp}&live=false`);
+    await tryp("h2h", `/games/headToHead/?appTypeId=5&langId=1&competitorId1=${hc.id}&competitorId2=${ac.id}`);
+    await tryp("stats", `/game/stats/?appTypeId=5&langId=1&games=${gid}`);
+    await tryp("recent", `/games/?appTypeId=5&langId=1&games=${(hc.recentMatches || []).slice(0, 3).join(",")}`);
   } catch (e: any) { console.log("[game-probe] erro", String(e?.message ?? e).slice(0, 200)); }
 }
 
