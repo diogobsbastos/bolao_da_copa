@@ -51,7 +51,7 @@ export async function aoPagar(uid: number): Promise<void> {
     const ref = u?.referido_por;
     if (ref) {
       const ind = (await pool.query("UPDATE indicacoes SET status='pago', pago_em=now(), recompensa_dada=true WHERE referrer_id=$1 AND indicado_id=$2 AND tipo='normal' AND recompensa_dada=false RETURNING id", [ref, uid])).rows[0] as any;
-      if (ind) { await creditarTokens(ref, 50, "indicacao"); await grantPacote(ref, 5, "indicacao"); console.log("[indicacao] recompensa p/ referrer", ref, "por indicado", uid); }
+      if (ind) { await creditarTokens(ref, 50, "referral"); await grantPacote(ref, 5, "indicacao"); console.log("[indicacao] recompensa p/ referrer", ref, "por indicado", uid); }
     }
   } catch (e: any) { console.log("[indicacao] erro aoPagar", String(e?.message ?? e)); }
 }
