@@ -17,7 +17,7 @@ type Resp = { texto: string; usage: Uso };
 
 const VAZIO: Uso = { in: 0, out: 0, cache: 0 };
 
-async function invocarTexto(p: Prov, prompt: string): Promise<Resp> {
+export async function invocarTexto(p: Prov, prompt: string): Promise<Resp> {
   if (typeof fetch !== "function") throw new Error("fetch indisponivel");
   if (p.provedor === "gemini") {
     const url = "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(p.modelo) + ":generateContent?key=" + encodeURIComponent(p.api_key);
@@ -47,7 +47,7 @@ async function invocarTexto(p: Prov, prompt: string): Promise<Resp> {
 }
 
 // lista modelos disponiveis no provedor
-async function listarModelos(provedor: string, api_key: string, base_url: string, papel: string): Promise<string[]> {
+export async function listarModelos(provedor: string, api_key: string, base_url: string, papel: string): Promise<string[]> {
   if (typeof fetch !== "function") throw new Error("fetch indisponivel");
   if (provedor === "gemini") {
     const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models?key=" + encodeURIComponent(api_key) + "&pageSize=200");

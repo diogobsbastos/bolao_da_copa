@@ -2,6 +2,8 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 import { pool } from "./db.js";
 import { usuarioDaReq } from "./auth.js";
 import { PAGINA_JOGAR } from "./jogar_page.js";
+import { invocarTexto, listarModelos } from "./llm.js";
+import { registrarGasto } from "./custos.js";
 import { timePT, rankOf, palpiteOdds, calcClassificacao, mapaGrupos, forma2022, noticiasTime, classifGrupoDe } from "./jogos_placar.js";
 
 async function jogador(req: FastifyRequest) { return await usuarioDaReq(req); }
@@ -55,6 +57,25 @@ export async function autoPreencherTick(): Promise<void> {
   if (n) console.log("[auto-preencher]", n, "palpites em", jogos.length, "jogo(s)");
 }
 
+
+async function montarContexto(id: number): Promise<any | null> {
+  const j = (await pool.query("SELECT id, selecao_casa, selecao_visitante, inicio, rodada, fase, odds, lineup_casa, lineup_visitante FROM jogos WHERE id=$1", [id])).rows[0] as any;
+  if (!j) return null;
+  const c = timePT(j.selecao_casa), v = timePT(j.selecao_visitante);
+  let odds: any = null, prob: any = null;
+  if (j.odds && j.odds.casa != null) {
+    odds = { casa: j.odds.casa, empate: j.odds.empate, fora: j.odds.fora, fonte: j.odds.fonte || "", url: j.odds.url || null };
+    const ic = 1 / Number(j.odds.casa), ie = j.odds.empate ? 1 / Number(j.odds.empate) : 0, iff = 1 / Number(j.odds.fora), tot = ic + ie + iff;
+    prob = { casa: Math.round(100 * ic / tot), empate: Math.round(100 * ie / tot), fora: Math.round(100 * iff / tot) };
+  }
+  const lineup = (l: any) => (l && Array.isArray(l.titulares)) ? { formacao: l.formacao, confirmada: !!l.confirmada, titulares: l.titulares.map((t: any) => ({ nome: t.nome, posicao: t.posicao })) } : null;
+  const [forCasa, forVisi, nCasa, nVisi, clas] = await Promise.all([
+    forma2022(j.selecao_casa).catch(() => []), forma2022(j.selecao_visitante).catch(() => []),
+    noticiasTime(c.pt, j.selecao_casa).catch(() => []), noticiasTime(v.pt, j.selecao_visitante).catch(() => []),
+    classifGrupoDe(j.selecao_casa).catch(() => null),
+  ]);
+  return { ok: true, jogo: { id: j.id, rodada: j.rodada, fase: j.fase, inicio: j.inicio, casa: { pt: c.pt, en: j.selecao_casa, iso: c.iso, rankFifa: rankOf(j.selecao_casa) }, visitante: { pt: v.pt, en: j.selecao_visitante, iso: v.iso, rankFifa: rankOf(j.selecao_visitante) } }, odds, probabilidade: prob, escalacao: { casa: lineup(j.lineup_casa), visitante: lineup(j.lineup_visitante) }, forma2022: { casa: forCasa, visitante: forVisi }, classificacao: clas, noticias: { casa: nCasa, visitante: nVisi } };
+}
 
 export async function rotasJogar(app: FastifyInstance) {
   app.get("/jogar", async (_req, reply) => reply.header("cache-control", "no-store").type("text/html").send(PAGINA_JOGAR));
@@ -135,39 +156,66 @@ export async function rotasJogar(app: FastifyInstance) {
     return { ok: true, eu: u.id, ranking: rows.map((x, i) => ({ pos: i + 1, nome: x.nome, pts: Number(x.pts || 0), eu: x.uid === u.id })) };
   });
 
-  // Contexto completo do jogo (pacote pra LLM) — tudo do banco, enxuto.
   app.get("/jogar/contexto", async (req, reply) => {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
-    const id = Number((req.query as any)?.jogo || 0);
-    if (!id) return reply.code(400).send({ erro: "jogo?" });
-    const j = (await pool.query("SELECT id, selecao_casa, selecao_visitante, inicio, rodada, fase, odds, lineup_casa, lineup_visitante FROM jogos WHERE id=$1", [id])).rows[0] as any;
-    if (!j) return reply.code(404).send({ erro: "jogo nao existe" });
-    const c = timePT(j.selecao_casa), v = timePT(j.selecao_visitante);
-    let odds: any = null, prob: any = null;
-    if (j.odds && j.odds.casa != null) {
-      odds = { casa: j.odds.casa, empate: j.odds.empate, fora: j.odds.fora, fonte: j.odds.fonte || "", url: j.odds.url || null };
-      const ic = 1 / Number(j.odds.casa), ie = j.odds.empate ? 1 / Number(j.odds.empate) : 0, iff = 1 / Number(j.odds.fora), tot = ic + ie + iff;
-      prob = { casa: Math.round(100 * ic / tot), empate: Math.round(100 * ie / tot), fora: Math.round(100 * iff / tot) };
+    const id = Number((req.query as any)?.jogo || 0); if (!id) return reply.code(400).send({ erro: "jogo?" });
+    const ctx = await montarContexto(id); if (!ctx) return reply.code(404).send({ erro: "jogo nao existe" });
+    return ctx;
+  });
+
+  app.get("/jogar/ia", async (req, reply) => {
+    const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    const cfg = (await pool.query("SELECT provedor, modelo, base_url, (api_key<>'') temkey FROM usuarios_llm WHERE usuario_id=$1", [u.id])).rows[0] as any;
+    let gastoBrl = 0; try { gastoBrl = Number(((await pool.query("SELECT COALESCE(sum(custo_brl),0) g FROM gastos_log WHERE origem='jogador' AND processo=$1", [String(u.id)])).rows[0] as any)?.g || 0); } catch {}
+    return { ok: true, conectada: !!(cfg && cfg.temkey), provedor: cfg?.provedor || "gemini", modelo: cfg?.modelo || "", base_url: cfg?.base_url || "", gastoBrl };
+  });
+
+  app.post("/jogar/ia", async (req, reply) => {
+    const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    const b = (req.body ?? {}) as any;
+    const provedor = String(b.provedor || "gemini"), modelo = String(b.modelo || ""), base_url = String(b.base_url || ""), key = String(b.api_key || "");
+    try {
+      if (key) await pool.query("INSERT INTO usuarios_llm (usuario_id,provedor,modelo,api_key,base_url,atualizado_em) VALUES ($1,$2,$3,$4,$5,now()) ON CONFLICT (usuario_id) DO UPDATE SET provedor=$2,modelo=$3,api_key=$4,base_url=$5,atualizado_em=now()", [u.id, provedor, modelo, key, base_url]);
+      else await pool.query("INSERT INTO usuarios_llm (usuario_id,provedor,modelo,base_url,atualizado_em) VALUES ($1,$2,$3,$4,now()) ON CONFLICT (usuario_id) DO UPDATE SET provedor=$2,modelo=$3,base_url=$4,atualizado_em=now()", [u.id, provedor, modelo, base_url]);
+    } catch (e: any) { return { ok: false, erro: String(e?.message ?? e).slice(0, 120) }; }
+    return { ok: true };
+  });
+
+  app.post("/jogar/ia/modelos", async (req, reply) => {
+    const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    const b = (req.body ?? {}) as any;
+    try { const mods = await listarModelos(String(b.provedor || "gemini"), String(b.api_key || ""), String(b.base_url || ""), "texto"); return { ok: true, modelos: mods.slice(0, 80) }; }
+    catch (e: any) { return { ok: false, erro: String(e?.message ?? e).slice(0, 140) }; }
+  });
+
+  app.post("/jogar/ia/preencher", async (req, reply) => {
+    const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    const rod = Number((req.body as any)?.rodada || 0);
+    const prov = (await pool.query("SELECT provedor, modelo, api_key, base_url FROM usuarios_llm WHERE usuario_id=$1", [u.id])).rows[0] as any;
+    if (!prov || !prov.api_key) return { ok: false, erro: "conecte sua IA primeiro" };
+    const args: any[] = [u.id]; let q = "SELECT id, selecao_casa, selecao_visitante FROM jogos j WHERE fase='grupos' AND selecao_casa<>'A definir' AND selecao_visitante<>'A definir' AND inicio>now() AND NOT EXISTS (SELECT 1 FROM palpites_bolao pb WHERE pb.jogo_id=j.id AND pb.usuario_id=$1)";
+    if (rod) { args.push(rod); q += ` AND rodada=$${args.length}`; }
+    q += " ORDER BY inicio LIMIT 20";
+    let jogos: any[] = []; try { jogos = (await pool.query(q, args)).rows as any[]; } catch (e: any) { return { ok: false, erro: String(e?.message ?? e).slice(0, 120) }; }
+    const palpites: any[] = []; let erros = 0;
+    for (const jj of jogos) {
+      try {
+        const ctx = await montarContexto(jj.id); if (!ctx) continue;
+        const prompt = "Você é um analista de futebol. Com base no CONTEXTO (JSON) do jogo da Copa, preveja o placar final mais provável (considere odds, probabilidade, escalação, forma e notícias). Responda SOMENTE com JSON válido {\"pc\":N,\"pv\":N} onde pc=gols " + ctx.jogo.casa.pt + " e pv=gols " + ctx.jogo.visitante.pt + ", sem texto extra. CONTEXTO: " + JSON.stringify(ctx);
+        const t0 = Date.now();
+        const r = await invocarTexto({ provedor: prov.provedor, modelo: prov.modelo, api_key: prov.api_key, base_url: prov.base_url } as any, prompt);
+        const m = String(r.texto).match(/\{[\s\S]*?\}/); let pc: any = null, pv: any = null;
+        if (m) { try { const o = JSON.parse(m[0]); pc = Math.max(0, Math.min(20, Math.round(+o.pc))); pv = Math.max(0, Math.min(20, Math.round(+o.pv))); } catch {} }
+        if (pc == null || pv == null || isNaN(pc) || isNaN(pv)) { erros++; }
+        else {
+          await pool.query("INSERT INTO palpites_bolao (usuario_id,jogo_id,placar_casa,placar_visitante,ia) VALUES ($1,$2,$3,$4,true) ON CONFLICT (usuario_id,jogo_id) DO UPDATE SET placar_casa=$3,placar_visitante=$4,ia=true,atualizado_em=now()", [u.id, jj.id, pc, pv]);
+          palpites.push({ jogo_id: jj.id, casa: ctx.jogo.casa.pt, visitante: ctx.jogo.visitante.pt, pc, pv });
+        }
+        try { await registrarGasto({ modelo: prov.modelo, tokens_in: r.usage.in, tokens_out: r.usage.out, tokens_cache: r.usage.cache, processo: String(u.id), origem: "jogador", tempo: (Date.now() - t0) / 1000 }); } catch {}
+      } catch (e: any) { erros++; }
     }
-    const lineup = (l: any) => (l && Array.isArray(l.titulares)) ? { formacao: l.formacao, confirmada: !!l.confirmada, titulares: l.titulares.map((t: any) => ({ nome: t.nome, posicao: t.posicao })) } : null;
-    const [forCasa, forVisi, nCasa, nVisi, clas] = await Promise.all([
-      forma2022(j.selecao_casa).catch(() => []),
-      forma2022(j.selecao_visitante).catch(() => []),
-      noticiasTime(c.pt, j.selecao_casa).catch(() => []),
-      noticiasTime(v.pt, j.selecao_visitante).catch(() => []),
-      classifGrupoDe(j.selecao_casa).catch(() => null),
-    ]);
-    return {
-      ok: true,
-      jogo: { id: j.id, rodada: j.rodada, fase: j.fase, inicio: j.inicio,
-        casa: { pt: c.pt, en: j.selecao_casa, iso: c.iso, rankFifa: rankOf(j.selecao_casa) },
-        visitante: { pt: v.pt, en: j.selecao_visitante, iso: v.iso, rankFifa: rankOf(j.selecao_visitante) } },
-      odds, probabilidade: prob,
-      escalacao: { casa: lineup(j.lineup_casa), visitante: lineup(j.lineup_visitante) },
-      forma2022: { casa: forCasa, visitante: forVisi },
-      classificacao: clas,
-      noticias: { casa: nCasa, visitante: nVisi },
-    };
+    let gastoBrl = 0; try { gastoBrl = Number(((await pool.query("SELECT COALESCE(sum(custo_brl),0) g FROM gastos_log WHERE origem='jogador' AND processo=$1", [String(u.id)])).rows[0] as any)?.g || 0); } catch {}
+    return { ok: true, preenchidos: palpites.length, erros, palpites, gastoBrl };
   });
 
   app.get("/jogar/copa", async (req, reply) => {
