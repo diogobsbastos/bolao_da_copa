@@ -295,6 +295,15 @@ export async function rotasJogar(app: FastifyInstance) {
     }
   });
 
+  app.get("/jogar/ia/custos", async (req, reply) => {
+    const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    let resumo: any = { ops: 0, tin: 0, tout: 0, gasto: 0 };
+    try { resumo = (await pool.query("SELECT count(*)::int ops, COALESCE(sum(tokens_in),0)::bigint tin, COALESCE(sum(tokens_out),0)::bigint tout, COALESCE(sum(custo_brl),0) gasto FROM gastos_log WHERE origem='jogador' AND processo=$1", [String(u.id)])).rows[0] as any; } catch {}
+    let log: any[] = [];
+    try { log = (await pool.query("SELECT to_char(ts,'DD/MM HH24:MI') quando, modelo, tokens_in, tokens_out, custo_brl FROM gastos_log WHERE origem='jogador' AND processo=$1 ORDER BY ts DESC LIMIT 50", [String(u.id)])).rows as any[]; } catch {}
+    return { ok: true, ops: Number(resumo.ops || 0), tin: Number(resumo.tin || 0), tout: Number(resumo.tout || 0), gastoBrl: Number(resumo.gasto || 0), log };
+  });
+
   app.get("/jogar/copa", async (req, reply) => {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
     const rows = (await pool.query("SELECT selecao_casa, selecao_visitante, inicio, placar_casa, placar_visitante FROM jogos WHERE fase='grupos' AND selecao_casa<>'A definir' AND selecao_visitante<>'A definir'")).rows as any[];
