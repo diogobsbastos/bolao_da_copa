@@ -26,7 +26,7 @@ async function s365(path: string): Promise<any> {
 function slug365(x: any): string { return String(x || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); }
 function game365Url(g: any): string {
   const h = g?.homeCompetitor, a = g?.awayCompetitor; const comp = g?.competitionId, gid = g?.id;
-  const hn = h?.nameForURL, an = a?.nameForURL; const cs = slug365(g?.competitionDisplayName);
+  const hn = h?.nameForURL, an = a?.nameForURL; const cs = String(comp) === "5930" ? "fifa-world-cup" : slug365(g?.competitionDisplayName);
   if (hn && an && h?.id && a?.id && comp && gid) {
     return "https://www.365scores.com/pt-br/football/match/" + cs + "-" + comp + "/" + hn + "-" + an + "-" + a.id + "-" + h.id + "-" + comp + "#id=" + gid;
   }
