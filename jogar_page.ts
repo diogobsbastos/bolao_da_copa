@@ -32,8 +32,17 @@ h1{font-size:18px;margin:0 0 12px}
 .card{background:var(--surface);border:1px solid var(--bd);border-radius:12px;padding:13px}
 .card h3{margin:0 0 3px;font-size:12px;color:var(--mut);font-weight:700}
 .stat{font-size:22px;font-weight:800}
-.btn{background:var(--pri);color:#fff;border:0;border-radius:10px;padding:11px 16px;font-weight:800;cursor:pointer;font-size:14px}
-.btn.ghost{background:var(--card2);color:var(--tx);border:1px solid var(--bd)}
+.btn{background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;border:0;border-radius:11px;padding:12px 20px;font-weight:800;cursor:pointer;font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:7px;text-align:center;box-shadow:0 4px 12px rgba(31,170,89,.22);transition:.15s}
+.btn.ghost{background:var(--card2);color:var(--tx);border:1px solid var(--bd);box-shadow:none}
+.btn:hover{transform:translateY(-1px);box-shadow:0 7px 18px rgba(31,170,89,.32);filter:brightness(1.06)}
+.btn:active{transform:translateY(0)}
+.btn.ghost:hover{border-color:var(--pri2);background:var(--surface2);box-shadow:none;filter:none}
+.btn.mini{padding:8px 13px;font-size:12.5px;box-shadow:none}
+.iaresumo{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(31,170,89,.16),rgba(31,170,89,.06));border:1px solid rgba(31,170,89,.4);border-radius:13px;padding:13px 15px;margin:4px 0}
+.iaresumo .iadot{font-size:22px}
+.iaresumo .iainfo{display:flex;flex-direction:column;line-height:1.25;flex:1;min-width:0}
+.iaresumo .iainfo b{font-size:14px}.iaresumo .iainfo small{color:var(--mut);font-size:12px}
+
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .muted{color:var(--mut);font-size:13px}
 .flag{width:22px;height:16px;border-radius:3px;object-fit:cover;vertical-align:middle;background:var(--card2)}
@@ -272,6 +281,8 @@ body.mcol .side a .tag{display:none}
    <div class="muted" style="margin-bottom:10px">Conecte sua pr&oacute;pria LLM (chave sua, custo seu). Ela palpita por voc&ecirc; usando o contexto de cada jogo: odds, probabilidade, escala&ccedil;&atilde;o, forma e not&iacute;cias.</div>
    <div class="card">
      <h3>&#128268; Conex&atilde;o</h3>
+     <div id="ia-resumo" class="iaresumo" style="display:none"></div>
+     <div id="ia-flow">
      <select id="ia-prov" onchange="iaProvCh()" style="display:none"><option value="gemini">Gemini</option><option value="anthropic">Anthropic</option><option value="openai">OpenAI</option><option value="ollama">Ollama</option></select>
      <label class="ialbl">1. Escolha o provedor</label>
      <div class="provgrid">
@@ -290,6 +301,7 @@ body.mcol .side a .tag{display:none}
       <label class="ialbl">3. Escolha o modelo</label>
       <input id="ia-modelo" style="display:none"><datalist id="ia-mods"></datalist><div id="ia-recs" class="iarecs"></div>
       <div class="iarow rgt" id="ia-actions"><span id="ia-st2" class="muted" style="margin-right:auto"></span><button class="btn" onclick="salvarIA()">Salvar conex&atilde;o</button></div>
+     </div>
      </div>
    </div>
    <div id="ia-conectado" style="display:none">
@@ -416,7 +428,9 @@ async function preencherAuto(){
 async function setAuto(on){var r=await fetch(BASE+"/jogar/auto",{method:"POST",headers:H(),body:JSON.stringify({on:on})});var d=await r.json().catch(function(){return{};});if(d&&d.ok){toast(on?"Auto-preencher ligado":"Auto-preencher desligado");}else{toast("erro",1);var a=document.getElementById("autochk");if(a)a.checked=!on;}}
 function ajudaAuto(){modal('<h3>&#129302; Auto-preencher</h3><div class="muted" style="line-height:1.6">Quando <b>ligado</b>, at&eacute; <b>1 hora antes</b> de cada jogo que voc&ecirc; ainda n&atilde;o palpitou, o sistema preenche por voc&ecirc; <b>pela l&oacute;gica das odds mais atualizadas</b> &mdash; com varia&ccedil;&atilde;o inteligente (favorito costuma vencer, mas <b>zebra acontece</b>), ent&atilde;o seu placar n&atilde;o fica igual ao dos outros.<br><br>Voc&ecirc; pode <b>editar at&eacute; o apito</b>. Palpites que voc&ecirc; j&aacute; fez <b>nunca</b> s&atilde;o sobrescritos.</div>');}
 function iaProvCh(){var p=document.getElementById("ia-prov").value;var need=(p==="openai"||p==="ollama");document.getElementById("ia-base-wrap").style.display=need?"block":"none";var bi=document.getElementById("ia-base");if(p==="ollama"&&bi&&!bi.value)bi.placeholder="http://SEU-HOST:11434/v1";var gh=document.getElementById("btn-gemini-help");if(gh)gh.style.display=(p==="gemini")?"":"none";}
-async function loadIA(){var r=await fetch(BASE+"/jogar/ia",{headers:H()});var d=await r.json().catch(function(){return{};});if(!d||!d.ok)return;document.getElementById("ia-gasto").textContent="R$ "+(Number(d.gastoBrl||0)).toFixed(2).replace(".",",");var cw=document.getElementById("ia-conectado");if(cw)cw.style.display=d.conectada?"":"none";if(d.conectada){selProv(d.provedor||"gemini");var mi=document.getElementById("ia-modelo");if(mi)mi.value=d.modelo||"";if(d.base_url)document.getElementById("ia-base").value=d.base_url;var sm=document.getElementById("step-model");if(sm)sm.style.display="";renderRecs();var st=document.getElementById("ia-st");if(st){st.textContent="✅ conectada";st.style.color="#1faa59";}}}
+var PNOME={gemini:"Google Gemini",anthropic:"Anthropic (Claude)",openai:"OpenAI",ollama:"Ollama"};
+async function loadIA(){var r=await fetch(BASE+"/jogar/ia",{headers:H()});var d=await r.json().catch(function(){return{};});if(!d||!d.ok)return;document.getElementById("ia-gasto").textContent="R$ "+(Number(d.gastoBrl||0)).toFixed(2).replace(".",",");var cw=document.getElementById("ia-conectado");if(cw)cw.style.display=d.conectada?"":"none";var rs=document.getElementById("ia-resumo"),fl=document.getElementById("ia-flow");if(d.conectada){if(d.base_url)document.getElementById("ia-base").value=d.base_url;var mi=document.getElementById("ia-modelo");if(mi)mi.value=d.modelo||"";document.getElementById("ia-prov").value=d.provedor||"gemini";if(rs){rs.style.display="";rs.innerHTML='<span class="iadot">&#9989;</span><div class="iainfo"><b>IA conectada</b><small>'+esc(PNOME[d.provedor]||d.provedor||"")+' &middot; '+esc(d.modelo||"")+'</small></div><button class="btn ghost mini" onclick="trocarIA()">&#128260; Trocar IA</button>';}if(fl)fl.style.display="none";}else{if(rs)rs.style.display="none";if(fl)fl.style.display="";}}
+function trocarIA(){var rs=document.getElementById("ia-resumo"),fl=document.getElementById("ia-flow");if(rs)rs.style.display="none";if(fl)fl.style.display="";var sk=document.getElementById("step-key");if(sk)sk.style.display="none";var sm=document.getElementById("step-model");if(sm)sm.style.display="none";var k=document.getElementById("ia-key");if(k)k.value="";}
 async function salvarIA(){var body={provedor:document.getElementById("ia-prov").value,modelo:document.getElementById("ia-modelo").value,base_url:document.getElementById("ia-base").value,api_key:document.getElementById("ia-key").value};var r=await fetch(BASE+"/jogar/ia",{method:"POST",headers:H(),body:JSON.stringify(body)});var d=await r.json();if(d&&d.ok){toast("IA conectada!");document.getElementById("ia-key").value="";loadIA();loadDados();}else{toast((d&&d.erro)||"erro",1);}}
 async function conectarIA(){var st=document.getElementById("ia-st");st.style.color="";var key=document.getElementById("ia-key").value;if(!key){toast("Cole sua API key primeiro",1);return;}st.textContent="conectando...";var pv=document.getElementById("ia-prov").value;var body={provedor:pv,api_key:key,base_url:document.getElementById("ia-base").value};var r=await fetch(BASE+"/jogar/ia/modelos",{method:"POST",headers:H(),body:JSON.stringify(body)});var d=await r.json().catch(function(){return{};});if(d&&d.ok){var dl=document.getElementById("ia-mods");dl.innerHTML=(d.modelos||[]).map(function(m){return '<option value="'+esc(m)+'">';}).join("");renderRecs();var first=(RECS[pv]||[])[0];var mi=document.getElementById("ia-modelo");if(first&&mi&&!mi.value)mi.value=first[0];document.getElementById("step-model").style.display="";st.textContent="\u2705 conectado \u2014 escolha o modelo e salve";st.style.color="#1faa59";}else{st.textContent="";document.getElementById("step-model").style.display="none";var rc=document.getElementById("ia-recs");if(rc){rc.style.display="none";rc.innerHTML="";}toast((d&&d.erro)||"chave inv\u00e1lida",1);}}
 async function testarIA(){var st=document.getElementById("ia-st2");if(st){st.style.color="";st.textContent="testando...";}var pv=document.getElementById("ia-prov").value;var mod=document.getElementById("ia-modelo").value||((RECS[pv]||[])[0]||[])[0]||"";var body={provedor:pv,api_key:document.getElementById("ia-key").value,base_url:document.getElementById("ia-base").value,modelo:mod};if(!body.api_key){toast("Cole a key primeiro",1);if(st)st.textContent="";return;}var r=await fetch(BASE+"/jogar/ia/testar",{method:"POST",headers:H(),body:JSON.stringify(body)});var d=await r.json().catch(function(){return{};});if(d&&d.ok){if(st){st.textContent="\u2705 funcionou! resposta: "+(d.resposta||"OK");st.style.color="#1faa59";}toast("IA respondeu \u2705");}else{if(st)st.textContent="";toast((d&&d.erro)||"falhou no teste",1);}}
