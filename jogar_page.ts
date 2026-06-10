@@ -61,6 +61,9 @@ h1{font-size:18px;margin:0 0 12px}
 .tab{padding:7px 18px;border-radius:999px;background:transparent;border:0;color:var(--mut);font-weight:700;font-size:13px;cursor:pointer;transition:.15s;white-space:nowrap}
 .tab.lock{opacity:.45;cursor:not-allowed}
 #bolao-tabs{max-width:100%;overflow-x:auto}
+.lpbtn{display:inline-flex;align-items:center;gap:7px;margin:0 0 14px;padding:10px 18px;border:0;border-radius:999px;background:linear-gradient(135deg,#f6c83a,#e0a008);color:#3a2a00;font-weight:800;font-size:13px;cursor:pointer;box-shadow:0 5px 16px rgba(224,160,8,.45)}
+.lpbtn:hover{filter:brightness(1.06)}
+.lpf{margin-bottom:11px}.lpf label{display:block;font-size:12px;font-weight:700;color:var(--mut);margin-bottom:4px}.lpf select,.lpf input{width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:9px;background:var(--card);color:inherit;font-size:14px}
 .tab.on{background:var(--pri);color:#fff;border-color:var(--pri)}
 .lock{font-size:11px;color:var(--no);font-weight:700}
 table{width:100%;border-collapse:collapse;font-size:13px}
@@ -405,6 +408,7 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
    <div class="pghead"><h1>Bol&atilde;o <span class="pgchip">palpite da rodada</span></h1><p class="pgsub">Coloque o placar que voc&ecirc; acha. <b>Risco zero</b>: errar n&atilde;o tira token, acertar soma pontos no ranking. Trava no apito.</p></div>
 
    <div class="tabs" id="bolao-tabs"><span class="tab on" data-r="1" onclick="loadBolao(1)">Rodada 1</span><span class="tab" data-r="2" onclick="loadBolao(2)">Rodada 2</span><span class="tab" data-r="3" onclick="loadBolao(3)">Rodada 3</span><span class="tab lock" onclick="toast('\uD83D\uDD12 Abre no fim da fase de grupos',1)">Oitavas</span><span class="tab lock" onclick="toast('\uD83D\uDD12 Abre no fim da fase de grupos',1)">Quartas</span><span class="tab lock" onclick="toast('\uD83D\uDD12 Abre no fim da fase de grupos',1)">Semifinal</span><span class="tab lock" onclick="toast('\uD83D\uDD12 Abre no fim da fase de grupos',1)">3&ordm; Lugar</span><span class="tab lock" onclick="toast('\uD83D\uDD12 Abre no fim da fase de grupos',1)">Final</span></div>
+   <button class="lpbtn" onclick="abrirLongo()">&#127942; Cravar Campe&otilde;es &amp; Artilheiro</button>
    <div class="actpanel" id="autobar"><div class="act-ia"><div class="masc off" id="masc" onclick="mascClick()" title="Seu palpiteiro de IA"><svg viewBox="0 0 64 64"><defs><linearGradient id="mgh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2bd07a"/><stop offset="1" stop-color="#0f7a45"/></linearGradient></defs><line x1="32" y1="9" x2="32" y2="16" stroke="#0f7a45" stroke-width="2.6"/><circle cx="32" cy="7" r="3.4" fill="#f5c451" stroke="#0a1228" stroke-width="1.2"/><rect x="8" y="26" width="5" height="12" rx="2.5" fill="#0f7a45" stroke="#0a1228" stroke-width="1.4"/><rect x="51" y="26" width="5" height="12" rx="2.5" fill="#0f7a45" stroke="#0a1228" stroke-width="1.4"/><rect x="12" y="15" width="40" height="34" rx="12" fill="url(#mgh)" stroke="#0a1228" stroke-width="2.2"/><rect x="18" y="24" width="28" height="15" rx="7.5" fill="#0a1228"/><circle cx="26" cy="31.5" r="3.6" fill="#7cffb0"/><circle cx="38" cy="31.5" r="3.6" fill="#7cffb0"/><circle cx="27" cy="32.6" r="1.5" fill="#0a1228"/><circle cx="39" cy="32.6" r="1.5" fill="#0a1228"/><circle cx="20" cy="44" r="2.4" fill="#f5c451" opacity=".85"/><circle cx="44" cy="44" r="2.4" fill="#f5c451" opacity=".85"/><path d="M26 44 Q32 48 38 44" fill="none" stroke="#0a1228" stroke-width="2" stroke-linecap="round"/></svg></div><div class="bubble" id="masc-bubble">&#128164; Conecte sua IA e eu palpito por voc&ecirc;.</div></div><div class="act-logic"><button class="btn ghost" id="btn-auto" onclick="preencherAuto()">&#127919; Preencher pela l&oacute;gica</button><label class="sw" title="Auto-preencher"><input type="checkbox" id="autochk" onchange="setAuto(this.checked)"><span class="sl"></span></label><span class="swlbl">Auto</span><button class="qmark" onclick="ajudaAuto()" title="O que &eacute;?">?</button></div></div>
    <div id="bolao-box" class="muted">carregando...</div>
   </section>
@@ -894,6 +898,28 @@ async function loadConvidar(){
 function convCopiar(){var i=document.getElementById("conv-link");if(!i)return;try{if(navigator.clipboard)navigator.clipboard.writeText(i.value);else{i.select();document.execCommand("copy");}}catch(e){i.select();}toast("Link copiado ✅");}
 function bloqPagar(){var b=document.getElementById("bloqueio");if(b)b.style.display="none";nav("deposito");}
 async function bloqResgatar(){var c=document.getElementById("bloq-code").value;var m=document.getElementById("bloq-msg");m.textContent="resgatando…";var r=await fetch(BASE+"/jogar/resgatar-full",{method:"POST",headers:H(),body:JSON.stringify({code:c})});var d=await r.json().catch(function(){return{};});if(d&&d.ok){m.textContent="";toast("Acesso full liberado! 🎉");var b=document.getElementById("bloqueio");if(b)b.style.display="none";loadDados();loadBolao(CURROD);}else{m.style.color="#e23744";m.textContent=(d&&d.erro)||"convite inválido";}}
+var LP_JOG=[];
+async function abrirLongo(){
+ var r=await fetch(BASE+"/jogar/longo",{headers:H()});var d=await r.json().catch(function(){return{};});
+ if(!d||!d.ok){toast("erro ao abrir",1);return;}
+ LP_JOG=d.jogadores||[];
+ var m=d.meu||{};var dis=d.locked?" disabled":"";
+ var opt=function(sel){return '<option value=""></option>'+(d.selecoes||[]).map(function(s){return '<option value="'+esc(s.en)+'"'+(sel===s.en?" selected":"")+'>'+esc(s.pt)+'</option>';}).join("");};
+ var field=function(lab,id,sel){return '<div class="lpf"><label>'+lab+'</label><select id="'+id+'"'+dis+'>'+opt(sel)+'</select></div>';};
+ var art='<div class="lpf"><label>&#9917; Artilheiro da Copa</label><input id="lp-art" list="lp-artlist" placeholder="digite o nome do jogador..." value="'+esc(m.artilheiro_nome||"")+'"'+dis+'><datalist id="lp-artlist">'+LP_JOG.map(function(j){return '<option value="'+esc(j.nome)+' ('+esc(j.sel)+')">';}).join("")+'</datalist></div>';
+ var info=d.locked?'<div class="muted" style="margin-bottom:10px">&#128274; Travado (fim da Rodada 2). Veja o que você cravou.</div>':'<div class="muted" style="margin-bottom:10px">Cravar uma vez — trava no fim da Rodada 2 (23/jun). <b>Campeão 200 · Vice 150 · 3º 100 · 4º 75 · Artilheiro 100/60/40</b>.</div>';
+ var html='<h3 style="margin:0 0 6px">&#127942; Meus Campeões</h3>'+info+field("&#129351; Campeão","lp-camp",m.campeao)+field("&#129352; Vice-campeão","lp-vice",m.vice)+field("&#129353; 3º lugar","lp-ter",m.terceiro)+field("4º lugar","lp-qua",m.quarto)+art;
+ var foot=d.locked?"":'<button class="btn" onclick="salvarLongo()">Salvar palpites</button>';
+ modal(html,foot);
+}
+async function salvarLongo(){
+ var g=function(id){var el=document.getElementById(id);return el?el.value:"";};
+ var artTxt=g("lp-art"),artId=null;
+ if(artTxt){var f=LP_JOG.find(function(j){return (j.nome+" ("+j.sel+")")===artTxt||j.nome===artTxt;});if(f)artId=f.id;}
+ var body={campeao:g("lp-camp"),vice:g("lp-vice"),terceiro:g("lp-ter"),quarto:g("lp-qua"),artilheiro_id:artId};
+ var r=await fetch(BASE+"/jogar/longo",{method:"POST",headers:H(),body:JSON.stringify(body)});var d=await r.json().catch(function(){return{};});
+ if(d&&d.ok){toast("Palpites salvos ✅");fecha();}else toast((d&&d.erro)||"erro ao salvar",1);
+}
 function modal(html,foot){document.getElementById("mbody").innerHTML=html;document.getElementById("mfoot").innerHTML=foot||"";var _m=document.querySelector(".modal");if(_m){_m.style.setProperty("--rc",COR_ROD[CURROD]||"#14794a");_m.style.maxWidth="";}document.getElementById("mov").classList.add("show");}
 function fecha(){document.getElementById("mov").classList.remove("show");}
 function faseCurta(s){var m={"Group Stage":"Grupos","Round of 16":"Oitavas","Quarter-finals":"Quartas","Semi-finals":"Semi","Final":"Final","3rd Place Final":"3o lugar"};return m[s]||s||"";}

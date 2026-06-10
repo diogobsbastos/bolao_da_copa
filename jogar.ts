@@ -378,4 +378,34 @@ export async function rotasJogar(app: FastifyInstance) {
     const proximos = proxRows.map((j) => { const c = timePT(j.selecao_casa), v = timePT(j.selecao_visitante); return { casa: { pt: c.pt, iso: c.iso }, visitante: { pt: v.pt, iso: v.iso }, inicio: j.inicio, rodada: j.rodada }; });
     return { ok: true, grupos, proximos, calendario };
   });
+  app.get("/jogar/longo", async (req, reply) => {
+    const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    let trava = "2026-06-23T23:59:00-03:00";
+    try { const tv = (await pool.query("SELECT valor FROM config WHERE chave='longo_trava'")).rows[0]?.valor; if (tv) trava = tv; } catch {}
+    const locked = Date.now() >= new Date(trava).getTime();
+    const meu = (await pool.query("SELECT campeao, vice, terceiro, quarto, artilheiro_id, artilheiro_nome FROM palpites_longo WHERE usuario_id=$1", [u.id])).rows[0] || {};
+    const selRows = (await pool.query("SELECT DISTINCT s FROM (SELECT selecao_casa s FROM jogos WHERE selecao_casa<>'A definir' UNION SELECT selecao_visitante FROM jogos WHERE selecao_visitante<>'A definir') q")).rows as any[];
+    const selecoes = selRows.map((r: any) => { const t = timePT(r.s); return { en: r.s, pt: t.pt, iso: t.iso }; }).sort((a: any, b: any) => String(a.pt).localeCompare(String(b.pt)));
+    const jogRows = (await pool.query("SELECT id, nome, selecao FROM jogadores ORDER BY nome")).rows as any[];
+    const jogadores = jogRows.map((j: any) => ({ id: j.id, nome: j.nome, sel: timePT(j.selecao).pt }));
+    return { ok: true, locked, trava, meu, selecoes, jogadores };
+  });
+
+  app.post("/jogar/longo", async (req, reply) => {
+    const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    let trava = "2026-06-23T23:59:00-03:00";
+    try { const tv = (await pool.query("SELECT valor FROM config WHERE chave='longo_trava'")).rows[0]?.valor; if (tv) trava = tv; } catch {}
+    if (Date.now() >= new Date(trava).getTime()) return reply.code(403).send({ erro: "palpites de longo prazo travados (fim da Rodada 2)" });
+    const b = (req.body ?? {}) as any;
+    const v = (x: any) => { const t = String(x || "").trim(); return t ? t.slice(0, 40) : null; };
+    const campeao = v(b.campeao), vice = v(b.vice), terceiro = v(b.terceiro), quarto = v(b.quarto);
+    const artId = (b.artilheiro_id != null && b.artilheiro_id !== "") ? Number(b.artilheiro_id) : null;
+    let artNome: string | null = null;
+    if (artId != null) { const jr = (await pool.query("SELECT nome FROM jogadores WHERE id=$1", [artId])).rows[0] as any; if (!jr) return reply.code(400).send({ erro: "artilheiro invalido" }); artNome = jr.nome; }
+    await pool.query(`INSERT INTO palpites_longo (usuario_id,campeao,vice,terceiro,quarto,artilheiro_id,artilheiro_nome,atualizado_em)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,now())
+      ON CONFLICT (usuario_id) DO UPDATE SET campeao=$2,vice=$3,terceiro=$4,quarto=$5,artilheiro_id=$6,artilheiro_nome=$7,atualizado_em=now()`,
+      [u.id, campeao, vice, terceiro, quarto, artId, artNome]);
+    return { ok: true };
+  });
 }
