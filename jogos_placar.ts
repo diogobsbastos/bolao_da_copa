@@ -84,6 +84,7 @@ function igual(a: string, en: string): boolean {
   return na === ne || ODDS_ALIAS[na] === en || (ODDS_ALIAS[ne] ? norm(ODDS_ALIAS[ne]) === na : false);
 }
 
+async function logado(req: FastifyRequest): Promise<boolean> { return !!(await usuarioDaReq(req)); }
 async function admOk(req: FastifyRequest): Promise<boolean> {
   const t = req.headers["x-admin-token"];
   const expected = process.env.ADMIN_TOKEN ?? "";
@@ -297,7 +298,7 @@ export async function rotasJogosPlacar(app: FastifyInstance) {
 
   // Stats: ranking FIFA + desempenho na Copa 2022 (StatsBomb). Placar sempre do ponto de vista do time (meu x dele).
   app.get("/admin/jogos-placar/stats", async (req, reply) => {
-    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    if (!(await logado(req))) return reply.code(401).send({ erro: "nao autenticado" });
     const en = String((req.query as any)?.en ?? "").trim();
     if (!en) return reply.code(400).send({ erro: "time?" });
     try {
@@ -329,7 +330,7 @@ export async function rotasJogosPlacar(app: FastifyInstance) {
 
   // Escalação via 365scores (grátis, sem IA). Pega o gid do próximo jogo do time -> fetch 365 -> 11 titulares + formação.
   app.get("/admin/jogos-placar/escalacao", async (req, reply) => {
-    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    if (!(await logado(req))) return reply.code(401).send({ erro: "nao autenticado" });
     const en = String((req.query as any)?.en ?? "").trim();
     if (!en) return reply.code(400).send({ erro: "time?" });
     const p = timePT(en);
@@ -381,7 +382,7 @@ export async function rotasJogosPlacar(app: FastifyInstance) {
   });
 
   app.get("/admin/jogos-placar/noticias", async (req, reply) => {
-    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    if (!(await logado(req))) return reply.code(401).send({ erro: "nao autenticado" });
     const en = String((req.query as any)?.en ?? "").trim();
     if (!en) return reply.code(400).send({ erro: "time?" });
     const p = timePT(en);

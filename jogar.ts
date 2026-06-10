@@ -41,7 +41,7 @@ export async function rotasJogar(app: FastifyInstance) {
     const allg = (await pool.query("SELECT selecao_casa, selecao_visitante, inicio FROM jogos WHERE fase='grupos' AND selecao_casa<>'A definir' AND selecao_visitante<>'A definir'")).rows as any[];
     let gmap = new Map<string, string>(); try { gmap = mapaGrupos(allg); } catch {}
     const agora = Date.now();
-    const jogos = rows.map((j) => { const c = timePT(j.selecao_casa), v = timePT(j.selecao_visitante); const travado = j.inicio ? new Date(j.inicio).getTime() <= agora : false; const od = j.odds && j.odds.casa != null ? { casa: j.odds.casa, empate: j.odds.empate, fora: j.odds.fora, fonte: j.odds.fonte || "" } : null; return { id: j.id, rodada: j.rodada, inicio: j.inicio, travado, grupo: gmap.get(j.selecao_casa) || "", casa: { pt: c.pt, iso: c.iso }, visitante: { pt: v.pt, iso: v.iso }, odds: od, meu: (j.pc != null && j.pv != null) ? { pc: j.pc, pv: j.pv } : null }; });
+    const jogos = rows.map((j) => { const c = timePT(j.selecao_casa), v = timePT(j.selecao_visitante); const travado = j.inicio ? new Date(j.inicio).getTime() <= agora : false; const od = j.odds && j.odds.casa != null ? { casa: j.odds.casa, empate: j.odds.empate, fora: j.odds.fora, fonte: j.odds.fonte || "" } : null; return { id: j.id, rodada: j.rodada, inicio: j.inicio, travado, grupo: gmap.get(j.selecao_casa) || "", casa: { pt: c.pt, iso: c.iso, en: j.selecao_casa }, visitante: { pt: v.pt, iso: v.iso, en: j.selecao_visitante }, odds: od, meu: (j.pc != null && j.pv != null) ? { pc: j.pc, pv: j.pv } : null }; });
     return { ok: true, jogos, rodada: rod || null };
   });
 
