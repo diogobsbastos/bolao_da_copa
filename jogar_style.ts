@@ -367,4 +367,5 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
 .provcard .pinfo{display:flex;flex-direction:column;gap:1px;min-width:0}.provcard .pinfo b{font-size:13.5px}.provcard .pinfo small{font-size:11px;color:var(--mut)}
 .provcard.gem{border-color:var(--gold)}.provcard.gem.sel{border-color:var(--pri)}
 .reco{position:absolute;top:0;right:0;background:linear-gradient(135deg,var(--gold),#e0a008);color:#1a1200;font-size:8px;font-weight:800;padding:3px 8px;border-bottom-left-radius:9px;letter-spacing:.3px}
-.iarow.rgt{justify-content:flex-end}`;
+.iarow.rgt{justify-content:flex-end}
+.side a .tag,.side a .free{margin-left:auto!important}`;
