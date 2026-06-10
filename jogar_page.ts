@@ -249,9 +249,9 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
 .pdsep{height:1px;background:var(--bd);margin:6px 4px}
 .pdfoot{display:flex;align-items:center;gap:8px}
 .pdfoot a{flex:1}
-.thsw{display:inline-flex;gap:2px;background:var(--card2);border:1px solid var(--bd);border-radius:999px;padding:2px;flex:none}
-.thbtn{width:27px;height:27px;border:0;background:none;border-radius:50%;color:var(--mut);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
-.thbtn svg{width:15px;height:15px}
+.thsw{display:inline-flex;gap:1px;background:var(--card2);border:0;border-radius:999px;padding:2px;flex:none}
+.thbtn{width:23px;height:23px;border:0;background:none;border-radius:50%;color:var(--mut);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
+.thbtn svg{width:13px;height:13px}
 .thbtn.on{background:var(--pri);color:#fff}
 .profwrap{max-width:560px}
 .profhead{display:flex;align-items:center;gap:16px;margin-bottom:16px}
