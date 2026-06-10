@@ -206,6 +206,8 @@ th,td{padding:8px 8px;border-bottom:1px solid var(--bd);text-align:left}th{color
 .modal::-webkit-scrollbar{width:8px}.modal::-webkit-scrollbar-thumb{background:var(--pri);border-radius:8px}
 html{scrollbar-width:thin;scrollbar-color:var(--bar,#14a06a) transparent}.main{scrollbar-color:var(--bar,#14a06a) transparent}
 ::-webkit-scrollbar{width:11px;height:11px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bar,#14a06a);border-radius:8px;border:2px solid transparent;background-clip:content-box}::-webkit-scrollbar-thumb:hover{filter:brightness(1.1)}
+.rnav{display:flex;align-items:center}.rnav .radar{margin-left:auto;width:9px;height:9px;border-radius:50%;background:#e0a008;box-shadow:0 0 0 0 rgba(224,160,8,.55);animation:radar 1.9s ease-out infinite;flex:none}
+@keyframes radar{0%{box-shadow:0 0 0 0 rgba(224,160,8,.55)}70%{box-shadow:0 0 0 10px rgba(224,160,8,0)}100%{box-shadow:0 0 0 0 rgba(224,160,8,0)}}
 .modal h3{margin:0 0 6px;font-size:16px;display:flex;align-items:center;gap:9px}
 .mx{position:absolute;top:9px;right:11px;background:transparent;color:var(--mut);border:0;font-size:24px;line-height:1;cursor:pointer;padding:0 6px;font-weight:700}.mx:hover{color:var(--tx)}
 .cols{display:flex;gap:16px;align-items:flex-start}.col{flex:1;min-width:0}
@@ -393,6 +395,7 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
   <div class="sdiv"></div>
   <a data-s="ia" onclick="nav('ia')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/><path d="M9 3v2M15 3v2M9 19v2M15 19v2M3 9h2M3 15h2M19 9h2M19 15h2"/></svg></span> Conectar IA <span class="free">Gr&aacute;tis</span></a>
   <a class="soon"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1.1"/><circle cx="15" cy="15" r="1.1"/><circle cx="12" cy="12" r="1.1"/></svg></span> Bet <span class="tag">Em breve</span></a>
+  <a data-s="regras" onclick="nav('regras')" class="rnav"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4a2 2 0 0 1 2-2h11v18H7a2 2 0 0 0-2 2z"/><path d="M9 7h6M9 11h5"/></svg></span> Regras <span class="radar"></span></a>
  </nav>
  <div class="scrim" id="scrim" onclick="drawer()"></div>
  <main class="main">
@@ -405,7 +408,7 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
     <div class="card"><h3>Palpites pendentes</h3><div class="stat" id="d-pend">0</div><div class="muted">jogos sem palpite</div></div>
    </div>
    <div class="card" style="margin-top:14px" id="d-prox"><h3>Pr&oacute;ximo jogo</h3><div class="muted">carregando...</div></div>
-   <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="nav('bolao')">&#9917; Palpitar agora</button><button class="btn ghost" onclick="nav('regras')">&#128220; Regras &amp; pontua&ccedil;&atilde;o</button></div>
+   <div style="margin-top:14px"><button class="btn" onclick="nav('bolao')">&#9917; Palpitar agora</button></div>
   </section>
 
   <section class="sec" id="s-regras">
