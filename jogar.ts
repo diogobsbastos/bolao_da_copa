@@ -196,9 +196,10 @@ export async function rotasJogar(app: FastifyInstance) {
   app.get("/jogar/ranking", async (req, reply) => {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
     const tipo = String((req.query as any)?.tipo || "geral");
-    const col = tipo === "bolao" ? "COALESCE(r.pontos_bolao,0)" : tipo === "arena" ? "COALESCE(r.pontos_arena,0)" : "COALESCE(r.pontos_bolao,0)+COALESCE(r.pontos_arena,0)";
-    const rows = (await pool.query(`SELECT r.usuario_id uid, COALESCE(us.nome, us.email) nome, us.nome_time time, us.avatar avatar, ${col} pts FROM ranking r JOIN usuarios us ON us.id=r.usuario_id ORDER BY pts DESC, us.nome LIMIT 50`)).rows as any[];
-    return { ok: true, eu: u.id, tipo, ranking: rows.map((x, i) => ({ pos: i + 1, nome: x.nome, time: x.time || "", avatar: x.avatar || "", pts: Number(x.pts || 0), eu: x.uid === u.id })) };
+    const rs = (await pool.query(`SELECT r.usuario_id uid, COALESCE(us.nome, us.email) nome, us.nome_time time, us.avatar avatar, COALESCE(r.pontos_bolao,0) bolao, COALESCE(r.pontos_arena,0) arena FROM ranking r JOIN usuarios us ON us.id=r.usuario_id`)).rows as any[];
+    const metric = (x: any) => tipo === "bolao" ? Number(x.bolao) : tipo === "arena" ? Number(x.arena) : Number(x.bolao) + Number(x.arena);
+    rs.sort((a, b) => metric(b) - metric(a) || String(a.nome).localeCompare(String(b.nome)));
+    return { ok: true, eu: u.id, tipo, ranking: rs.slice(0, 50).map((x, i) => ({ pos: i + 1, nome: x.nome, time: x.time || "", avatar: x.avatar || "", bolao: Number(x.bolao || 0), arena: Number(x.arena || 0), total: Number(x.bolao || 0) + Number(x.arena || 0), pts: metric(x), eu: x.uid === u.id })) };
   });
 
   app.get("/jogar/contexto", async (req, reply) => {

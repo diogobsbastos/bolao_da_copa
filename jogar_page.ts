@@ -79,6 +79,12 @@ th,td{padding:8px 8px;border-bottom:1px solid var(--bd);text-align:left}th{color
 .rkyou{font-size:9.5px;font-weight:800;background:var(--rkc,#1faa59);color:#fff;padding:1px 6px;border-radius:6px;margin-left:5px;vertical-align:middle}
 .rkpts{margin-left:auto;font-weight:800;font-size:20px;color:var(--rkc,#1faa59);flex:none;display:flex;align-items:baseline;gap:3px}
 .rkpts small{font-size:11px;color:var(--mut);font-weight:700}
+.rkcols{margin-left:auto;display:flex;gap:14px;align-items:center;flex:none}
+.rkcol{text-align:center;min-width:34px}
+.rkcol span{display:block;font-weight:800;font-size:15px;color:var(--mut)}
+.rkcol small{font-size:9px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.rkcol.tot span{color:var(--rkc,#1faa59);font-size:18px}
+@media(max-width:560px){.rkcols{gap:9px}.rkcol{min-width:0}}
 .pos{font-weight:800;width:30px}
 .medal{font-size:15px}
 .qr{width:190px;height:190px;border-radius:12px;background:
@@ -718,7 +724,8 @@ async function loadRank(tipo){
   var av=x.avatar?('<img src="'+x.avatar+'">'):('<span>'+esc((String(x.nome).trim()[0]||"?").toUpperCase())+'</span>');
   var pm=x.pos<=3?('<span class="rkmedal">'+med[x.pos-1]+'</span>'):('#'+x.pos);
   var tm=x.time?('<small>'+esc(x.time)+'</small>'):'';
-  return '<div class="rkrow'+(x.eu?" me":"")+(x.pos===1?" top1":"")+'"><div class="rkpos">'+pm+'</div><div class="rkav">'+av+'</div><div class="rkname"><b>'+esc(x.nome)+(x.eu?' <span class="rkyou">voc\u00ea</span>':'')+'</b>'+tm+'</div><div class="rkpts">'+x.pts+'<small>pts</small></div></div>';
+  var right=(RANKTIPO==="geral")?('<div class="rkcols"><div class="rkcol"><span>'+x.bolao+'</span><small>Bol\u00e3o</small></div><div class="rkcol"><span>'+x.arena+'</span><small>Arena</small></div><div class="rkcol tot"><span>'+x.total+'</span><small>Total</small></div></div>'):('<div class="rkpts">'+x.pts+'<small>pts</small></div>');
+  return '<div class="rkrow'+(x.eu?" me":"")+(x.pos===1?" top1":"")+'"><div class="rkpos">'+pm+'</div><div class="rkav">'+av+'</div><div class="rkname"><b>'+esc(x.nome)+(x.eu?' <span class="rkyou">voc\u00ea</span>':'')+'</b>'+tm+'</div>'+right+'</div>';
  }).join("");
 }
 async function loadCopa(){
