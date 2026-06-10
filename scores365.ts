@@ -141,12 +141,44 @@ export async function syncLineups(): Promise<any> {
 
 // Refresh diário (guardado por data America/Sao_Paulo): puxa odds + lineups 1x/dia. Tudo grava no banco; jogadores só leem.
 function hojeSP(): string { return new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" }); }
+function extrai365(g: any): any {
+  const comp = (c: any) => ({ nome: c?.name || "", score: c?.score ?? null, recentIds: Array.isArray(c?.recentMatches) ? c.recentMatches.slice(0, 8) : [], rankings: c?.rankings ?? null });
+  const pl = (p: any) => p ? { nome: p.name, posicao: p.positionName || p.positionShortName || "", stats: (Array.isArray(p.stats) ? p.stats : []).map((s: any) => ({ nome: s.name, valor: s.value })) } : null;
+  const craques = (Array.isArray(g?.topPerformers?.categories) ? g.topPerformers.categories : []).map((c: any) => ({ categoria: c.name, casa: pl(c.homePlayer), visitante: pl(c.awayPlayer) }));
+  return {
+    venue: g?.venue ? { nome: g.venue.name, capacidade: g.venue.capacity } : null,
+    grupo: g?.groupName || "", rodada: g?.roundName || "", competicao: g?.competitionDisplayName || "",
+    tv: Array.isArray(g?.tvNetworks) ? g.tvNetworks.map((t: any) => t?.name).filter(Boolean) : [],
+    casa: comp(g?.homeCompetitor), visitante: comp(g?.awayCompetitor), craques,
+    colhidoEm: new Date().toISOString(),
+  };
+}
+export async function coletarDados365(): Promise<any> {
+  try { const st = await s365(`/standings/?appTypeId=5&langId=1&competitions=${COMP}&live=false`); if (st?.standings) await setCfg("standings365", JSON.stringify(st.standings)); } catch {}
+  const jogos = (await pool.query("SELECT id, odds->>'gid' gid FROM jogos WHERE odds->>'gid' IS NOT NULL")).rows as any[];
+  let n = 0;
+  for (const j of jogos) {
+    try {
+      const gj = await s365(`/game?appTypeId=5&langId=1&userCountryId=21&timezoneName=America/Sao_Paulo&gameId=${j.gid}`);
+      const g = gj?.game; if (!g) continue;
+      await pool.query("UPDATE jogos SET dados365=$1 WHERE id=$2", [JSON.stringify(extrai365(g)), j.id]); n++;
+    } catch {}
+    await sleep(150);
+  }
+  await setCfg("dados365_em", new Date().toISOString());
+  console.log("[coletar365]", n, "jogos com dados365");
+  return { ok: true, jogos: n };
+}
+export async function coletarSeFlag(): Promise<void> { try { if ((await cfg("coletar365")) !== "go") return; await setCfg("coletar365", ""); await coletarDados365(); } catch {} }
+
 export async function refreshDiario(force = false): Promise<any> {
   const hoje = hojeSP();
   if (!force && (await cfg("last_daily_refresh")) === hoje) return { skip: true, hoje };
   const odds = await syncOdds().catch((e: any) => ({ erro: String(e?.message ?? e) }));
   const lineups = await syncLineups().catch((e: any) => ({ erro: String(e?.message ?? e) }));
+  const dados = await coletarDados365().catch((e: any) => ({ erro: String(e?.message ?? e) }));
   await setCfg("last_daily_refresh", hoje);
+  console.log("[refresh-diario] dados365:", JSON.stringify(dados));
   console.log("[refresh-diario]", hoje, "odds:", (odds?.comOdds ?? JSON.stringify(odds)), "lineups:", (lineups?.comLineup ?? JSON.stringify(lineups)));
   return { hoje, odds, lineups };
 }
@@ -194,6 +226,7 @@ export async function probeGame(gid: string | number): Promise<void> {
 }
 
 export async function rotasScores365(app: FastifyInstance) {
+  app.post("/admin/scores365/coletar", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); return await coletarDados365(); });
   app.post("/admin/scores365/odds", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); return await syncOdds(); });
   app.get("/admin/scores365/status", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); try { return { ok: true, status: JSON.parse((await cfg("scores365_status")) || "{}") }; } catch { return { ok: true, status: {} }; } });
   app.get("/admin/scores365/ping", async (req, reply) => {

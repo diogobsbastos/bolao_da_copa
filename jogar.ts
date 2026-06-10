@@ -65,7 +65,7 @@ export async function autoPreencherTick(): Promise<void> {
 
 
 async function montarContexto(id: number): Promise<any | null> {
-  const j = (await pool.query("SELECT id, selecao_casa, selecao_visitante, inicio, rodada, fase, odds, lineup_casa, lineup_visitante FROM jogos WHERE id=$1", [id])).rows[0] as any;
+  const j = (await pool.query("SELECT id, selecao_casa, selecao_visitante, inicio, rodada, fase, odds, lineup_casa, lineup_visitante, dados365 FROM jogos WHERE id=$1", [id])).rows[0] as any;
   if (!j) return null;
   const c = timePT(j.selecao_casa), v = timePT(j.selecao_visitante);
   let odds: any = null, prob: any = null;
@@ -80,7 +80,7 @@ async function montarContexto(id: number): Promise<any | null> {
     noticiasTime(c.pt, j.selecao_casa).catch(() => []), noticiasTime(v.pt, j.selecao_visitante).catch(() => []),
     classifGrupoDe(j.selecao_casa).catch(() => null),
   ]);
-  return { ok: true, jogo: { id: j.id, rodada: j.rodada, fase: j.fase, inicio: j.inicio, casa: { pt: c.pt, en: j.selecao_casa, iso: c.iso, rankFifa: rankOf(j.selecao_casa) }, visitante: { pt: v.pt, en: j.selecao_visitante, iso: v.iso, rankFifa: rankOf(j.selecao_visitante) } }, odds, probabilidade: prob, escalacao: { casa: lineup(j.lineup_casa), visitante: lineup(j.lineup_visitante) }, forma2022: { casa: forCasa, visitante: forVisi }, classificacao: clas, noticias: { casa: nCasa, visitante: nVisi } };
+  return { ok: true, jogo: { id: j.id, rodada: j.rodada, fase: j.fase, inicio: j.inicio, casa: { pt: c.pt, en: j.selecao_casa, iso: c.iso, rankFifa: rankOf(j.selecao_casa) }, visitante: { pt: v.pt, en: j.selecao_visitante, iso: v.iso, rankFifa: rankOf(j.selecao_visitante) } }, odds, probabilidade: prob, escalacao: { casa: lineup(j.lineup_casa), visitante: lineup(j.lineup_visitante) }, forma2022: { casa: forCasa, visitante: forVisi }, classificacao: clas, noticias: { casa: nCasa, visitante: nVisi }, extra365: j.dados365 || null };
 }
 
 export async function rotasJogar(app: FastifyInstance) {
