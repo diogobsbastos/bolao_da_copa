@@ -172,6 +172,21 @@ export async function probeLineup(gid: string | number): Promise<void> {
   } catch (e: any) { console.log("[lineup-probe] erro", String(e?.message ?? e).slice(0, 160)); }
 }
 
+
+export async function probeGame(gid: string | number): Promise<void> {
+  try {
+    const gj = await s365(`/game?appTypeId=5&langId=1&userCountryId=21&timezoneName=America/Sao_Paulo&gameId=${gid}`);
+    const g = gj?.game;
+    if (!g) { console.log("[game-probe]", gid, "sem game"); return; }
+    const pick = (o: any, k: string) => { if (!o || o[k] === undefined) return "-"; const val = o[k]; return (typeof val === "object") ? ("obj:" + JSON.stringify(val).slice(0, 500)) : String(val); };
+    const hc = g.homeCompetitor || {}, ac = g.awayCompetitor || {};
+    console.log("[game-probe] GAMEKEYS", JSON.stringify(Object.keys(g)));
+    console.log("[game-probe] COMPKEYS", JSON.stringify(Object.keys(hc)));
+    for (const k of ["statistics", "stats", "previousMeetings", "h2h", "headToHead", "standings", "predictions", "winningChances", "actualPlayTime", "venue", "topPerformers", "events", "widgets"]) console.log("[game-probe] g." + k, pick(g, k));
+    for (const k of ["recentMatches", "lastMatches", "form", "statistics", "stats", "standings", "ranking"]) console.log("[game-probe] hc." + k, pick(hc, k));
+  } catch (e: any) { console.log("[game-probe] erro", String(e?.message ?? e).slice(0, 200)); }
+}
+
 export async function rotasScores365(app: FastifyInstance) {
   app.post("/admin/scores365/odds", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); return await syncOdds(); });
   app.get("/admin/scores365/status", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); try { return { ok: true, status: JSON.parse((await cfg("scores365_status")) || "{}") }; } catch { return { ok: true, status: {} }; } });
@@ -200,4 +215,5 @@ export async function rotasScores365(app: FastifyInstance) {
   app.post("/admin/scores365/refresh", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); return await refreshDiario(true); });
   // Sonda de boot (verificação): se config.lineup_probe tiver gids (csv), loga a estrutura crua.
   (async () => { try { const g = await cfg("lineup_probe"); if (g) for (const id of g.split(",").map((s) => s.trim()).filter(Boolean)) await probeLineup(id); } catch {} })();
+  (async () => { try { const g = await cfg("game_probe"); if (g) for (const id of g.split(",").map((s) => s.trim()).filter(Boolean)) await probeGame(id); } catch {} })();
 }
