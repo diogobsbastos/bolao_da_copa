@@ -73,6 +73,13 @@ th,td{padding:8px 8px;border-bottom:1px solid var(--bd);text-align:left}th{color
 .qr b{background:#fff;color:#000;padding:4px 8px;border-radius:6px;font-size:11px}
 .pack{border:1px solid var(--bd);border-radius:14px;padding:16px;background:linear-gradient(160deg,var(--card2),var(--card))}
 .pack.base{border-color:var(--gold)}
+.custgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.custcard{background:var(--surface);border:1px solid var(--bd);border-radius:13px;padding:13px 14px}
+.custlbl{font-size:12px;color:var(--mut);font-weight:700}
+.custval{font-size:23px;font-weight:800;margin-top:4px}
+.cutab{width:100%;border-collapse:collapse;font-size:12.5px}
+.cutab th{text-align:left;color:var(--mut);font-weight:700;padding:7px 8px;border-bottom:1px solid var(--bd)}
+.cutab td{padding:7px 8px;border-bottom:1px solid var(--bd)}
 .tourov{position:fixed;inset:0;background:rgba(8,13,24,.5);display:none;align-items:center;justify-content:center;z-index:200;padding:16px}
 .tourov.show{display:flex}
 .tourcard{width:380px;max-width:94vw;background:var(--card);border:1px solid var(--bd);border-top:4px solid var(--rc,#14794a);border-radius:18px;padding:15px 16px 14px;box-shadow:0 24px 60px rgba(0,0,0,.55);animation:tin .2s ease}
@@ -188,7 +195,7 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
 @keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-6px) rotate(3deg)}}
 .bubble{position:relative;background:var(--surface2);border:1px solid var(--bd);border-radius:12px;padding:8px 12px;font-size:12.5px;font-weight:600;flex:0 1 auto;max-width:360px;line-height:1.4}
 .bubble:before{content:"";position:absolute;left:-7px;top:18px;border:7px solid transparent;border-right-color:var(--bd)}
-.mbtn{background:var(--rc,#14794a);color:#fff;border:0;border-radius:8px;padding:6px 11px;font-weight:800;font-size:12px;cursor:pointer;margin-left:4px}
+.mbtn{background:var(--rc,#14794a);color:#fff;border:0;border-radius:8px;padding:5px 10px;font-weight:800;font-size:11.5px;cursor:pointer;margin-left:4px;white-space:nowrap}
 .mlink{color:var(--rc,#14794a);font-weight:800;cursor:pointer;letter-spacing:.2px;font-size:11px;white-space:nowrap}
 .gstep{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--bd);font-size:13px;line-height:1.5}
 .gnum{flex:none;width:24px;height:24px;border-radius:50%;background:var(--pri);color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center}
@@ -237,6 +244,7 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
   <a data-s="rank" onclick="nav('rank')"><span class="ic">&#127942;</span> Ranking</a>
   <a data-s="deposito" onclick="nav('deposito')"><span class="ic">&#128179;</span> Dep&oacute;sito</a>
   <a data-s="ia" onclick="nav('ia')"><span class="ic">&#129302;</span> Conectar IA <span class="free">GR&Aacute;TIS</span></a>
+  <a data-s="custo" onclick="nav('custo')"><span class="ic">&#128176;</span> Custo da IA</a>
   <a class="soon"><span class="ic">&#127920;</span> Bet <span class="tag">Em breve</span></a>
   <a onclick="sair()" style="margin-top:auto"><span class="ic">&#128682;</span> Sair</a>
  </nav>
@@ -341,6 +349,19 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
    </div>
   </section>
 
+  <section class="sec" id="s-custo">
+   <h1>&#128176; Custo da sua IA</h1>
+   <div class="muted" style="margin-bottom:12px">Voc&ecirc; usa <b>a sua pr&oacute;pria chave</b>, ent&atilde;o o custo &eacute; seu &mdash; e no <b>free tier &eacute; R$ 0</b>. Mandamos muito contexto (entrada), a IA responde s&oacute; o placar (sa&iacute;da min&uacute;scula), ent&atilde;o mesmo pagando sai centavos. Acompanhe tudo aqui.</div>
+   <div class="custgrid">
+    <div class="custcard"><div class="custlbl">Gasto total</div><div class="custval" id="cu-gasto">R$ 0,00</div></div>
+    <div class="custcard"><div class="custlbl">Palpites da IA</div><div class="custval" id="cu-ops">0</div></div>
+    <div class="custcard"><div class="custlbl">Tokens enviados</div><div class="custval" id="cu-tin">0</div></div>
+    <div class="custcard"><div class="custlbl">Tokens recebidos</div><div class="custval" id="cu-tout">0</div></div>
+   </div>
+   <h3 style="margin:18px 0 8px">Hist&oacute;rico de chamadas</h3>
+   <div id="cu-log" class="muted">carregando&hellip;</div>
+  </section>
+
   <section class="sec" id="s-perfil">
    <h1>Perfil</h1>
    <div class="card"><div><b id="p-nome"></b></div><div class="muted" id="p-email"></div>
@@ -378,6 +399,7 @@ function nav(sec){
  if(sec==="rank")loadRank();
  if(sec==="copa")loadCopa();
  if(sec==="ia")loadIA();
+ if(sec==="custo")loadCusto();
 }
 async function loadDados(){
  var r=await fetch(BASE+"/jogar/dados",{headers:H()});
@@ -422,7 +444,7 @@ function cardBolao(j,cor){
  return '<div class="jogo" style="--rc:'+cor+'">'+gt+jb+'</div>';
 }
 var IA_ON=false;
-function setMascote(){var m=document.getElementById("masc"),b=document.getElementById("masc-bubble");if(!m||!b)return;m.className="masc "+(IA_ON?"on":"off");if(IA_ON){b.innerHTML='T&ocirc; pronto pra palpitar essa rodada! <button class="mbtn" onclick="startTour()">&#10024; Palpitar jogo a jogo</button>';}else{b.innerHTML='&#128164; <b>Conecte sua IA</b> e eu palpito por voc&ecirc;. <span class="mlink" onclick="mascClick()">CONECTAR &#8594;</span>';}}
+function setMascote(){var m=document.getElementById("masc"),b=document.getElementById("masc-bubble");if(!m||!b)return;m.className="masc "+(IA_ON?"on":"off");if(IA_ON){b.innerHTML='T&ocirc; pronto pra palpitar! <button class="mbtn" onclick="startTour()">&#10024; Palpitar com IA</button>';}else{b.innerHTML='&#128164; <b>Conecte sua IA</b> e eu palpito por voc&ecirc;. <span class="mlink" onclick="mascClick()">CONECTAR &#8594;</span>';}}
 function mascClick(){if(!IA_ON)nav("ia");}
 
 async function loadBolao(rod){
@@ -463,6 +485,19 @@ async function desconectarIAok(){fecha();var r=await fetch(BASE+"/jogar/ia/desco
 async function salvarIA(){var body={provedor:document.getElementById("ia-prov").value,modelo:document.getElementById("ia-modelo").value,base_url:document.getElementById("ia-base").value,api_key:document.getElementById("ia-key").value};var r=await fetch(BASE+"/jogar/ia",{method:"POST",headers:H(),body:JSON.stringify(body)});var d=await r.json();if(d&&d.ok){toast("IA conectada!");document.getElementById("ia-key").value="";loadIA();loadDados();}else{toast((d&&d.erro)||"erro",1);}}
 async function conectarIA(){var st=document.getElementById("ia-st");st.style.color="";var key=document.getElementById("ia-key").value;if(!key){toast("Cole sua API key primeiro",1);return;}st.textContent="conectando...";var pv=document.getElementById("ia-prov").value;var body={provedor:pv,api_key:key,base_url:document.getElementById("ia-base").value};var r=await fetch(BASE+"/jogar/ia/modelos",{method:"POST",headers:H(),body:JSON.stringify(body)});var d=await r.json().catch(function(){return{};});if(d&&d.ok){var dl=document.getElementById("ia-mods");dl.innerHTML=(d.modelos||[]).map(function(m){return '<option value="'+esc(m)+'">';}).join("");renderRecs();var first=(RECS[pv]||[])[0];var mi=document.getElementById("ia-modelo");if(first&&mi&&!mi.value)mi.value=first[0];document.getElementById("step-model").style.display="";st.textContent="\u2705 conectado \u2014 escolha o modelo e salve";st.style.color="#1faa59";}else{st.textContent="";document.getElementById("step-model").style.display="none";var rc=document.getElementById("ia-recs");if(rc){rc.style.display="none";rc.innerHTML="";}toast(iaErro((d&&d.erro)||"chave inv\u00e1lida"),1);}}
 async function testarIA(){var st=document.getElementById("ia-st2");if(st){st.style.color="";st.textContent="testando...";}var pv=document.getElementById("ia-prov").value;var mod=document.getElementById("ia-modelo").value||((RECS[pv]||[])[0]||[])[0]||"";var body={provedor:pv,api_key:document.getElementById("ia-key").value,base_url:document.getElementById("ia-base").value,modelo:mod};var jaConn=IACONN&&pv===IAPROV_CONN;if(!body.api_key&&!jaConn){toast("Cole a key primeiro",1);if(st)st.textContent="";return;}var r=await fetch(BASE+"/jogar/ia/testar",{method:"POST",headers:H(),body:JSON.stringify(body)});var d=await r.json().catch(function(){return{};});if(d&&d.ok){if(st){st.textContent="\u2705 funcionou! resposta: "+(d.resposta||"OK");st.style.color="#1faa59";}toast("IA respondeu \u2705");}else{if(st)st.textContent="";toast(iaErro((d&&d.erro)||"falhou no teste"),1);}}
+async function loadCusto(){
+ var box=document.getElementById("cu-log");if(box)box.textContent="carregando…";
+ var r=await fetch(BASE+"/jogar/ia/custos",{headers:H()});var d=await r.json().catch(function(){return{};});
+ if(!d||!d.ok){if(box)box.textContent="erro ao carregar.";return;}
+ document.getElementById("cu-gasto").textContent="R$ "+(Number(d.gastoBrl||0)).toFixed(2).replace(".",",");
+ document.getElementById("cu-ops").textContent=Number(d.ops||0);
+ document.getElementById("cu-tin").textContent=Number(d.tin||0).toLocaleString("pt-BR");
+ document.getElementById("cu-tout").textContent=Number(d.tout||0).toLocaleString("pt-BR");
+ if(!d.log||!d.log.length){box.innerHTML='<div class="muted">Nenhuma chamada ainda. Quando voc\u00ea palpitar com a IA, cada an\u00e1lise aparece aqui.</div>';return;}
+ var h='<table class="cutab"><thead><tr><th>Quando</th><th>Modelo</th><th>Entrada</th><th>Sa\u00edda</th><th>Custo</th></tr></thead><tbody>';
+ h+=d.log.map(function(l){return "<tr><td>"+esc(l.quando)+"</td><td>"+esc(l.modelo)+"</td><td>"+Number(l.tokens_in||0).toLocaleString("pt-BR")+"</td><td>"+Number(l.tokens_out||0).toLocaleString("pt-BR")+"</td><td>R$ "+(Number(l.custo_brl||0)).toFixed(2).replace(".",",")+"</td></tr>";}).join("");
+ box.innerHTML=h+"</tbody></table>";
+}
 async function preencherIA(){var b=document.getElementById("ia-fill");if(b)b.disabled=true;var res=document.getElementById("ia-result");if(res)res.textContent="sua IA está analisando os jogos...";var mm=document.getElementById("masc"),mb=document.getElementById("masc-bubble");if(mm)mm.className="masc think";if(mb)mb.innerHTML="analisando os jogos... &#129300;";var r=await fetch(BASE+"/jogar/ia/preencher",{method:"POST",headers:H(),body:JSON.stringify({rodada:CURROD})});var d=await r.json().catch(function(){return{};});if(b)b.disabled=false;if(mm)mm.className="masc on";if(!d||!d.ok){if(res)res.textContent="";if(mb)mb.innerHTML="deu ruim &#128533; "+esc((d&&d.erro)||"");toast((d&&d.erro)||"erro",1);return;}if(res)res.innerHTML='<b>'+d.preenchidos+' palpites pela sua IA</b> '+(d.erros?('('+d.erros+' falharam) '):'')+'· custo R$ '+(Number(d.gastoBrl||0)).toFixed(2).replace(".",",")+'<br>'+(d.palpites||[]).map(function(p){return esc(p.casa)+' <b>'+p.pc+'x'+p.pv+'</b> '+esc(p.visitante);}).join("<br>");if(mb)mb.innerHTML="Pronto! Palpitei <b>"+d.preenchidos+"</b> jogos &#127919;";toast("IA preencheu "+d.preenchidos+" jogos");loadIA();loadBolao(CURROD);loadDados();}
 
 function ajudaGemini(){modal('<h3>&#128273; Criar sua chave Gemini (gr&aacute;tis)</h3><div class="muted" style="margin-bottom:10px">Leva ~1 minuto e &eacute; gratuito (free tier do Google).</div><div class="gstep"><span class="gnum">1</span><div>Abra o <b>Google AI Studio</b> e fa&ccedil;a login com sua conta Google.<div style="margin-top:7px"><a class="gopen" href="https://aistudio.google.com/app/apikey" target="_blank">&#128279; Abrir Google AI Studio &#8599;</a></div></div></div><div class="gstep"><span class="gnum">2</span><div>Clique no bot&atilde;o <b>"Create API key"</b> (Criar chave de API).</div></div><div class="gstep"><span class="gnum">3</span><div><b>Copie</b> a chave que aparecer (come&ccedil;a com <code>AIza...</code>).</div></div><div class="gstep"><span class="gnum">4</span><div>Volte aqui, <b>cole no campo "Sua API key"</b> e clique em <b>Salvar conex&atilde;o</b>.</div></div><div class="muted" style="margin-top:12px">&#9989; Pronto! A&iacute; &eacute; s&oacute; clicar em <b>Palpitar</b> que sua IA preenche a rodada. Custo no free tier: <b>R$ 0</b>.</div>');}
@@ -500,8 +535,8 @@ var S365LOGO="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAAkCAYAAADhAJiY
 var CUR_EN="";var CUR_ELENCO=[];var JOGOS_BOLAO=[];
 var TQ=[],TIDX=0,TCACHE={},TBUSY=false;
 function startTour(){
- var pend=(JOGOS_BOLAO||[]).filter(function(j){return !j.travado && !j.meu;});
- if(!pend.length){toast("Todos os jogos desta rodada já têm palpite ✅");return;}
+ var pend=(JOGOS_BOLAO||[]).filter(function(j){return !j.travado;});
+ if(!pend.length){toast("Nenhum jogo aberto nesta rodada (todos travados).",1);return;}
  TQ=pend;TIDX=0;TCACHE={};
  var tc=document.getElementById("tourcard");if(tc)tc.style.setProperty("--rc",COR_ROD[CURROD]||"#14794a");
  document.getElementById("tour").classList.add("show");
