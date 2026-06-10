@@ -216,6 +216,8 @@ export async function refreshDiario(force = false): Promise<any> {
   const odds = await syncOdds().catch((e: any) => ({ erro: String(e?.message ?? e) }));
   const lineups = await syncLineups().catch((e: any) => ({ erro: String(e?.message ?? e) }));
   const dados = await coletarDados365().catch((e: any) => ({ erro: String(e?.message ?? e) }));
+  await mapearGameIds().catch(() => {});
+  await coletarJogadores365().catch((e: any) => console.log("[jogadores365] erro diario", String(e?.message ?? e)));
   await setCfg("last_daily_refresh", hoje);
   console.log("[refresh-diario] dados365:", JSON.stringify(dados));
   console.log("[refresh-diario]", hoje, "odds:", (odds?.comOdds ?? JSON.stringify(odds)), "lineups:", (lineups?.comLineup ?? JSON.stringify(lineups)));
