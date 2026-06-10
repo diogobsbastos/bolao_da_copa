@@ -263,11 +263,25 @@ export async function rotasJogar(app: FastifyInstance) {
     const base: any = { ok: true, jogo_id: id, casa: ctx.jogo.casa.pt, visitante: ctx.jogo.visitante.pt, isoC: ctx.jogo.casa.iso, isoV: ctx.jogo.visitante.iso };
     const prov = (await pool.query("SELECT provedor, modelo, api_key, base_url FROM usuarios_llm WHERE usuario_id=$1", [u.id])).rows[0] as any;
     const logico = (): any => {
-      const p = palpiteAuto1(ctx.odds, ctx.jogo.casa.en, ctx.jogo.visitante.en);
-      let resumo = "Palpite pela logica das odds.";
-      const pr = ctx.probabilidade;
-      if (pr) { if (pr.casa >= pr.fora && pr.casa >= pr.empate) resumo = ctx.jogo.casa.pt + " favorito pelas odds."; else if (pr.fora >= pr.casa && pr.fora >= pr.empate) resumo = ctx.jogo.visitante.pt + " favorito pelas odds."; else resumo = "Jogo equilibrado, tende ao empate."; }
-      return { ...base, pc: p.pc, pv: p.pv, resumo, fonte: "logica" };
+      const c = ctx.jogo.casa.pt, v = ctx.jogo.visitante.pt;
+      const od = ctx.odds; let pc = 1, pv = 1, resumo = "Jogo equilibrado, empate provável.";
+      if (od && od.casa != null && od.fora != null) {
+        const oc = Number(od.casa), of = Number(od.fora);
+        const favCasa = oc <= of; const fodd = favCasa ? oc : of; const diff = Math.abs(oc - of);
+        if (diff < 0.25) { pc = 1; pv = 1; resumo = "Jogo equilibrado, empate provável."; }
+        else {
+          let gv: number, gp: number;
+          if (fodd <= 1.4) { gv = 2; gp = 0; } else if (fodd <= 1.9) { gv = 2; gp = 1; } else { gv = 1; gp = 0; }
+          pc = favCasa ? gv : gp; pv = favCasa ? gp : gv;
+          resumo = (favCasa ? c : v) + " favorito pelas odds, vitória provável.";
+        }
+      } else {
+        const rc = ctx.jogo.casa.rankFifa || 999, rv = ctx.jogo.visitante.rankFifa || 999;
+        if (Math.abs(rc - rv) <= 3) { pc = 1; pv = 1; resumo = "Times parelhos no ranking, empate provável."; }
+        else if (rc < rv) { pc = 2; pv = 1; resumo = c + " melhor ranqueado, leve favorito."; }
+        else { pc = 1; pv = 2; resumo = v + " melhor ranqueado, leve favorito."; }
+      }
+      return { ...base, pc, pv, resumo, fonte: "logica" };
     };
     const soLogica = !!((req.body as any)?.soLogica);
     if (soLogica || !prov || !prov.api_key) return logico();
