@@ -57,8 +57,8 @@ h1{font-size:18px;margin:0 0 12px}
 .jteam span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pin{width:38px;text-align:center;background:var(--card2);border:1px solid var(--bd);color:var(--tx);border-radius:8px;padding:8px 0;font-size:16px;font-weight:800}
 .pin:disabled{opacity:.6}
-.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
-.tab{padding:8px 14px;border-radius:999px;background:var(--card2);border:1px solid var(--bd);color:var(--mut);font-weight:700;font-size:13px;cursor:pointer}
+.tabs{display:inline-flex;gap:3px;margin-bottom:14px;background:var(--card2);border:1px solid var(--bd);border-radius:999px;padding:4px}
+.tab{padding:7px 18px;border-radius:999px;background:transparent;border:0;color:var(--mut);font-weight:700;font-size:13px;cursor:pointer;transition:.15s}
 .tab.on{background:var(--pri);color:#fff;border-color:var(--pri)}
 .lock{font-size:11px;color:var(--no);font-weight:700}
 table{width:100%;border-collapse:collapse;font-size:13px}
@@ -137,6 +137,14 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
 .tag{color:var(--rc,#1faa59)}
 .pl:focus{outline:none;border-color:var(--rc,#1faa59);box-shadow:0 0 0 3px color-mix(in srgb,var(--rc,#1faa59) 20%,transparent)}
 .autobar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.pghead{border-left:3px solid var(--pri2);padding-left:12px;margin-bottom:14px}
+.pghead h1{margin:0 0 5px;font-size:20px;line-height:1.15}
+.pgchip{font-size:11.5px;font-weight:700;color:var(--pri2);background:var(--surface2);padding:3px 10px;border-radius:999px;vertical-align:middle;margin-left:7px}
+.pgsub{margin:0;color:var(--mut);font-size:13px;line-height:1.5}
+.actpanel{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--bd);border-radius:14px;padding:10px 12px;margin-bottom:14px}
+.act-ia{display:flex;align-items:center;gap:10px;flex:1 1 260px;min-width:0}
+.act-ia .bubble{flex:1;max-width:none}
+.act-logic{display:flex;align-items:center;gap:9px;flex:none;margin-left:auto;padding-left:12px;border-left:1px solid var(--bd)}
 .sw{position:relative;display:inline-block;width:42px;height:24px;flex:none;cursor:pointer}
 .sw input{opacity:0;width:0;height:0;position:absolute}
 .sl{position:absolute;inset:0;background:var(--surface2);border:1px solid var(--bd);border-radius:999px;transition:.2s}
@@ -226,11 +234,10 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
   </section>
 
   <section class="sec" id="s-bolao">
-   <h1>Bol&atilde;o &mdash; palpite da rodada</h1>
-   <div class="muted" style="margin-bottom:10px">Coloque o placar que voc&ecirc; acha. Risco zero: erro n&atilde;o tira token, acerto soma pontos no ranking. Trava no apito.</div>
+   <div class="pghead"><h1>Bol&atilde;o <span class="pgchip">palpite da rodada</span></h1><p class="pgsub">Coloque o placar que voc&ecirc; acha. <b>Risco zero</b>: errar n&atilde;o tira token, acertar soma pontos no ranking. Trava no apito.</p></div>
 
    <div class="tabs" id="bolao-tabs"><span class="tab on" data-r="1" onclick="loadBolao(1)">Rodada 1</span><span class="tab" data-r="2" onclick="loadBolao(2)">Rodada 2</span><span class="tab" data-r="3" onclick="loadBolao(3)">Rodada 3</span></div>
-   <div class="autobar" id="autobar"><div class="masc off" id="masc" onclick="mascClick()" title="Seu palpiteiro de IA"><svg viewBox="0 0 64 64"><defs><linearGradient id="mgh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2bd07a"/><stop offset="1" stop-color="#0f7a45"/></linearGradient></defs><line x1="32" y1="9" x2="32" y2="16" stroke="#0f7a45" stroke-width="2.6"/><circle cx="32" cy="7" r="3.4" fill="#f5c451" stroke="#0a1228" stroke-width="1.2"/><rect x="8" y="26" width="5" height="12" rx="2.5" fill="#0f7a45" stroke="#0a1228" stroke-width="1.4"/><rect x="51" y="26" width="5" height="12" rx="2.5" fill="#0f7a45" stroke="#0a1228" stroke-width="1.4"/><rect x="12" y="15" width="40" height="34" rx="12" fill="url(#mgh)" stroke="#0a1228" stroke-width="2.2"/><rect x="18" y="24" width="28" height="15" rx="7.5" fill="#0a1228"/><circle cx="26" cy="31.5" r="3.6" fill="#7cffb0"/><circle cx="38" cy="31.5" r="3.6" fill="#7cffb0"/><circle cx="27" cy="32.6" r="1.5" fill="#0a1228"/><circle cx="39" cy="32.6" r="1.5" fill="#0a1228"/><circle cx="20" cy="44" r="2.4" fill="#f5c451" opacity=".85"/><circle cx="44" cy="44" r="2.4" fill="#f5c451" opacity=".85"/><path d="M26 44 Q32 48 38 44" fill="none" stroke="#0a1228" stroke-width="2" stroke-linecap="round"/></svg></div><div class="bubble" id="masc-bubble">&#128164; Conecte sua IA e eu palpito por voc&ecirc;.</div><span class="grow"></span><button class="btn ghost" id="btn-auto" onclick="preencherAuto()">&#127919; Preencher pela l&oacute;gica</button><label class="sw" title="Auto-preencher"><input type="checkbox" id="autochk" onchange="setAuto(this.checked)"><span class="sl"></span></label><span class="swlbl">Auto</span><button class="qmark" onclick="ajudaAuto()" title="O que &eacute;?">?</button></div>
+   <div class="actpanel" id="autobar"><div class="act-ia"><div class="masc off" id="masc" onclick="mascClick()" title="Seu palpiteiro de IA"><svg viewBox="0 0 64 64"><defs><linearGradient id="mgh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2bd07a"/><stop offset="1" stop-color="#0f7a45"/></linearGradient></defs><line x1="32" y1="9" x2="32" y2="16" stroke="#0f7a45" stroke-width="2.6"/><circle cx="32" cy="7" r="3.4" fill="#f5c451" stroke="#0a1228" stroke-width="1.2"/><rect x="8" y="26" width="5" height="12" rx="2.5" fill="#0f7a45" stroke="#0a1228" stroke-width="1.4"/><rect x="51" y="26" width="5" height="12" rx="2.5" fill="#0f7a45" stroke="#0a1228" stroke-width="1.4"/><rect x="12" y="15" width="40" height="34" rx="12" fill="url(#mgh)" stroke="#0a1228" stroke-width="2.2"/><rect x="18" y="24" width="28" height="15" rx="7.5" fill="#0a1228"/><circle cx="26" cy="31.5" r="3.6" fill="#7cffb0"/><circle cx="38" cy="31.5" r="3.6" fill="#7cffb0"/><circle cx="27" cy="32.6" r="1.5" fill="#0a1228"/><circle cx="39" cy="32.6" r="1.5" fill="#0a1228"/><circle cx="20" cy="44" r="2.4" fill="#f5c451" opacity=".85"/><circle cx="44" cy="44" r="2.4" fill="#f5c451" opacity=".85"/><path d="M26 44 Q32 48 38 44" fill="none" stroke="#0a1228" stroke-width="2" stroke-linecap="round"/></svg></div><div class="bubble" id="masc-bubble">&#128164; Conecte sua IA e eu palpito por voc&ecirc;.</div></div><div class="act-logic"><button class="btn ghost" id="btn-auto" onclick="preencherAuto()">&#127919; Preencher pela l&oacute;gica</button><label class="sw" title="Auto-preencher"><input type="checkbox" id="autochk" onchange="setAuto(this.checked)"><span class="sl"></span></label><span class="swlbl">Auto</span><button class="qmark" onclick="ajudaAuto()" title="O que &eacute;?">?</button></div></div>
    <div id="bolao-box" class="muted">carregando...</div>
   </section>
 
