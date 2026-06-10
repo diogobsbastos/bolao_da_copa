@@ -543,18 +543,18 @@ async function loadCopa(){
 }
 var S365LOGO="data:image/png;base64,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";
 var CUR_EN="";var CUR_ELENCO=[];var JOGOS_BOLAO=[];
-var TQ=[],TIDX=0,TCACHE={},TBUSY=false;
+var TQ=[],TIDX=0,TCACHE={},TBUSY=false,TFORCELOGIC=false;
 function startTour(){
  var pend=(JOGOS_BOLAO||[]).filter(function(j){return !j.travado;});
  if(!pend.length){toast("Nenhum jogo aberto nesta rodada (todos travados).",1);return;}
- TQ=pend;TIDX=0;TCACHE={};
+ TQ=pend;TIDX=0;TCACHE={};TFORCELOGIC=false;
  var tc=document.getElementById("tourcard");if(tc)tc.style.setProperty("--rc",COR_ROD[CURROD]||"#14794a");
  document.getElementById("tour").classList.add("show");
  tourShow(0);
 }
 async function tourFetch(id){
  if(TCACHE[id])return TCACHE[id];
- try{var r=await fetch(BASE+"/jogar/ia/palpitar-jogo",{method:"POST",headers:H(),body:JSON.stringify({jogo:id})});var d=await r.json();if(d&&d.ok){TCACHE[id]=d;return d;}}catch(e){}
+ try{var r=await fetch(BASE+"/jogar/ia/palpitar-jogo",{method:"POST",headers:H(),body:JSON.stringify({jogo:id,soLogica:TFORCELOGIC})});var d=await r.json();if(d&&d.ok){TCACHE[id]=d;return d;}}catch(e){}
  return null;
 }
 async function tourShow(i){
@@ -577,6 +577,7 @@ async function tourShow(i){
  rb.textContent=d.resumo||"";
  if(rf){rf.textContent="por "+fonte;rf.title="";}
  var av=document.getElementById("tour-aviso");if(av){if(d.aviso){av.style.display="";av.innerHTML="&#9888;&#65039; "+esc(d.aviso);}else{av.style.display="none";}}
+ if(d.aviso&&!TFORCELOGIC)tourQuotaChoice(g.id);
  if(ap)ap.disabled=false;
  if(i+1<TQ.length)tourFetch(TQ[i+1].id);
 }
@@ -590,6 +591,8 @@ async function tourApply(){
 function tourSkip(){tourShow(TIDX+1);}
 function tourPrev(){if(TIDX>0)tourShow(TIDX-1);}
 function tourClose(){document.getElementById("tour").classList.remove("show");loadBolao(CURROD);loadDados();}
+function tourQuotaChoice(id){modal('<h3>&#9888;&#65039; Sua IA bateu o limite gr&aacute;tis</h3><div class="muted" style="line-height:1.55">O free tier da sua IA atingiu a cota por agora. N&atilde;o &eacute; cobran&ccedil;a &mdash; o limite reseta sozinho (por minuto e por dia). Voc&ecirc; escolhe como continuar:</div><div style="margin-top:10px;font-size:13px;line-height:1.6">&#9203; <b>Aguardar a IA</b>: espere ~1 min e tente de novo (ou troque o modelo em Conectar IA).<br>&#127919; <b>Seguir pela l&oacute;gica</b>: terminamos a rodada na hora pelo nosso sistema de odds (gr&aacute;tis, sem IA).</div>','<button class="btn ghost" onclick="fecha();delete TCACHE['+id+'];tourShow(TIDX);">&#9203; Aguardar e tentar a IA</button><button class="btn" onclick="tourSeguirLogica()">&#127919; Seguir pela l&oacute;gica</button>');}
+function tourSeguirLogica(){TFORCELOGIC=true;TCACHE={};fecha();toast("Beleza! Seguindo pela lógica das odds.");tourShow(TIDX);}
 function tourDone(){document.getElementById("tour").classList.remove("show");var n=(TQ||[]).filter(function(j){return !!j.meu;}).length;toast("Tour concluído! "+n+" palpite(s) aplicado(s).");loadBolao(CURROD);loadDados();}
 
 function fmtForma(arr){if(!arr||!arr.length)return '<span class="muted">sem dados</span>';return arr.slice(0,6).map(function(x){if(typeof x==="string")return esc(x);var ad=x.adversario||x.rival||x.vs||x.oponente||"";var g=(x.gols_pro!=null&&x.gols_contra!=null)?(x.gols_pro+"x"+x.gols_contra):(x.placar||"");var t=((ad?ad+" ":"")+g).trim();return esc(t||JSON.stringify(x));}).join(" &middot; ");}

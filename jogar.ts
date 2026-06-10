@@ -269,7 +269,8 @@ export async function rotasJogar(app: FastifyInstance) {
       if (pr) { if (pr.casa >= pr.fora && pr.casa >= pr.empate) resumo = ctx.jogo.casa.pt + " favorito pelas odds."; else if (pr.fora >= pr.casa && pr.fora >= pr.empate) resumo = ctx.jogo.visitante.pt + " favorito pelas odds."; else resumo = "Jogo equilibrado, tende ao empate."; }
       return { ...base, pc: p.pc, pv: p.pv, resumo, fonte: "logica" };
     };
-    if (!prov || !prov.api_key) return logico();
+    const soLogica = !!((req.body as any)?.soLogica);
+    if (soLogica || !prov || !prov.api_key) return logico();
     try {
       const prompt = "Voce e um analista de futebol. Com base no CONTEXTO (JSON) do jogo da Copa, preveja o placar final mais provavel (considere odds, probabilidade, escalacao, forma e noticias). IMPORTANTE: e Copa do Mundo em sedes neutras (EUA/Canada/Mexico) — NAO existe mando de campo nem vantagem de jogar em casa (so o pais-sede jogando no seu pais tem leve fator torcida); 'casa'/'visitante' e apenas a ordem do confronto, nunca cite 'mando' ou 'vantagem de casa' como argumento. Responda SOMENTE com JSON valido {\"pc\":N,\"pv\":N,\"resumo\":\"...\"} onde pc=gols " + ctx.jogo.casa.pt + ", pv=gols " + ctx.jogo.visitante.pt + " e resumo = no maximo 8 palavras em portugues dizendo o porque. Nada fora do JSON. CONTEXTO: " + JSON.stringify(ctx);
       const t0 = Date.now();
