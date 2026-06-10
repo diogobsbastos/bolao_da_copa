@@ -184,7 +184,7 @@ th,td{padding:8px 8px;border-bottom:1px solid var(--bd);text-align:left}th{color
 }
 .diah{font-size:11px;font-weight:800;letter-spacing:.4px;color:var(--mut);text-transform:uppercase;margin:16px 0 8px}
 .jgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:10px}
-.jogo{background:var(--surface);border:1px solid var(--bd);border-radius:12px;overflow:hidden;display:flex;align-items:stretch}
+.jogo{background:var(--surface);border:1px solid var(--bd);border-radius:12px;overflow:hidden;display:flex;align-items:stretch;position:relative}.jlimpar{position:absolute;top:5px;right:7px;z-index:2;opacity:0;background:var(--card2);border:1px solid var(--bd);color:var(--mut);font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:7px;cursor:pointer;transition:opacity .15s,color .15s,border-color .15s}.jogo:hover .jlimpar{opacity:1}.jlimpar:hover{color:#e23744;border-color:#e23744}
 .gtab{writing-mode:vertical-rl;transform:rotate(180deg);background:var(--rc,var(--pri));color:#fff;font-weight:800;font-size:10px;letter-spacing:2px;padding:8px 6px;display:flex;align-items:center;justify-content:center;flex:none}
 .jbody{flex:1;min-width:0;display:grid;grid-template-columns:1.4fr auto 0.9fr;align-items:center;column-gap:8px;row-gap:9px;padding:10px 12px}
 .cn{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden}
@@ -679,7 +679,7 @@ function cardBolao(j,cor){
  var tag=j.travado?'<span class="tag lk">&#128274; fechado</span>':'<span class="tag">&#128336; '+esc(fmtHora(j.inicio))+'</span>';
  var gt='<div class="gtab">GRUPO '+esc(j.grupo||"")+'</div>';
  var jb='<div class="jbody">'+cn(j.casa)+cs(1,pc)+'<div class="cm cmtop">'+au+tag+ball+'</div>'+cn(j.visitante)+cs(0,pv)+'<div class="cm cmbot">'+favOdds(j)+'</div></div>';
- return '<div class="jogo" style="--rc:'+cor+'">'+gt+jb+'</div>';
+ var lim=(j.meu&&!j.travado)?'<button class="jlimpar" onclick="limparPalpite('+j.id+')" title="Limpar este palpite">&times; limpar</button>':'';return '<div class="jogo" style="--rc:'+cor+'">'+gt+jb+lim+'</div>';
 }
 var IA_ON=false;
 function setMascote(){var m=document.getElementById("masc"),b=document.getElementById("masc-bubble");if(!m||!b)return;m.className="masc "+(IA_ON?"on":"off");if(IA_ON){b.innerHTML='T&ocirc; pronto pra palpitar! <button class="mbtn" onclick="startTour()">&#10024; Palpitar com IA</button>';}else{b.innerHTML='&#128164; <b>Conecte sua IA</b> e eu palpito por voc&ecirc;. <span class="mlink" onclick="mascClick()">CONECTAR &#8594;</span>';}}
@@ -707,6 +707,7 @@ async function salvar(id){
  var d=await r.json();
  if(d&&d.ok){toast("Palpite salvo");loadDados();}else{toast((d&&d.erro)||"erro",1);}
 }
+async function limparPalpite(id){var r=await fetch(BASE+"/jogar/palpite-limpar",{method:"POST",headers:H(),body:JSON.stringify({jogo_id:id})});var d=await r.json().catch(function(){return{};});if(d&&d.ok){toast("Palpite limpo");loadBolao(CURROD);loadDados();}else toast((d&&d.erro)||"erro",1);}
 function confirmPreencher(){modal('<div class="lphd"><span class="lphdic">&#127919;</span><b>Preencher pela lógica?</b></div><p class="lpsub" style="margin:0">Isto vai <b>substituir</b> seus palpites desta rodada pelo placar sugerido (odds/ranking). Jogos que <b>já começaram</b> não mudam (o palpite fecha no apito).</p>','<button class="btn ghost" onclick="fecha()">Cancelar</button> <button class="btn" onclick="fecha();preencherAuto()">Preencher</button>');}
 async function preencherAuto(){
  var r=await fetch(BASE+"/jogar/palpite-auto",{method:"POST",headers:H(),body:JSON.stringify({rodada:CURROD})});

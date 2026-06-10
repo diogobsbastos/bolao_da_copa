@@ -161,6 +161,16 @@ export async function rotasJogar(app: FastifyInstance) {
     return { ok: true };
   });
 
+  app.post("/jogar/palpite-limpar", async (req, reply) => {
+    const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    const b = (req.body ?? {}) as any; const id = Number(b.jogo_id);
+    if (!Number.isInteger(id)) return reply.code(400).send({ erro: "dados invalidos" });
+    const jg = (await pool.query("SELECT inicio FROM jogos WHERE id=$1", [id])).rows[0] as any;
+    if (jg && jg.inicio && new Date(jg.inicio).getTime() <= Date.now()) return reply.code(403).send({ erro: "jogo ja comecou" });
+    await pool.query("DELETE FROM palpites_bolao WHERE jogo_id=$1 AND usuario_id=$2", [id, u.id]);
+    return { ok: true };
+  });
+
   app.post("/jogar/palpite-auto", async (req, reply) => {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
     const rod = Number((req.body as any)?.rodada || 0);
