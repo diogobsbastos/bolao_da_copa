@@ -159,6 +159,7 @@ export async function probeLineup(gid: string | number): Promise<void> {
     const ph = parseSide(g?.homeCompetitor, byId), pa = parseSide(g?.awayCompetitor, byId);
     const resumo = (c: any, ps: any) => ({ time: c?.name, formacao: ps?.formacao, confirmada: ps?.confirmada, n: ps?.titulares?.length, titulares: (ps?.titulares || []).map((t: any) => t.nome + " (" + t.posicao + ")") });
     console.log("[lineup-probe] gid", gid, "PARSED-HOME", JSON.stringify(resumo(g?.homeCompetitor, ph)), "PARSED-AWAY", JSON.stringify(resumo(g?.awayCompetitor, pa)));
+    console.log("[url-probe] gid", gid, "gameKeys", JSON.stringify(Object.keys(g||{})), "urlfields", JSON.stringify({ url: g?.url, nameForURL: g?.nameForURL, homeNFU: g?.homeCompetitor?.nameForURL, awayNFU: g?.awayCompetitor?.nameForURL, homeId: g?.homeCompetitor?.id, awayId: g?.awayCompetitor?.id, compId: g?.competitionId }));
   } catch (e: any) { console.log("[lineup-probe] erro", String(e?.message ?? e).slice(0, 160)); }
 }
 
