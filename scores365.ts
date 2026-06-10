@@ -142,7 +142,7 @@ export async function syncLineups(): Promise<any> {
 // Refresh diário (guardado por data America/Sao_Paulo): puxa odds + lineups 1x/dia. Tudo grava no banco; jogadores só leem.
 function hojeSP(): string { return new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" }); }
 function extrai365(g: any): any {
-  const comp = (c: any) => ({ nome: c?.name || "", score: c?.score ?? null, recentIds: Array.isArray(c?.recentMatches) ? c.recentMatches.slice(0, 8) : [], rankings: c?.rankings ?? null });
+  const comp = (c: any) => ({ nome: c?.name || "", cid: c?.id ?? null, score: c?.score ?? null, recentIds: Array.isArray(c?.recentMatches) ? c.recentMatches.slice(0, 8) : [], rankings: c?.rankings ?? null });
   const pl = (p: any) => p ? { nome: p.name, posicao: p.positionName || p.positionShortName || "", stats: (Array.isArray(p.stats) ? p.stats : []).map((s: any) => ({ nome: s.name, valor: s.value })) } : null;
   const craques = (Array.isArray(g?.topPerformers?.categories) ? g.topPerformers.categories : []).map((c: any) => ({ categoria: c.name, casa: pl(c.homePlayer), visitante: pl(c.awayPlayer) }));
   return {
@@ -179,11 +179,11 @@ async function ultimas5(teamId: number, recentIds: number[], cache: Map<number, 
   }
   return out;
 }
-function golsLideres(r: any): any[] {
+function golsLideres(r: any, hcId: any, acId: any): any[] {
   const a = r?.stats?.athletesStats; if (!Array.isArray(a)) return [];
   const gols = a.find((x: any) => /goal/i.test(x?.name || "")) || a[0];
   const rows = Array.isArray(gols?.rows) ? gols.rows : [];
-  return rows.slice(0, 6).map((row: any) => ({ nome: row?.entity?.name, competitorId: row?.entity?.competitorId, gols: (row?.stats || []).find((s: any) => s?.typeId === 1)?.value ?? null, pos: row?.entity?.positionName || "" }));
+  return rows.slice(0, 8).map((row: any) => { const cid = row?.entity?.competitorId; return { nome: row?.entity?.name, lado: (cid === hcId ? "casa" : (cid === acId ? "visitante" : "")), gols: (row?.stats || []).find((s: any) => s?.typeId === 1)?.value ?? null, pos: row?.entity?.positionName || "" }; });
 }
 export async function coletarDados365(): Promise<any> {
   try { const st = await s365(`/standings/?appTypeId=5&langId=1&competitions=${COMP}&live=false`); if (st?.standings) await setCfg("standings365", JSON.stringify(st.standings)); } catch {}
@@ -196,7 +196,7 @@ export async function coletarDados365(): Promise<any> {
       const g = gj?.game; if (!g) continue;
       const base: any = extrai365(g);
       const hcId = g.homeCompetitor?.id, acId = g.awayCompetitor?.id;
-      try { const r = await s365(`/stats/?appTypeId=5&langId=1&competitors=${hcId},${acId}&games=${j.gid}`); base.golsLideres = golsLideres(r); } catch {}
+      try { const r = await s365(`/stats/?appTypeId=5&langId=1&competitors=${hcId},${acId}&games=${j.gid}`); base.golsLideres = golsLideres(r, hcId, acId); } catch {}
       base.casa.ultimas5 = await ultimas5(hcId, base.casa.recentIds, cache);
       base.visitante.ultimas5 = await ultimas5(acId, base.visitante.recentIds, cache);
       await pool.query("UPDATE jogos SET dados365=$1 WHERE id=$2", [JSON.stringify(base), j.id]); n++;
