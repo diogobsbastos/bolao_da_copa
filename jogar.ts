@@ -1,12 +1,18 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { pool } from "./db.js";
+import { randomBytes } from "node:crypto";
 import { usuarioDaReq } from "./auth.js";
 import { PAGINA_JOGAR } from "./jogar_page.js";
 import { invocarTexto, listarModelos } from "./llm.js";
 import { registrarGasto } from "./custos.js";
 import { timePT, rankOf, palpiteOdds, calcClassificacao, mapaGrupos, forma2022, noticiasTime, classifGrupoDe } from "./jogos_placar.js";
 
-async function jogador(req: FastifyRequest) { return await usuarioDaReq(req); }
+async function jogador(req: FastifyRequest) {
+  const u = await usuarioDaReq(req); if (u) return u;
+  const auth = req.headers["authorization"]; const tok = typeof auth === "string" && auth.startsWith("Bearer ") ? auth.slice(7) : "";
+  if (!tok || tok.length < 8) return null;
+  try { const r = (await pool.query("SELECT id, papel, nome, email FROM usuarios WHERE pat=$1 AND length(pat)>0", [tok])).rows[0] as any; return r || null; } catch { return null; }
+}
 function palpiteDetLite(rkC: number, rkV: number) { const d = rkV - rkC, ad = Math.abs(d); if (ad < 4) return { pc: 1, pv: 1 }; const gf = Math.min(3, 1 + Math.round(ad / 12)), gc = Math.max(0, 1 - Math.round(ad / 22)); return d > 0 ? { pc: gf, pv: gc } : { pc: gc, pv: gf }; }
 function jitter(pc: number, pv: number): [number, number] { const r = Math.random(); let a = pc, b = pv; if (r < 0.5) return [a, b]; if (r < 0.78) a = Math.max(0, a + (Math.random() < 0.5 ? 1 : -1)); else b = Math.max(0, b + (Math.random() < 0.5 ? 1 : -1)); return [a, b]; }
 // Palpite ALEATÓRIO inteligente: sorteia o resultado PONDERADO pelas odds (zebra possível) e a margem por faixa de força. Cada chamada varia.
@@ -149,6 +155,19 @@ export async function rotasJogar(app: FastifyInstance) {
     const on = !!(req.body as any)?.on;
     try { await pool.query("UPDATE usuarios SET auto_preencher=$1 WHERE id=$2", [on, u.id]); } catch (e: any) { return { ok: false, erro: String(e?.message ?? e).slice(0,120) }; }
     return { ok: true, on };
+  });
+
+
+  app.get("/jogar/pat", async (req, reply) => {
+    const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    let pat = ""; try { pat = String(((await pool.query("SELECT pat FROM usuarios WHERE id=$1", [u.id])).rows[0] as any)?.pat || ""); } catch {}
+    return { ok: true, pat };
+  });
+  app.post("/jogar/pat", async (req, reply) => {
+    const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    const pat = "blc_" + randomBytes(18).toString("hex");
+    try { await pool.query("UPDATE usuarios SET pat=$1 WHERE id=$2", [pat, u.id]); } catch (e: any) { return { ok: false, erro: String(e?.message ?? e).slice(0, 120) }; }
+    return { ok: true, pat };
   });
 
   app.get("/jogar/ranking", async (req, reply) => {
