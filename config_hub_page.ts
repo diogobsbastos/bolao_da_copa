@@ -157,6 +157,11 @@ ${NAV_CSS}
    <section id="pg-banco" class="hide">
     <div class="card"><h3>&#128190; Banco de dados</h3><div class="sub">Banco dedicado <b>bolao_copa26</b> no Postgres da VPS.</div>
      <div id="banco-info" class="muted">carregando...</div></div>
+    <div class="card" style="margin-top:14px"><div class="cardhead"><div><h3>&#129302; Raspagem de jogadores (365)</h3>
+      <div class="sub">Baixa a ficha completa de <b>todos</b> os jogadores da Copa (posi&ccedil;&atilde;o detalhada, idade, clube, n&uacute;mero, dados crus) pro nosso banco. Roda em <b>segundo plano</b>, com pausa entre chamadas pra n&atilde;o estourar o 365.</div></div></div>
+     <div id="j365-status" class="muted" style="margin:6px 0 10px">carregando&hellip;</div>
+     <div class="save"><button class="sm" id="j365-start" onclick="startJ365()">&#9654;&#65039; Iniciar raspagem</button><button class="sm gh" onclick="limparJ365()">Limpar status</button><span id="j365-msg" class="muted"></span></div>
+    </div>
    </section>
 
    <section id="pg-pay" class="hide">
@@ -187,7 +192,7 @@ function N(v){return v==null||v===""?0:Number(v);}
 function num(v,c){c=c==null?4:c;return N(v).toLocaleString("pt-BR",{minimumFractionDigits:c,maximumFractionDigits:c});}
 var DOLAR=5.2;
 function ehImg(m){return (m.papel==="imagem")||/image|imagen|nano[- ]?banana/i.test(m.modelo);}
-function aba(t){document.querySelectorAll("section").forEach(function(s){s.classList.add("hide");});document.getElementById("pg-"+t).classList.remove("hide");document.querySelectorAll(".tab").forEach(function(a){a.classList.toggle("on",a.getAttribute("data-t")===t);});if(t==="banco")loadBanco();if(t==="llms")loadLLM("texto");if(t==="img")loadLLM("imagem");if(t==="custos")loadCustos();if(t==="pay")loadPay();}
+function aba(t){document.querySelectorAll("section").forEach(function(s){s.classList.add("hide");});document.getElementById("pg-"+t).classList.remove("hide");document.querySelectorAll(".tab").forEach(function(a){a.classList.toggle("on",a.getAttribute("data-t")===t);});if(t==="banco"){loadBanco();loadJ365();}if(t==="llms")loadLLM("texto");if(t==="img")loadLLM("imagem");if(t==="custos")loadCustos();if(t==="pay")loadPay();}
 function togManual(){var b=document.getElementById("man-body");var oculto=b.classList.toggle("hide");document.getElementById("man-tog").textContent=oculto?"abrir":"fechar";}
 async function init(){
  var r=await fetch(BASE+"/admin/config",{headers:H()});
@@ -257,6 +262,21 @@ async function loadPay(){
 }
 async function savePay(){var t=document.getElementById("pay-token").value;var p=document.getElementById("pay-precoin").value;var r=await fetch(BASE+"/admin/pagamento",{method:"POST",headers:H(),body:JSON.stringify({token:t,preco:p})});var d=await r.json().catch(function(){return{};});toast(d.ok?"Salvo":"erro",d.ok?"ok":"err");document.getElementById("pay-token").value="";loadPay();}
 async function testPay(){var m=document.getElementById("pay-msg");m.textContent="testando...";var r=await fetch(BASE+"/admin/pagamento/testar",{method:"POST",headers:H()});var d=await r.json().catch(function(){return{};});m.innerHTML=d.ok?('\u2705 '+esc(d.conta.nick||d.conta.email||d.conta.id)):('\u274c '+esc(d.erro||"falhou"));loadPay();}
+var J365TIMER=null;
+async function loadJ365(){
+ var r=await fetch(BASE+"/admin/jogadores365/status",{headers:H()});var d=await r.json().catch(function(){return{};});
+ if(!d||!d.ok)return;var st=d.status||{};var box=document.getElementById("j365-status");var btn=document.getElementById("j365-start");
+ var rodando=!!st.rodando;
+ if(btn){btn.disabled=rodando;btn.textContent=rodando?"\u23f3 Raspando\u2026":"\u25b6\ufe0f Iniciar raspagem";}
+ var pct=st.total?Math.round((st.feitos||0)/st.total*100):0;
+ var linha="";
+ if(st.fase){linha='<b>'+esc(st.fase)+'</b> &middot; '+(st.feitos||0)+'/'+(st.total||0)+(st.total?(' ('+pct+'%)'):'')+(st.salvos!=null?(' &middot; '+st.salvos+' fichas salvas'):'')+(st.em?(' &middot; '+esc(String(st.em).slice(11,19))):'');}
+ else{linha='Nunca rodou ainda.';}
+ box.innerHTML=linha+'<br><span class="muted" style="font-size:12px">No banco: <b>'+d.totalBanco+'</b> jogadores &middot; com posi\u00e7\u00e3o detalhada: <b>'+d.comPosicaoDetalhada+'</b></span>';
+ if(rodando){if(!J365TIMER)J365TIMER=setInterval(loadJ365,3000);}else{if(J365TIMER){clearInterval(J365TIMER);J365TIMER=null;}}
+}
+async function startJ365(){var m=document.getElementById("j365-msg");m.textContent="iniciando\u2026";var r=await fetch(BASE+"/admin/jogadores365/coletar",{method:"POST",headers:H()});var d=await r.json().catch(function(){return{};});m.textContent=d.ok?"rodando em segundo plano":"erro";toast(d.ok?"Raspagem iniciada":"erro",d.ok?"ok":"err");setTimeout(loadJ365,800);}
+async function limparJ365(){var r=await fetch(BASE+"/admin/jogadores365/limpar",{method:"POST",headers:H()});var d=await r.json().catch(function(){return{};});toast(d.ok?"Status limpo":"erro",d.ok?"ok":"err");loadJ365();}
 async function loadBanco(){
  var b=document.getElementById("banco-info");
  var r=await fetch(BASE+"/admin/status",{headers:H()});

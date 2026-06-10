@@ -281,7 +281,62 @@ export async function probeAthlete(gid: string | number): Promise<void> {
     await tryp("squad2", `/competitors/squads/?appTypeId=5&langId=1&competitor=${comp}`);
   } catch (e: any) { console.log("[ath-probe] erro", String(e?.message ?? e).slice(0, 120)); }
 }
+
+let RODANDO_J365 = false;
+export async function coletarJogadores365(): Promise<any> {
+  if (RODANDO_J365) return { ok: false, erro: "ja esta rodando" };
+  RODANDO_J365 = true;
+  const setStatus = (o: any) => setCfg("jogadores365_status", JSON.stringify({ ...o, em: new Date().toISOString() }));
+  try {
+    await setStatus({ rodando: true, fase: "elencos", feitos: 0, total: 0, atletas: 0 });
+    const jogos = (await pool.query("SELECT odds->>'gid' gid FROM jogos WHERE odds->>'gid' IS NOT NULL")).rows as any[];
+    const membros = new Map<number, any>(); const compName = new Map<number, string>();
+    let gi = 0;
+    for (const j of jogos) {
+      try {
+        const gj = await s365(`/game?appTypeId=5&langId=1&userCountryId=21&timezoneName=America/Sao_Paulo&gameId=${j.gid}`);
+        const g = gj?.game;
+        if (g) {
+          if (g.homeCompetitor) compName.set(g.homeCompetitor.id, g.homeCompetitor.name);
+          if (g.awayCompetitor) compName.set(g.awayCompetitor.id, g.awayCompetitor.name);
+          for (const m of (Array.isArray(g.members) ? g.members : [])) { if (m?.athleteId && !membros.has(m.athleteId)) membros.set(m.athleteId, { nome: m.name, jersey: m.jerseyNumber, competitorId: m.competitorId }); }
+        }
+      } catch {}
+      gi++; if (gi % 4 === 0) await setStatus({ rodando: true, fase: "elencos (mapeando jogadores)", feitos: gi, total: jogos.length, atletas: membros.size });
+      await sleep(150 + Math.random() * 220);
+    }
+    const ids = [...membros.keys()];
+    await setStatus({ rodando: true, fase: "fichas dos jogadores", feitos: 0, total: ids.length, atletas: ids.length, salvos: 0 });
+    let n = 0;
+    for (let i = 0; i < ids.length; i += 40) {
+      const chunk = ids.slice(i, i + 40);
+      try {
+        const r = await s365(`/athletes/?appTypeId=5&langId=1&athletes=${chunk.join(",")}`);
+        const ats = Array.isArray(r?.athletes) ? r.athletes : [];
+        for (const a of ats) {
+          const mem = membros.get(a.id) || {}; const sel = a.nationalityName || compName.get(mem.competitorId) || "";
+          await pool.query("INSERT INTO jogadores_365 (athlete_id,nome,short_name,selecao,selecao_id,posicao,posicao_det,posicao_ord,idade,clube_id,num_camisa,raw,atualizado_em) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,now()) ON CONFLICT (athlete_id) DO UPDATE SET nome=$2,short_name=$3,selecao=$4,selecao_id=$5,posicao=$6,posicao_det=$7,posicao_ord=$8,idade=$9,clube_id=$10,num_camisa=$11,raw=$12,atualizado_em=now()",
+            [a.id, a.name, a.shortName, sel, a.nationalTeamId ?? null, a.position?.name ?? "", a.formationPosition?.name ?? "", a.formationPosition?.order ?? null, a.age ?? null, a.clubId ?? null, mem.jersey ?? null, JSON.stringify(a)]);
+          n++;
+        }
+      } catch {}
+      await setStatus({ rodando: true, fase: "fichas dos jogadores", feitos: Math.min(i + 40, ids.length), total: ids.length, atletas: ids.length, salvos: n });
+      await sleep(450 + Math.random() * 350);
+    }
+    try { await pool.query("UPDATE jogadores_365 g SET jogador_id=j.id FROM jogadores j WHERE g.jogador_id IS NULL AND lower(j.nome)=lower(g.nome)"); } catch {}
+    await setCfg("jogadores365_em", new Date().toISOString());
+    await setStatus({ rodando: false, fase: "concluido", feitos: ids.length, total: ids.length, atletas: ids.length, salvos: n });
+    await setCfg("coletar_jogadores365", "");
+    console.log("[jogadores365] CONCLUIDO", n, "fichas de", ids.length, "atletas");
+    return { ok: true, atletas: n, ids: ids.length };
+  } finally { RODANDO_J365 = false; }
+}
+export function coletarJogadores365SeFlag(): void { (async () => { try { if ((await cfg("coletar_jogadores365")) === "go" && !RODANDO_J365) { coletarJogadores365().catch((e: any) => console.log("[jogadores365] erro", String(e?.message ?? e))); } } catch {} })(); }
+
 export async function rotasScores365(app: FastifyInstance) {
+  app.post("/admin/jogadores365/coletar", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); await setCfg("coletar_jogadores365", "go"); coletarJogadores365SeFlag(); return { ok: true, iniciado: true }; });
+  app.get("/admin/jogadores365/status", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); let st: any = {}; try { st = JSON.parse((await cfg("jogadores365_status")) || "{}"); } catch {} const tot = Number(((await pool.query("SELECT count(*) n FROM jogadores_365")).rows[0] as any)?.n || 0); const comDet = Number(((await pool.query("SELECT count(*) n FROM jogadores_365 WHERE length(posicao_det)>0")).rows[0] as any)?.n || 0); return { ok: true, status: st, totalBanco: tot, comPosicaoDetalhada: comDet }; });
+  app.post("/admin/jogadores365/limpar", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); await pool.query("DELETE FROM config WHERE chave='jogadores365_status'"); return { ok: true }; });
   app.post("/admin/scores365/coletar", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); return await coletarDados365(); });
   app.post("/admin/scores365/odds", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); return await syncOdds(); });
   app.get("/admin/scores365/status", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); try { return { ok: true, status: JSON.parse((await cfg("scores365_status")) || "{}") }; } catch { return { ok: true, status: {} }; } });
@@ -310,6 +365,7 @@ export async function rotasScores365(app: FastifyInstance) {
   app.post("/admin/scores365/refresh", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); return await refreshDiario(true); });
   // Sonda de boot (verificação): se config.lineup_probe tiver gids (csv), loga a estrutura crua.
   (async () => { try { const g = await cfg("lineup_probe"); if (g) for (const id of g.split(",").map((s) => s.trim()).filter(Boolean)) await probeLineup(id); } catch {} })();
+  coletarJogadores365SeFlag();
   (async () => { try { const g = await cfg("game_probe"); if (g) for (const id of g.split(",").map((s) => s.trim()).filter(Boolean)) await probeGame(id); } catch {} })();
   (async () => { try { const g = await cfg("athlete_probe"); if (g) for (const id of g.split(",").map((s) => s.trim()).filter(Boolean)) await probeAthlete(id); } catch {} })();
 }
