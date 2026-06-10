@@ -64,6 +64,21 @@ h1{font-size:18px;margin:0 0 12px}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th,td{padding:8px 8px;border-bottom:1px solid var(--bd);text-align:left}th{color:var(--mut);font-size:11px}
 .rkme{background:rgba(31,170,89,.10);border-left:3px solid var(--rkc,#1faa59)}
+.rkinfo{font-size:12px;color:var(--mut);margin:-4px 0 14px;padding-left:2px}
+.rkrow{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:9px 13px;margin-bottom:8px;transition:.15s}
+.rkrow:hover{border-color:var(--rkc,#1faa59)}
+.rkrow.me{box-shadow:0 0 0 2px var(--rkc,#1faa59) inset;border-color:transparent}
+.rkrow.top1{background:linear-gradient(135deg,rgba(255,193,7,.16),var(--card));border-color:rgba(255,193,7,.45)}
+.rkpos{width:32px;text-align:center;font-weight:800;font-size:15px;color:var(--mut);flex:none}
+.rkmedal{font-size:22px}
+.rkav{width:42px;height:42px;border-radius:50%;overflow:hidden;flex:none;background:linear-gradient(135deg,var(--pri),var(--pri2));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px}
+.rkav img{width:100%;height:100%;object-fit:cover}
+.rkname{flex:1;min-width:0}
+.rkname b{display:block;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rkname small{color:var(--mut);font-size:12px}
+.rkyou{font-size:9.5px;font-weight:800;background:var(--rkc,#1faa59);color:#fff;padding:1px 6px;border-radius:6px;margin-left:5px;vertical-align:middle}
+.rkpts{margin-left:auto;font-weight:800;font-size:20px;color:var(--rkc,#1faa59);flex:none;display:flex;align-items:baseline;gap:3px}
+.rkpts small{font-size:11px;color:var(--mut);font-weight:700}
 .pos{font-weight:800;width:30px}
 .medal{font-size:15px}
 .qr{width:190px;height:190px;border-radius:12px;background:
@@ -688,7 +703,7 @@ function selProv(p){var sel=document.getElementById("ia-prov");if(sel)sel.value=
 function setModelo(m,el){var e=document.getElementById("ia-modelo");if(e)e.value=m;document.querySelectorAll("#ia-recs .rec").forEach(function(c){c.classList.remove("sel");});if(el)el.classList.add("sel");toast("Modelo: "+m);}
 function renderRecs(){var p=document.getElementById("ia-prov").value;var box=document.getElementById("ia-recs");if(!box)return;var list=RECS[p]||[];if(!list.length){box.style.display="none";box.innerHTML="";return;}box.style.display="";box.innerHTML='<div class="muted" style="font-size:12px;margin:2px 0 6px">&#128161; <b>Escolha um modelo</b> (toque). A IA precisa raciocinar bem, mas gasta pouco &mdash; o <b>recomendado</b> &eacute; o melhor equil&iacute;brio:</div><div class="recrow">'+list.map(function(m,i){return '<div class="rec'+(i===0?" sel":"")+'" onclick="setModelo(&#39;'+m[0]+'&#39;,this)"><b>'+(i===0?"&#11088; ":"")+esc(m[0])+'</b><small>'+esc(m[1])+'</small></div>';}).join("")+'</div>';}
 
-var COR_RANK={geral:"#e0a008",bolao:"#1faa59",arena:"#e23744"};
+var COR_RANK={geral:"#1faa59",bolao:"#e0a008",arena:"#e23744"};
 var RANKTIPO="geral";
 async function loadRank(tipo){
  RANKTIPO=tipo||RANKTIPO;
@@ -698,9 +713,13 @@ async function loadRank(tipo){
  var r=await fetch(BASE+"/jogar/ranking?tipo="+RANKTIPO,{headers:H()});var d=await r.json();
  if(!d||!d.ok||!d.ranking.length){box.innerHTML='<div class="muted">ranking ainda vazio'+(RANKTIPO==="arena"?" (a Arena come\u00e7a nas batalhas)":"")+'.</div>';return;}
  var med=["&#129351;","&#129352;","&#129353;"];
- box.innerHTML='<table><thead><tr><th>#</th><th>Jogador</th><th style="text-align:right">Pts</th></tr></thead><tbody>'
-  +d.ranking.map(function(x){return '<tr class="'+(x.eu?"rkme":"")+'"><td class="pos">'+(x.pos<=3?('<span class="medal">'+med[x.pos-1]+'</span>'):x.pos)+'</td><td>'+esc(x.nome)+(x.eu?' <span class="muted">(voc&ecirc;)</span>':'')+'</td><td style="text-align:right;font-weight:800">'+x.pts+'</td></tr>';}).join("")
-  +'</tbody></table>';
+ var info={geral:"Geral = Bol\u00e3o + Arena \u00b7 define o Pote",bolao:"Pontos dos seus palpites",arena:"Vit\u00f3rias nas batalhas PvP"};
+ box.innerHTML='<div class="rkinfo">'+(info[RANKTIPO]||"")+'</div>'+d.ranking.map(function(x){
+  var av=x.avatar?('<img src="'+x.avatar+'">'):('<span>'+esc((String(x.nome).trim()[0]||"?").toUpperCase())+'</span>');
+  var pm=x.pos<=3?('<span class="rkmedal">'+med[x.pos-1]+'</span>'):('#'+x.pos);
+  var tm=x.time?('<small>'+esc(x.time)+'</small>'):'';
+  return '<div class="rkrow'+(x.eu?" me":"")+(x.pos===1?" top1":"")+'"><div class="rkpos">'+pm+'</div><div class="rkav">'+av+'</div><div class="rkname"><b>'+esc(x.nome)+(x.eu?' <span class="rkyou">voc\u00ea</span>':'')+'</b>'+tm+'</div><div class="rkpts">'+x.pts+'<small>pts</small></div></div>';
+ }).join("");
 }
 async function loadCopa(){
  var box=document.getElementById("copa-box");box.textContent="carregando...";

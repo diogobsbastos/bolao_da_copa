@@ -197,8 +197,8 @@ export async function rotasJogar(app: FastifyInstance) {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
     const tipo = String((req.query as any)?.tipo || "geral");
     const col = tipo === "bolao" ? "COALESCE(r.pontos_bolao,0)" : tipo === "arena" ? "COALESCE(r.pontos_arena,0)" : "COALESCE(r.pontos_bolao,0)+COALESCE(r.pontos_arena,0)";
-    const rows = (await pool.query(`SELECT r.usuario_id uid, COALESCE(us.nome, us.email) nome, ${col} pts FROM ranking r JOIN usuarios us ON us.id=r.usuario_id ORDER BY pts DESC, us.nome LIMIT 50`)).rows as any[];
-    return { ok: true, eu: u.id, tipo, ranking: rows.map((x, i) => ({ pos: i + 1, nome: x.nome, pts: Number(x.pts || 0), eu: x.uid === u.id })) };
+    const rows = (await pool.query(`SELECT r.usuario_id uid, COALESCE(us.nome, us.email) nome, us.nome_time time, us.avatar avatar, ${col} pts FROM ranking r JOIN usuarios us ON us.id=r.usuario_id ORDER BY pts DESC, us.nome LIMIT 50`)).rows as any[];
+    return { ok: true, eu: u.id, tipo, ranking: rows.map((x, i) => ({ pos: i + 1, nome: x.nome, time: x.time || "", avatar: x.avatar || "", pts: Number(x.pts || 0), eu: x.uid === u.id })) };
   });
 
   app.get("/jogar/contexto", async (req, reply) => {
