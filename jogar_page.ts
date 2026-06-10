@@ -89,6 +89,10 @@ th,td{padding:8px 8px;border-bottom:1px solid var(--bd);text-align:left}th{color
 @media(max-width:560px){.rkcols{gap:9px}.rkcol{min-width:0}}
 .gcols{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;align-items:start}
 @media(max-width:760px){.gcols{grid-template-columns:1fr}}
+.cbody{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;padding:9px 12px;justify-content:center}
+.crow{display:flex;align-items:center;gap:8px;min-width:0}
+.crow .csc{margin-left:auto;font-weight:800;font-size:16px;min-width:18px;text-align:center;flex:none}
+.ctime{flex:none;display:flex;align-items:center;padding:0 12px;border-left:1px solid var(--bd);color:var(--mut);font-size:12px;white-space:nowrap}
 .pos{font-weight:800;width:30px}
 .medal{font-size:15px}
 .qr{width:190px;height:190px;border-radius:12px;background:
@@ -741,8 +745,9 @@ function renderCopa(){
  }else if(COPATAB==="calendario"){
   var cal=d.calendario||[];if(!cal.length){box.innerHTML='<div class="muted">calendário indisponível.</div>';return;}
   var byD=[],idx={};cal.forEach(function(j){var dia=fmtDia(j.inicio)||"A definir";if(idx[dia]==null){idx[dia]=byD.length;byD.push({dia:dia,jogos:[]});}byD[idx[dia]].jogos.push(j);});
-  var cell=function(j){var pl=(j.rc!=null&&j.rv!=null)?('<b>'+j.rc+'-'+j.rv+'</b>'):('<span class="muted">x</span>');var dt=new Date(j.inicio),hh=isNaN(dt)?'':(("0"+dt.getHours()).slice(-2)+":"+("0"+dt.getMinutes()).slice(-2));return '<div style="display:flex;align-items:center;gap:6px;font-size:13px;padding:7px 4px;border-top:1px solid var(--bd)"><span style="width:32px;color:var(--mut);font-size:11px">'+hh+'</span><span style="flex:1;text-align:right">'+esc(j.casa.pt)+' '+fl(j.casa.iso)+'</span>'+pl+'<span style="flex:1">'+fl(j.visitante.iso)+' '+esc(j.visitante.pt)+'</span></div>';};
-  box.innerHTML=byD.map(function(g){return '<div class="card" style="margin-bottom:10px"><h3>'+esc(g.dia)+'</h3><div class="gcols">'+g.jogos.map(cell).join("")+'</div></div>';}).join("");
+  var sc=function(v){return v!=null?v:'-';};
+  var cell=function(j){var cor=COR_ROD[j.rodada]||"#14794a";return '<div class="jogo" style="--rc:'+cor+'"><div class="gtab">GRUPO '+esc(j.grupo||'')+'</div><div class="cbody"><div class="crow"><div class="cn">'+fl2(j.casa.iso)+'<span class="nm">'+esc(j.casa.pt)+'</span></div><span class="csc">'+sc(j.rc)+'</span></div><div class="crow"><div class="cn">'+fl2(j.visitante.iso)+'<span class="nm">'+esc(j.visitante.pt)+'</span></div><span class="csc">'+sc(j.rv)+'</span></div></div><div class="ctime">&#128336; '+fmtHora(j.inicio)+'</div></div>';};
+  box.innerHTML=byD.map(function(g){return '<div class="diah">Fase de grupos &middot; '+esc(g.dia)+'</div><div class="gcols">'+g.jogos.map(cell).join("")+'</div>';}).join("");
  }else if(COPATAB==="artilheiros"){
   box.innerHTML='<div class="card"><h3>&#9917; Artilheiros</h3><div class="muted">Em breve — entra quando os gols começarem a sair.</div></div>';
  }else{
