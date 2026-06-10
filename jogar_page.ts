@@ -85,6 +85,8 @@ th,td{padding:8px 8px;border-bottom:1px solid var(--bd);text-align:left}th{color
 .rkcol small{font-size:9px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.3px}
 .rkcol.tot span{color:var(--rkc,#1faa59);font-size:18px}
 @media(max-width:560px){.rkcols{gap:9px}.rkcol{min-width:0}}
+.gcols{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;align-items:start}
+@media(max-width:760px){.gcols{grid-template-columns:1fr}}
 .pos{font-weight:800;width:30px}
 .medal{font-size:15px}
 .qr{width:190px;height:190px;border-radius:12px;background:
@@ -410,6 +412,7 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
   <section class="sec" id="s-copa">
    <h1>Copa do Mundo 2026</h1>
    <div class="muted" style="margin-bottom:10px">EUA &middot; Canad&aacute; &middot; M&eacute;xico &mdash; 11/jun a 19/jul</div>
+   <div class="tabs" id="copa-tabs"><span class="tab on" data-c="grupos" onclick="copaTab('grupos')">Grupos</span><span class="tab" data-c="calendario" onclick="copaTab('calendario')">Calend&aacute;rio</span><span class="tab" data-c="artilheiros" onclick="copaTab('artilheiros')">Artilheiros</span><span class="tab" data-c="elim" onclick="copaTab('elim')">Eliminat&oacute;rias</span></div>
    <div id="copa-box" class="muted">carregando...</div>
   </section>
 
@@ -720,15 +723,30 @@ async function loadRank(tipo){
   return '<div class="rkrow'+(x.eu?" me":"")+(x.pos===1?" top1":"")+'"><div class="rkpos">'+pm+'</div><div class="rkav">'+av+'</div><div class="rkname"><b>'+esc(x.nome)+(x.eu?' <span class="rkyou">voc\u00ea</span>':'')+'</b>'+tm+'</div>'+right+'</div>';
  }).join("");
 }
+var COPA=null,COPATAB="grupos";
 async function loadCopa(){
  var box=document.getElementById("copa-box");box.textContent="carregando...";
  var r=await fetch(BASE+"/jogar/copa",{headers:H()});var d=await r.json();
- if(!d||!d.ok){box.textContent="erro.";return;}
- var h="";
- if(d.proximos&&d.proximos.length){h+='<div class="card" style="margin-bottom:14px"><h3>Pr&oacute;ximos jogos</h3>'+d.proximos.map(function(p){return '<div style="display:flex;align-items:center;gap:7px;padding:5px 0;font-size:13px">'+fl(p.casa.iso)+' '+esc(p.casa.pt)+' <span class="muted">x</span> '+esc(p.visitante.pt)+' '+fl(p.visitante.iso)+' <span class="muted" style="margin-left:auto">'+fmtData(p.inicio)+'</span></div>';}).join("")+'</div>';}
- if(d.grupos&&d.grupos.length){h+=d.grupos.map(function(g){return '<div class="card" style="margin-bottom:10px"><h3>'+esc(g.grupo)+'</h3><table><thead><tr><th>#</th><th>Sele&ccedil;&atilde;o</th><th>P</th><th>J</th><th>SG</th></tr></thead><tbody>'+g.times.map(function(t,i){return '<tr><td class="pos">'+(i+1)+'</td><td>'+fl(t.iso)+' '+esc(t.pt)+'</td><td style="font-weight:800">'+t.p+'</td><td>'+t.j+'</td><td>'+(t.sg>0?"+":"")+t.sg+'</td></tr>';}).join("")+'</tbody></table></div>';}).join("");}
- else{h+='<div class="muted">classifica&ccedil;&atilde;o aparece quando os jogos come&ccedil;arem.</div>';}
- box.innerHTML=h;
+ if(!d||!d.ok){box.innerHTML='<div class="muted">erro ao carregar.</div>';return;}
+ COPA=d;renderCopa();
+}
+function copaTab(t){COPATAB=t;document.querySelectorAll("#copa-tabs .tab").forEach(function(x){x.classList.toggle("on",x.getAttribute("data-c")===t);});renderCopa();}
+function renderCopa(){
+ var box=document.getElementById("copa-box");var d=COPA;if(!d){box.textContent="carregando...";return;}
+ if(COPATAB==="grupos"){
+  if(!d.grupos||!d.grupos.length){box.innerHTML='<div class="muted">classificação aparece quando os jogos começarem.</div>';return;}
+  box.innerHTML='<div class="gcols">'+d.grupos.map(function(g){return '<div class="card" style="margin:0"><h3>'+esc(g.grupo)+'</h3><table><thead><tr><th>#</th><th>Seleção</th><th>P</th><th>J</th><th>SG</th></tr></thead><tbody>'+g.times.map(function(t,i){return '<tr><td class="pos">'+(i+1)+'</td><td>'+fl(t.iso)+' '+esc(t.pt)+'</td><td style="font-weight:800">'+t.p+'</td><td>'+t.j+'</td><td>'+(t.sg>0?"+":"")+t.sg+'</td></tr>';}).join("")+'</tbody></table></div>';}).join("")+'</div>';
+ }else if(COPATAB==="calendario"){
+  var cal=d.calendario||[];if(!cal.length){box.innerHTML='<div class="muted">calendário indisponível.</div>';return;}
+  var byR={};cal.forEach(function(j){var k=j.rodada||0;(byR[k]=byR[k]||[]).push(j);});
+  var html="";Object.keys(byR).sort(function(a,b){return a-b;}).forEach(function(rod){
+   html+='<div class="card" style="margin-bottom:10px"><h3>Rodada '+esc(rod)+'</h3>'+byR[rod].map(function(j){var pl=(j.rc!=null&&j.rv!=null)?('<b style="margin:0 8px">'+j.rc+'-'+j.rv+'</b>'):('<span class="muted" style="margin:0 8px">x</span>');return '<div style="display:flex;align-items:center;gap:6px;padding:6px 0;font-size:13px;border-top:1px solid var(--bd)"><span style="flex:1;text-align:right">'+esc(j.casa.pt)+' '+fl(j.casa.iso)+'</span>'+pl+'<span style="flex:1">'+fl(j.visitante.iso)+' '+esc(j.visitante.pt)+'</span><span class="muted" style="width:92px;text-align:right">'+fmtData(j.inicio)+'</span></div>';}).join("")+'</div>';
+  });box.innerHTML=html;
+ }else if(COPATAB==="artilheiros"){
+  box.innerHTML='<div class="card"><h3>&#9917; Artilheiros</h3><div class="muted">Em breve — entra quando os gols começarem a sair.</div></div>';
+ }else{
+  box.innerHTML='<div class="card"><h3>&#127942; Eliminatórias</h3><div class="muted">Em breve — a chave abre no fim da fase de grupos.</div></div>';
+ }
 }
 var S365LOGO="data:image/png;base64,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";
 var CUR_EN="";var CUR_ELENCO=[];var JOGOS_BOLAO=[];

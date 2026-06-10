@@ -370,10 +370,11 @@ export async function rotasJogar(app: FastifyInstance) {
 
   app.get("/jogar/copa", async (req, reply) => {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
-    const rows = (await pool.query("SELECT selecao_casa, selecao_visitante, inicio, placar_casa, placar_visitante FROM jogos WHERE fase='grupos' AND selecao_casa<>'A definir' AND selecao_visitante<>'A definir'")).rows as any[];
+    const rows = (await pool.query("SELECT selecao_casa, selecao_visitante, inicio, rodada, resultado_casa AS placar_casa, resultado_visitante AS placar_visitante FROM jogos WHERE fase='grupos' AND selecao_casa<>'A definir' AND selecao_visitante<>'A definir' ORDER BY inicio NULLS LAST, id")).rows as any[];
     let grupos: any[] = []; try { grupos = calcClassificacao(rows); } catch {}
+    const calendario = rows.map((j) => { const c = timePT(j.selecao_casa), v = timePT(j.selecao_visitante); return { casa: { pt: c.pt, iso: c.iso }, visitante: { pt: v.pt, iso: v.iso }, inicio: j.inicio, rodada: j.rodada, rc: j.placar_casa, rv: j.placar_visitante }; });
     const proxRows = (await pool.query("SELECT selecao_casa, selecao_visitante, inicio, rodada FROM jogos WHERE inicio>=now() AND selecao_casa<>'A definir' AND selecao_visitante<>'A definir' ORDER BY inicio ASC LIMIT 8")).rows as any[];
     const proximos = proxRows.map((j) => { const c = timePT(j.selecao_casa), v = timePT(j.selecao_visitante); return { casa: { pt: c.pt, iso: c.iso }, visitante: { pt: v.pt, iso: v.iso }, inicio: j.inicio, rodada: j.rodada }; });
-    return { ok: true, grupos, proximos };
+    return { ok: true, grupos, proximos, calendario };
   });
 }
