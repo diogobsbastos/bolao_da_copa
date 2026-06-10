@@ -682,7 +682,7 @@ async function depPoll(){if(!DEPID)return;if(!document.getElementById("s-deposit
  DEPTIMER=setTimeout(depPoll,3500);}
 async function depSimular(){var r=await fetch(BASE+"/jogar/deposito/simular",{method:"POST",headers:H(),body:JSON.stringify({id:DEPID})});var d=await r.json().catch(function(){return{};});if(d&&d.ok)depPoll();else toast((d&&d.erro)||"erro",1);}
 function depSucesso(figs){if(DEPTIMER){clearTimeout(DEPTIMER);DEPTIMER=null;}var b=document.getElementById("dep-body");
- b.innerHTML='<div class="mpok"><div class="okcheck">&#10003;</div><div style="font-size:17px;font-weight:800">Pagamento aprovado!</div><div class="muted" style="margin:6px 0 14px">Seu <b>Pacote Base</b> foi liberado &mdash; <b>'+figs+'</b> figurinhas no seu invent\u00e1rio.</div><button class="btn" onclick="nav(\'time\')">Ver meu time &#8594;</button></div>';
+ b.innerHTML='<div class="mpok"><div class="okcheck">&#10003;</div><div style="font-size:17px;font-weight:800">Pagamento aprovado!</div><div class="muted" style="margin:6px 0 14px">Seu <b>Pacote Base</b> foi liberado &mdash; <b>'+figs+'</b> figurinhas no seu invent\u00e1rio.</div><button class="btn" onclick="nav(&#39;time&#39;)">Ver meu time &#8594;</button></div>';
  loadDados();}
 function modal(html,foot){document.getElementById("mbody").innerHTML=html;document.getElementById("mfoot").innerHTML=foot||"";var _m=document.querySelector(".modal");if(_m){_m.style.setProperty("--rc",COR_ROD[CURROD]||"#14794a");_m.style.maxWidth="";}document.getElementById("mov").classList.add("show");}
 function fecha(){document.getElementById("mov").classList.remove("show");}
