@@ -401,6 +401,7 @@ export async function rotasJogar(app: FastifyInstance) {
     const b = (req.body ?? {}) as any;
     const v = (x: any) => { const t = String(x || "").trim(); return t ? t.slice(0, 40) : null; };
     const campeao = v(b.campeao), vice = v(b.vice), terceiro = v(b.terceiro), quarto = v(b.quarto);
+    const _pod = [campeao, vice, terceiro, quarto].filter((x) => x); if (new Set(_pod).size !== _pod.length) return reply.code(400).send({ erro: "nao repita selecoes no podio" });
     const artId = (b.artilheiro_id != null && b.artilheiro_id !== "") ? Number(b.artilheiro_id) : null;
     let artNome: string | null = null;
     if (artId != null) { const jr = (await pool.query("SELECT nome FROM jogadores WHERE id=$1", [artId])).rows[0] as any; if (!jr) return reply.code(400).send({ erro: "artilheiro invalido" }); artNome = jr.nome; }

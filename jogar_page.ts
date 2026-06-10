@@ -959,7 +959,7 @@ function lpInit(){
  if(LP_LOCK)return;
  ["campeao","vice","terceiro","quarto"].forEach(function(slot){
   var inp=document.getElementById("ac-"+slot);var dd=document.getElementById("dd-"+slot);if(!inp||!dd)return;
-  var build=function(){var q=lpNorm(inp.value);var items=LP_SEL.filter(function(sx){return !q||lpNorm(sx.pt).indexOf(q)>=0;}).map(function(sx){return {k:sx.en,t:sx.pt,iso:sx.iso};});lpRender(dd,items,function(it){return lpFlag(it.iso);});};
+  var build=function(){var q=lpNorm(inp.value);var usados={};["campeao","vice","terceiro","quarto"].forEach(function(o){if(o!==slot&&LP_PICK[o])usados[LP_PICK[o]]=1;});var items=LP_SEL.filter(function(sx){return (!q||lpNorm(sx.pt).indexOf(q)>=0)&&!usados[sx.en];}).map(function(sx){return {k:sx.en,t:sx.pt,iso:sx.iso};});lpRender(dd,items,function(it){return lpFlag(it.iso);});};
   inp.addEventListener("focus",build);inp.addEventListener("input",build);
   inp.addEventListener("blur",function(){setTimeout(function(){dd.classList.remove("on");},180);});
   dd.addEventListener("mousedown",function(e){var o=e.target.closest(".acopt");if(!o||o.classList.contains("empty"))return;var k=o.getAttribute("data-k");var sx=lpSelDe(k);if(!sx)return;LP_PICK[slot]=k;inp.value=sx.pt;var ic=document.getElementById("ico-"+slot);if(ic)ic.innerHTML=lpFlag(sx.iso);dd.classList.remove("on");});
@@ -980,6 +980,7 @@ async function lpAuto(modo){
  toast("Preenchido ✅ revise e salve");
 }
 async function salvarLongo(){
+ var ps=[LP_PICK.campeao,LP_PICK.vice,LP_PICK.terceiro,LP_PICK.quarto].filter(function(x){return x;});if(new Set(ps).size!==ps.length){toast("Não repita seleções no pódio",1);return;}
  var body={campeao:LP_PICK.campeao,vice:LP_PICK.vice,terceiro:LP_PICK.terceiro,quarto:LP_PICK.quarto,artilheiro_id:LP_PICK.art};
  var r=await fetch(BASE+"/jogar/longo",{method:"POST",headers:H(),body:JSON.stringify(body)});var d=await r.json().catch(function(){return{};});
  if(d&&d.ok){toast("Palpites salvos ✅");fecha();loadDados();}else toast((d&&d.erro)||"erro ao salvar",1);
