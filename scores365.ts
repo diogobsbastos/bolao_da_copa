@@ -269,16 +269,11 @@ export async function probeGame(gid: string | number): Promise<void> {
 
 export async function probeAthlete(ath: string | number): Promise<void> {
   try {
-    const tryp = async (label: string, path: string) => { try { const r = await s365(path); const j = JSON.stringify(r || {}); console.log("[stat-probe]", label, "len", j.length, "KEYS", JSON.stringify(Object.keys(r || {})), "SAMPLE", j.slice(0, 300)); } catch (e: any) { console.log("[stat-probe]", label, "erro", String(e?.message ?? e).slice(0, 60)); } };
-    await tryp("a", `/stats/?appTypeId=5&langId=1&athletes=${ath}`);
-    await tryp("b", `/athletes/statistics/?appTypeId=5&langId=1&athletes=${ath}`);
-    await tryp("d", `/athlete/statistics/?appTypeId=5&langId=1&athlete=${ath}`);
-    await tryp("f", `/athletes/?appTypeId=5&langId=1&athletes=${ath}&withStats=true`);
-    await tryp("i", `/stats/?appTypeId=5&langId=1&entities=${ath}&entityType=2`);
-    await tryp("j", `/athlete/?appTypeId=5&langId=1&athleteId=${ath}&withStats=true`);
-    await tryp("k", `/stats/?appTypeId=5&langId=1&athleteId=${ath}`);
-    await tryp("l", `/athletes/stats/?appTypeId=5&langId=1&athlete=${ath}`);
-  } catch (e: any) { console.log("[stat-probe] erro", String(e?.message ?? e).slice(0, 120)); }
+    const r = await s365(`/athletes/?appTypeId=5&langId=1&athletes=${ath}&withStats=true`);
+    const a = (r?.athletes || [])[0] || {};
+    console.log("[stat-full] ATHKEYS", JSON.stringify(Object.keys(a)));
+    for (const k of Object.keys(a)) { const v = (a as any)[k]; const isObj = v && typeof v === "object"; console.log("[stat-full] >", k, isObj ? (Array.isArray(v) ? ("arr[" + v.length + "] " + JSON.stringify(v).slice(0, 600)) : JSON.stringify(v).slice(0, 600)) : JSON.stringify(v)); }
+  } catch (e: any) { console.log("[stat-full] erro", String(e?.message ?? e).slice(0, 120)); }
 }
 
 export async function mapearGameIds(): Promise<any> {
