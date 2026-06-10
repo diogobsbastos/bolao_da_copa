@@ -597,17 +597,17 @@ function tourDone(){document.getElementById("tour").classList.remove("show");var
 
 function fmtForma(arr){if(!arr||!arr.length)return '<span class="muted">sem dados</span>';return arr.slice(0,6).map(function(x){if(typeof x==="string")return esc(x);var ad=x.adversario||x.rival||x.vs||x.oponente||"";var g=(x.gols_pro!=null&&x.gols_contra!=null)?(x.gols_pro+"x"+x.gols_contra):(x.placar||"");var t=((ad?ad+" ":"")+g).trim();return esc(t||JSON.stringify(x));}).join(" &middot; ");}
 function fmtLineup(l){if(!l||!l.titulares||!l.titulares.length)return '<span class="muted">ainda não divulgada</span>';return (l.confirmada?"Confirmada":"Provável")+" ("+esc(l.formacao||"")+"): "+l.titulares.map(function(t){return esc(t.nome)+(t.posicao?(' <span class="muted">'+esc(t.posicao)+'</span>'):"");}).join(", ");}
-function fmtNews(arr){if(!arr||!arr.length)return '<span class="muted">sem notícias recentes</span>';return '<ul style="margin:4px 0 0;padding-left:17px;line-height:1.5">'+arr.slice(0,5).map(function(n){return "<li>"+esc(n.title||n.titulo||"")+"</li>";}).join("")+"</ul>";}
+function fmtNews(arr){if(!arr||!arr.length)return '<span class="muted">sem notícias recentes</span>';return '<ul style="margin:4px 0 0;padding-left:17px;line-height:1.5">'+arr.slice(0,5).map(function(n){var t=(typeof n==="string")?n:(n.title||n.titulo||"");return t?("<li>"+esc(t)+"</li>"):"";}).join("")+"</ul>";}
 function auditHtml(c){
  var j=c.jogo,od=c.odds,pr=c.probabilidade;
  var h='<h3>&#128270; Dados entregues à sua IA</h3>';
  h+='<div class="muted" style="margin-bottom:10px">'+fl(j.casa.iso)+' <b>'+esc(j.casa.pt)+'</b> &times; <b>'+esc(j.visitante.pt)+'</b> '+fl(j.visitante.iso)+' &mdash; tudo abaixo vai pra IA <b>antes</b> dela escolher o placar. Dados reais, nada inventado.</div>';
  h+='<div class="audsec"><div class="audh">&#127942; Ranking FIFA</div><div>'+esc(j.casa.pt)+': <b>#'+(j.casa.rankFifa||"?")+'</b> &middot; '+esc(j.visitante.pt)+': <b>#'+(j.visitante.rankFifa||"?")+'</b></div></div>';
- if(od){h+='<div class="audsec"><div class="audh">&#128176; Odds 1X2 &amp; probabilidade</div><div>Casa <b>'+od.casa+'</b>'+(pr?(' ('+pr.casa+'%)'):'')+' &middot; Empate <b>'+od.empate+'</b>'+(pr?(' ('+pr.empate+'%)'):'')+' &middot; Fora <b>'+od.fora+'</b>'+(pr?(' ('+pr.fora+'%)'):'')+'<div class="muted" style="font-size:11px">'+esc(od.fonte||"")+'</div></div></div>';}
+ if(od){h+='<div class="audsec"><div class="audh">&#128176; Odds 1X2 &amp; probabilidade</div><div>'+esc(j.casa.pt)+' <b>'+od.casa+'</b>'+(pr?(' ('+pr.casa+'%)'):'')+' &middot; Empate <b>'+od.empate+'</b>'+(pr?(' ('+pr.empate+'%)'):'')+' &middot; '+esc(j.visitante.pt)+' <b>'+od.fora+'</b>'+(pr?(' ('+pr.fora+'%)'):'')+'<div class="muted" style="font-size:11px">vit\u00f3ria de cada lado / empate &middot; '+esc(od.fonte||"")+'</div></div></div>';}
  h+='<div class="audsec"><div class="audh">&#128203; Escalação '+esc(j.casa.pt)+'</div><div>'+fmtLineup(c.escalacao&&c.escalacao.casa)+'</div></div>';
  h+='<div class="audsec"><div class="audh">&#128203; Escalação '+esc(j.visitante.pt)+'</div><div>'+fmtLineup(c.escalacao&&c.escalacao.visitante)+'</div></div>';
- h+='<div class="audsec"><div class="audh">&#128200; Forma recente &mdash; '+esc(j.casa.pt)+'</div><div>'+fmtForma(c.forma2022&&c.forma2022.casa)+'</div></div>';
- h+='<div class="audsec"><div class="audh">&#128200; Forma recente &mdash; '+esc(j.visitante.pt)+'</div><div>'+fmtForma(c.forma2022&&c.forma2022.visitante)+'</div></div>';
+ h+='<div class="audsec"><div class="audh">&#128200; Campanha na Copa 2022 &mdash; '+esc(j.casa.pt)+'</div><div>'+fmtForma(c.forma2022&&c.forma2022.casa)+'</div></div>';
+ h+='<div class="audsec"><div class="audh">&#128200; Campanha na Copa 2022 &mdash; '+esc(j.visitante.pt)+'</div><div>'+fmtForma(c.forma2022&&c.forma2022.visitante)+'</div></div>';
  h+='<div class="audsec"><div class="audh">&#128240; Notícias &mdash; '+esc(j.casa.pt)+'</div><div>'+fmtNews(c.noticias&&c.noticias.casa)+'</div></div>';
  h+='<div class="audsec"><div class="audh">&#128240; Notícias &mdash; '+esc(j.visitante.pt)+'</div><div>'+fmtNews(c.noticias&&c.noticias.visitante)+'</div></div>';
  return h;
