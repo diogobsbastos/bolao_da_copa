@@ -40,7 +40,7 @@ export async function rotasPagamento(app: FastifyInstance) {
     const payload = { transaction_amount: valor, description: "Pacote Base - Bolao Copa 26", payment_method_id: "pix", external_reference: String(dep.id), notification_url: base + "/pagamento/webhook", payer: { email: u.email || ("jogador" + u.id + "@bolaocopa26.com") } };
     const r = await mpFetch("/v1/payments", { method: "POST", body: JSON.stringify(payload), headers: { "x-idempotency-key": "dep-" + dep.id } });
     const tx = r.body?.point_of_interaction?.transaction_data;
-    if (!tx || !tx.qr_code) { await pool.query("UPDATE depositos SET status='erro' WHERE id=$1", [dep.id]); return { ok: false, erro: (r.body?.message || "falha ao gerar PIX"), detalhe: r.body?.cause || null }; }
+    if (!tx || !tx.qr_code) { console.log("[pagamento] MP falhou status", r.status, "body", JSON.stringify(r.body).slice(0,800)); await pool.query("UPDATE depositos SET status='erro' WHERE id=$1", [dep.id]); return { ok: false, erro: (r.body?.message || "falha ao gerar PIX"), detalhe: (r.body?.cause || r.body?.error || null) }; }
     await pool.query("UPDATE depositos SET mp_payment_id=$1, qr_code=$2, qr_base64=$3, ticket_url=$4, status=$5 WHERE id=$6", [String(r.body.id), tx.qr_code, tx.qr_code_base64 || "", tx.ticket_url || "", r.body.status || "pending", dep.id]);
     return { ok: true, id: dep.id, valor, qr_code: tx.qr_code, qr_base64: tx.qr_code_base64, ticket_url: tx.ticket_url, teste: tok.startsWith("TEST-") };
   });
