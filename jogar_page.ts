@@ -131,6 +131,9 @@ body.mcol .side a .tag{display:none}
 .swlbl{font-size:13px;font-weight:600;color:var(--mut)}
 .qmark{width:22px;height:22px;border-radius:50%;background:var(--surface2);border:1px solid var(--bd);color:var(--mut);font-weight:800;font-size:12px;cursor:pointer;flex:none}.qmark:hover{background:var(--pri);color:#fff}
 .autob{font-size:8px;font-weight:800;background:var(--surface2);color:var(--mut);padding:1px 5px;border-radius:6px;letter-spacing:.5px}
+#s-ia input,#s-ia select{width:100%;background:var(--surface2);border:1px solid var(--bd);color:var(--tx);border-radius:9px;padding:10px;font-size:14px}
+.ialbl{font-size:12px;color:var(--mut);font-weight:700;margin:10px 0 4px;display:block}
+.iarow{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
 </style></head><body>
 <div class="top">
  <button class="burger" onclick="menuBtn()" title="Menu">&#9776;</button>
@@ -153,6 +156,7 @@ body.mcol .side a .tag{display:none}
   <a data-s="arena" onclick="nav('arena')"><span class="ic">&#9876;</span> Arena</a>
   <a data-s="rank" onclick="nav('rank')"><span class="ic">&#127942;</span> Ranking</a>
   <a data-s="deposito" onclick="nav('deposito')"><span class="ic">&#128179;</span> Dep&oacute;sito</a>
+  <a data-s="ia" onclick="nav('ia')"><span class="ic">&#129302;</span> Conectar IA</a>
   <a class="soon"><span class="ic">&#127920;</span> Bet <span class="tag">Em breve</span></a>
   <a onclick="sair()" style="margin-top:auto"><span class="ic">&#128682;</span> Sair</a>
  </nav>
@@ -223,6 +227,27 @@ body.mcol .side a .tag{display:none}
    <div class="card" style="margin-top:12px"><h3>Como funciona</h3><div class="muted">No cadastro voc&ecirc; j&aacute; recebe 500 tokens (200 Colecionador / 200 Apostas / 100 Arena) e a cada rodada +50. O dep&oacute;sito serve pra adquirir o Pacote Base e conte&uacute;do do &aacute;lbum.</div></div>
   </section>
 
+  <section class="sec" id="s-ia">
+   <h1>&#129302; Conectar minha IA</h1>
+   <div class="muted" style="margin-bottom:10px">Conecte sua pr&oacute;pria LLM (chave sua, custo seu). Ela palpita por voc&ecirc; usando o contexto de cada jogo: odds, probabilidade, escala&ccedil;&atilde;o, forma e not&iacute;cias.</div>
+   <div class="card">
+    <h3>&#128268; Conex&atilde;o</h3>
+    <label class="ialbl">Provedor</label>
+    <select id="ia-prov" onchange="iaProvCh()"><option value="gemini">Google Gemini (free tier)</option><option value="openai">OpenAI / compat&iacute;vel</option></select>
+    <div id="ia-base-wrap" style="display:none"><label class="ialbl">Base URL</label><input id="ia-base" placeholder="https://api.openai.com/v1"></div>
+    <label class="ialbl">Sua API key</label><input id="ia-key" type="password" placeholder="cole a chave da sua LLM">
+    <label class="ialbl">Modelo</label><input id="ia-modelo" list="ia-mods" placeholder="ex.: gemini-2.0-flash"><datalist id="ia-mods"></datalist>
+    <div class="iarow"><button class="btn" onclick="salvarIA()">Salvar conex&atilde;o</button><button class="btn ghost" onclick="listarModelosIA()">Listar modelos</button><span id="ia-st" class="muted"></span></div>
+   </div>
+   <div class="card" style="margin-top:12px">
+    <h3>&#128176; Custo</h3>
+    <div class="muted">Mandamos muito contexto (token in), a IA responde s&oacute; o placar (token out baix&iacute;ssimo) &rarr; custa centavos, ou <b>R$ 0</b> no free tier.</div>
+    <div style="margin-top:8px;font-size:14px">Gasto total da sua IA: <b id="ia-gasto">R$ 0,00</b></div>
+   </div>
+   <div style="margin-top:12px"><button class="btn" id="ia-fill" onclick="preencherIA()">&#10024; Preencher rodada com minha IA</button></div>
+   <div id="ia-result" class="muted" style="margin-top:10px"></div>
+  </section>
+
   <section class="sec" id="s-perfil">
    <h1>Perfil</h1>
    <div class="card"><div><b id="p-nome"></b></div><div class="muted" id="p-email"></div>
@@ -258,6 +283,7 @@ function nav(sec){
  if(sec==="bolao")loadBolao(CURROD);
  if(sec==="rank")loadRank();
  if(sec==="copa")loadCopa();
+ if(sec==="ia")loadIA();
 }
 async function loadDados(){
  var r=await fetch(BASE+"/jogar/dados",{headers:H()});
@@ -328,6 +354,12 @@ async function preencherAuto(){
 }
 async function setAuto(on){var r=await fetch(BASE+"/jogar/auto",{method:"POST",headers:H(),body:JSON.stringify({on:on})});var d=await r.json().catch(function(){return{};});if(d&&d.ok){toast(on?"Auto-preencher ligado":"Auto-preencher desligado");}else{toast("erro",1);var a=document.getElementById("autochk");if(a)a.checked=!on;}}
 function ajudaAuto(){modal('<h3>&#129302; Auto-preencher</h3><div class="muted" style="line-height:1.6">Quando <b>ligado</b>, at&eacute; <b>1 hora antes</b> de cada jogo que voc&ecirc; ainda n&atilde;o palpitou, o sistema preenche por voc&ecirc; <b>pela l&oacute;gica das odds mais atualizadas</b> &mdash; com varia&ccedil;&atilde;o inteligente (favorito costuma vencer, mas <b>zebra acontece</b>), ent&atilde;o seu placar n&atilde;o fica igual ao dos outros.<br><br>Voc&ecirc; pode <b>editar at&eacute; o apito</b>. Palpites que voc&ecirc; j&aacute; fez <b>nunca</b> s&atilde;o sobrescritos.</div>');}
+function iaProvCh(){document.getElementById("ia-base-wrap").style.display=document.getElementById("ia-prov").value==="openai"?"block":"none";}
+async function loadIA(){var r=await fetch(BASE+"/jogar/ia",{headers:H()});var d=await r.json().catch(function(){return{};});if(!d||!d.ok)return;document.getElementById("ia-prov").value=d.provedor||"gemini";document.getElementById("ia-modelo").value=d.modelo||"";if(d.base_url)document.getElementById("ia-base").value=d.base_url;iaProvCh();document.getElementById("ia-gasto").textContent="R$ "+(Number(d.gastoBrl||0)).toFixed(2).replace(".",",");document.getElementById("ia-st").textContent=d.conectada?"✅ conectada":"não conectada";}
+async function salvarIA(){var body={provedor:document.getElementById("ia-prov").value,modelo:document.getElementById("ia-modelo").value,base_url:document.getElementById("ia-base").value,api_key:document.getElementById("ia-key").value};var r=await fetch(BASE+"/jogar/ia",{method:"POST",headers:H(),body:JSON.stringify(body)});var d=await r.json();if(d&&d.ok){toast("IA conectada!");document.getElementById("ia-key").value="";loadIA();loadDados();}else{toast((d&&d.erro)||"erro",1);}}
+async function listarModelosIA(){var st=document.getElementById("ia-st");st.textContent="listando...";var body={provedor:document.getElementById("ia-prov").value,api_key:document.getElementById("ia-key").value,base_url:document.getElementById("ia-base").value};var r=await fetch(BASE+"/jogar/ia/modelos",{method:"POST",headers:H(),body:JSON.stringify(body)});var d=await r.json();if(d&&d.ok){var dl=document.getElementById("ia-mods");dl.innerHTML=d.modelos.map(function(m){return '<option value="'+esc(m)+'">';}).join("");st.textContent=d.modelos.length+" modelos (toque no campo Modelo)";}else{st.textContent="";toast((d&&d.erro)||"erro ao listar",1);}}
+async function preencherIA(){var b=document.getElementById("ia-fill");b.disabled=true;var res=document.getElementById("ia-result");res.textContent="sua IA está analisando os jogos...";var r=await fetch(BASE+"/jogar/ia/preencher",{method:"POST",headers:H(),body:JSON.stringify({rodada:CURROD})});var d=await r.json().catch(function(){return{};});b.disabled=false;if(!d||!d.ok){res.textContent="";toast((d&&d.erro)||"erro",1);return;}res.innerHTML='<b>'+d.preenchidos+' palpites pela sua IA</b> '+(d.erros?('('+d.erros+' falharam) '):'')+'· custo R$ '+(Number(d.gastoBrl||0)).toFixed(2).replace(".",",")+'<br>'+(d.palpites||[]).map(function(p){return esc(p.casa)+' <b>'+p.pc+'x'+p.pv+'</b> '+esc(p.visitante);}).join("<br>");toast("IA preencheu "+d.preenchidos+" jogos");loadIA();loadDados();}
+
 async function loadRank(){
  var box=document.getElementById("rank-box");box.textContent="carregando...";
  var r=await fetch(BASE+"/jogar/ranking",{headers:H()});var d=await r.json();
