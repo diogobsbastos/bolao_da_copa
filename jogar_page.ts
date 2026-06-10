@@ -134,6 +134,16 @@ body.mcol .side a .tag{display:none}
 #s-ia input,#s-ia select{width:100%;background:var(--surface2);border:1px solid var(--bd);color:var(--tx);border-radius:9px;padding:10px;font-size:14px}
 .ialbl{font-size:12px;color:var(--mut);font-weight:700;margin:10px 0 4px;display:block}
 .iarow{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.mascbar{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--bd);border-radius:14px;padding:10px 12px;margin-bottom:12px}
+.masc{width:54px;height:54px;flex:none;cursor:pointer;transition:filter .3s,opacity .3s}.masc svg{width:100%;height:100%;display:block}
+.masc.off{filter:grayscale(1);opacity:.45}
+.masc.on{animation:bob 2.4s ease-in-out infinite;filter:drop-shadow(0 4px 10px rgba(31,170,89,.35))}
+.masc.think{animation:bob .55s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-6px) rotate(3deg)}}
+.bubble{position:relative;background:var(--surface2);border:1px solid var(--bd);border-radius:12px;padding:9px 12px;font-size:13px;font-weight:600;flex:1;line-height:1.45}
+.bubble:before{content:"";position:absolute;left:-7px;top:18px;border:7px solid transparent;border-right-color:var(--bd)}
+.mbtn{background:var(--pri);color:#fff;border:0;border-radius:8px;padding:6px 11px;font-weight:800;font-size:12px;cursor:pointer;margin-left:4px}
+.mlink{color:var(--pri2);font-weight:800;cursor:pointer}
 </style></head><body>
 <div class="top">
  <button class="burger" onclick="menuBtn()" title="Menu">&#9776;</button>
@@ -177,6 +187,11 @@ body.mcol .side a .tag{display:none}
   <section class="sec" id="s-bolao">
    <h1>Bol&atilde;o &mdash; palpite da rodada</h1>
    <div class="muted" style="margin-bottom:10px">Coloque o placar que voc&ecirc; acha. Risco zero: erro n&atilde;o tira token, acerto soma pontos no ranking. Trava no apito.</div>
+   <div class="mascbar">
+    <div class="masc off" id="masc" onclick="mascClick()"><svg viewBox="0 0 64 64"><defs><radialGradient id="mg" cx="40%" cy="35%" r="75%"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#cfd6e4"/></radialGradient></defs><circle cx="32" cy="33" r="26" fill="url(#mg)" stroke="#0a1228" stroke-width="2.5"/><polygon points="32,11 40,17 37,27 27,27 24,17" fill="#0a1228"/><circle cx="24" cy="36" r="5" fill="#fff" stroke="#0a1228" stroke-width="1.4"/><circle cx="40" cy="36" r="5" fill="#fff" stroke="#0a1228" stroke-width="1.4"/><circle cx="25" cy="37" r="2.3" fill="#0a1228"/><circle cx="41" cy="37" r="2.3" fill="#0a1228"/><path d="M25 46 Q32 51 39 46" fill="none" stroke="#0a1228" stroke-width="2.2" stroke-linecap="round"/><path d="M53 13 l1.5 3.2 3.5 .4 -2.6 2.4 .7 3.4 -3.1 -1.7 -3.1 1.7 .7 -3.4 -2.6 -2.4 3.5 -.4z" fill="#f5c451"/></svg></div>
+    <div class="bubble" id="masc-bubble">&#128164; Conecte sua IA e eu palpito por voc&ecirc;.</div>
+   </div>
+
    <div class="tabs" id="bolao-tabs"><span class="tab on" data-r="1" onclick="loadBolao(1)">Rodada 1</span><span class="tab" data-r="2" onclick="loadBolao(2)">Rodada 2</span><span class="tab" data-r="3" onclick="loadBolao(3)">Rodada 3</span></div>
    <div class="autobar" id="autobar"><button class="btn ghost" id="btn-auto" onclick="preencherAuto()">&#127919; Preencher pela l&oacute;gica das odds</button><label class="sw" title="Auto-preencher"><input type="checkbox" id="autochk" onchange="setAuto(this.checked)"><span class="sl"></span></label><span class="swlbl">Auto-preencher</span><button class="qmark" onclick="ajudaAuto()" title="O que &eacute;?">?</button></div>
    <div id="bolao-box" class="muted">carregando...</div>
@@ -300,6 +315,7 @@ async function loadDados(){
  document.getElementById("d-pts").textContent=(d.ranking&&d.ranking.pontos)||0;
  document.getElementById("d-pend").textContent=d.palpitesPendentes||0;
  var _ac=document.getElementById("autochk");if(_ac)_ac.checked=!!d.autoPreencher;
+ IA_ON=!!d.iaConectada;setMascote();
  var pb=document.getElementById("d-prox");
  if(d.proximo){var p=d.proximo;pb.innerHTML='<h3>Pr&oacute;ximo jogo &middot; Rodada '+(p.rodada||"-")+'</h3><div style="display:flex;align-items:center;gap:8px;font-weight:700;margin-top:6px">'+fl(p.casa.iso)+' '+esc(p.casa.pt)+' <span class="muted">x</span> '+esc(p.visitante.pt)+' '+fl(p.visitante.iso)+'</div><div class="muted" style="margin-top:4px">'+fmtData(p.inicio)+'</div>';}
  else{pb.innerHTML='<h3>Pr&oacute;ximo jogo</h3><div class="muted">sem jogos futuros agora.</div>';}
@@ -326,6 +342,10 @@ function cardBolao(j,cor){
  var jb='<div class="jbody">'+cn(j.casa)+cs(1,pc)+'<div class="cm cmtop">'+au+tag+ball+'</div>'+cn(j.visitante)+cs(0,pv)+'<div class="cm cmbot">'+favOdds(j)+'</div></div>';
  return '<div class="jogo" style="--rc:'+cor+'">'+gt+jb+'</div>';
 }
+var IA_ON=false;
+function setMascote(){var m=document.getElementById("masc"),b=document.getElementById("masc-bubble");if(!m||!b)return;m.className="masc "+(IA_ON?"on":"off");if(IA_ON){b.innerHTML='T&ocirc; pronto pra palpitar essa rodada! <button class="mbtn" onclick="preencherIA()">&#10024; Palpitar</button>';}else{b.innerHTML='&#128164; <b>Conecte sua IA</b> e eu palpito por voc&ecirc;. <span class="mlink" onclick="nav(\'ia\')">conectar &#8594;</span>';}}
+function mascClick(){if(!IA_ON)nav("ia");}
+
 async function loadBolao(rod){
  CURROD=rod;
  document.querySelectorAll("#bolao-tabs .tab").forEach(function(t){var rr=+t.getAttribute("data-r");var cc=COR_ROD[rr]||"#14794a";var on=rr===rod;t.classList.toggle("on",on);t.style.background=on?cc:"transparent";t.style.borderColor=on?cc:"var(--bd)";t.style.color=on?"#fff":cc;});var _ba=document.getElementById("btn-auto");if(_ba){var _c=COR_ROD[rod]||"#14794a";_ba.style.background=_c;_ba.style.borderColor=_c;_ba.style.color="#fff";}var _ab=document.getElementById("autobar");if(_ab)_ab.style.setProperty("--rc",COR_ROD[rod]||"#14794a");
@@ -334,6 +354,7 @@ async function loadBolao(rod){
  var d=await r.json();if(!d||!d.ok){box.textContent="erro ao carregar.";return;}
  JOGOS_BOLAO=d.jogos||[];
  if(!d.jogos.length){box.innerHTML='<div class="muted">sem jogos nesta rodada.</div>';return;}
+ setMascote();
  var cor=COR_ROD[rod]||"#14794a";var html="",dia="";
  d.jogos.forEach(function(j){var dd=fmtDia(j.inicio);if(dd!==dia){if(dia)html+="</div>";dia=dd;html+='<div class="diah">Fase de grupos &middot; '+esc(dd)+'</div><div class="jgrid">';}html+=cardBolao(j,cor);});
  if(dia)html+="</div>";
@@ -358,7 +379,7 @@ function iaProvCh(){document.getElementById("ia-base-wrap").style.display=docume
 async function loadIA(){var r=await fetch(BASE+"/jogar/ia",{headers:H()});var d=await r.json().catch(function(){return{};});if(!d||!d.ok)return;document.getElementById("ia-prov").value=d.provedor||"gemini";document.getElementById("ia-modelo").value=d.modelo||"";if(d.base_url)document.getElementById("ia-base").value=d.base_url;iaProvCh();document.getElementById("ia-gasto").textContent="R$ "+(Number(d.gastoBrl||0)).toFixed(2).replace(".",",");document.getElementById("ia-st").textContent=d.conectada?"✅ conectada":"não conectada";}
 async function salvarIA(){var body={provedor:document.getElementById("ia-prov").value,modelo:document.getElementById("ia-modelo").value,base_url:document.getElementById("ia-base").value,api_key:document.getElementById("ia-key").value};var r=await fetch(BASE+"/jogar/ia",{method:"POST",headers:H(),body:JSON.stringify(body)});var d=await r.json();if(d&&d.ok){toast("IA conectada!");document.getElementById("ia-key").value="";loadIA();loadDados();}else{toast((d&&d.erro)||"erro",1);}}
 async function listarModelosIA(){var st=document.getElementById("ia-st");st.textContent="listando...";var body={provedor:document.getElementById("ia-prov").value,api_key:document.getElementById("ia-key").value,base_url:document.getElementById("ia-base").value};var r=await fetch(BASE+"/jogar/ia/modelos",{method:"POST",headers:H(),body:JSON.stringify(body)});var d=await r.json();if(d&&d.ok){var dl=document.getElementById("ia-mods");dl.innerHTML=d.modelos.map(function(m){return '<option value="'+esc(m)+'">';}).join("");st.textContent=d.modelos.length+" modelos (toque no campo Modelo)";}else{st.textContent="";toast((d&&d.erro)||"erro ao listar",1);}}
-async function preencherIA(){var b=document.getElementById("ia-fill");b.disabled=true;var res=document.getElementById("ia-result");res.textContent="sua IA está analisando os jogos...";var r=await fetch(BASE+"/jogar/ia/preencher",{method:"POST",headers:H(),body:JSON.stringify({rodada:CURROD})});var d=await r.json().catch(function(){return{};});b.disabled=false;if(!d||!d.ok){res.textContent="";toast((d&&d.erro)||"erro",1);return;}res.innerHTML='<b>'+d.preenchidos+' palpites pela sua IA</b> '+(d.erros?('('+d.erros+' falharam) '):'')+'· custo R$ '+(Number(d.gastoBrl||0)).toFixed(2).replace(".",",")+'<br>'+(d.palpites||[]).map(function(p){return esc(p.casa)+' <b>'+p.pc+'x'+p.pv+'</b> '+esc(p.visitante);}).join("<br>");toast("IA preencheu "+d.preenchidos+" jogos");loadIA();loadDados();}
+async function preencherIA(){var b=document.getElementById("ia-fill");if(b)b.disabled=true;var res=document.getElementById("ia-result");if(res)res.textContent="sua IA está analisando os jogos...";var mm=document.getElementById("masc"),mb=document.getElementById("masc-bubble");if(mm)mm.className="masc think";if(mb)mb.innerHTML="analisando os jogos... &#129300;";var r=await fetch(BASE+"/jogar/ia/preencher",{method:"POST",headers:H(),body:JSON.stringify({rodada:CURROD})});var d=await r.json().catch(function(){return{};});if(b)b.disabled=false;if(mm)mm.className="masc on";if(!d||!d.ok){if(res)res.textContent="";if(mb)mb.innerHTML="deu ruim &#128533; "+esc((d&&d.erro)||"");toast((d&&d.erro)||"erro",1);return;}if(res)res.innerHTML='<b>'+d.preenchidos+' palpites pela sua IA</b> '+(d.erros?('('+d.erros+' falharam) '):'')+'· custo R$ '+(Number(d.gastoBrl||0)).toFixed(2).replace(".",",")+'<br>'+(d.palpites||[]).map(function(p){return esc(p.casa)+' <b>'+p.pc+'x'+p.pv+'</b> '+esc(p.visitante);}).join("<br>");if(mb)mb.innerHTML="Pronto! Palpitei <b>"+d.preenchidos+"</b> jogos &#127919;";toast("IA preencheu "+d.preenchidos+" jogos");loadIA();loadBolao(CURROD);loadDados();}
 
 async function loadRank(){
  var box=document.getElementById("rank-box");box.textContent="carregando...";

@@ -96,7 +96,8 @@ export async function rotasJogar(app: FastifyInstance) {
     if (pj) { const c = timePT(pj.selecao_casa), v = timePT(pj.selecao_visitante); proximo = { casa: { pt: c.pt, iso: c.iso }, visitante: { pt: v.pt, iso: v.iso }, inicio: pj.inicio, rodada: pj.rodada }; }
     const pend = Number(((await pool.query("SELECT count(*) n FROM jogos j WHERE j.fase='grupos' AND j.selecao_casa<>'A definir' AND j.inicio>=now() AND NOT EXISTS (SELECT 1 FROM palpites_bolao pb WHERE pb.jogo_id=j.id AND pb.usuario_id=$1)", [u.id])).rows[0] as any)?.n || 0);
     let autoP = false; try { autoP = !!((await pool.query("SELECT auto_preencher FROM usuarios WHERE id=$1", [u.id])).rows[0] as any)?.auto_preencher; } catch {}
-    return { ok: true, autoPreencher: autoP, me: { id: u.id, nome: u.nome || u.email, email: u.email, papel: u.papel }, carteiras: { colecionador: Number(cart.c || 0), apostas: Number(cart.a || 0), arena: Number(cart.ar || 0) }, ranking: { pos, pontos, total }, proximo, palpitesPendentes: pend };
+    let iaOn = false; try { iaOn = !!((await pool.query("SELECT (length(api_key)>0) k FROM usuarios_llm WHERE usuario_id=$1", [u.id])).rows[0] as any)?.k; } catch {}
+    return { ok: true, autoPreencher: autoP, iaConectada: iaOn, me: { id: u.id, nome: u.nome || u.email, email: u.email, papel: u.papel }, carteiras: { colecionador: Number(cart.c || 0), apostas: Number(cart.a || 0), arena: Number(cart.ar || 0) }, ranking: { pos, pontos, total }, proximo, palpitesPendentes: pend };
   });
 
   app.get("/jogar/bolao", async (req, reply) => {
