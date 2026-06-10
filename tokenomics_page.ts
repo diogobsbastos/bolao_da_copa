@@ -52,11 +52,8 @@ ${NAV_CSS}
       <div class="kpi real"><div class="lab">Sacado</div><div class="val" id="r-sac">R$ 0,00</div></div>
       <div class="kpi real"><div class="lab">Saldo em caixa</div><div class="val" id="r-sal">R$ 0,00</div></div></div></div>
 
-    <div class="card"><h3>&#129689; Tokens do jogo (em circulacao)</h3><div class="sub">Soma dos saldos das 3 carteiras de todos os jogadores.</div>
+    <div class="card"><h3>&#129689; Tokens do jogo (em circulacao)</h3><div class="sub">Soma do saldo unico de todos os jogadores (token unico - Beta 1.0).</div>
      <div class="grid"><div class="kpi tok"><div class="lab">Total em circulacao</div><div class="val" id="t-tot">0</div></div>
-      <div class="kpi tok"><div class="lab">Colecionador</div><div class="val" id="t-col">0</div></div>
-      <div class="kpi tok"><div class="lab">Apostas</div><div class="val" id="t-apo">0</div></div>
-      <div class="kpi tok"><div class="lab">Arena</div><div class="val" id="t-are">0</div></div>
       <div class="kpi"><div class="lab">Jogadores</div><div class="val" id="t-usu">0</div></div></div></div>
 
     <div class="card"><h3>&#129518; Custo de infra (IA)</h3><div class="sub">Quanto a operacao de IA ja custou (detalhe na aba Logs). Dolar usado pra converter.</div>
@@ -97,9 +94,6 @@ async function start(){
  document.getElementById("r-sac").textContent=brl(d.real.sacado);
  document.getElementById("r-sal").textContent=brl(d.real.saldo);
  document.getElementById("t-tot").textContent=nInt(d.tokens.total);
- document.getElementById("t-col").textContent=nInt(d.tokens.col);
- document.getElementById("t-apo").textContent=nInt(d.tokens.apo);
- document.getElementById("t-are").textContent=nInt(d.tokens.are);
  document.getElementById("t-usu").textContent=nInt(d.usuarios);
  document.getElementById("i-gas").textContent=brl(d.infra.gasto_brl,4);
  document.getElementById("i-ops").textContent=nInt(d.infra.ops);

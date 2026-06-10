@@ -35,7 +35,7 @@ async function criarJogador(email: string, nome: string | null, senhaHash: strin
   await pool.query("INSERT INTO usuarios_carteiras (usuario_id) VALUES ($1)", [id]);
   await pool.query(
     `INSERT INTO transacoes_tokens (usuario_id, carteira, valor, saldo_apos, tipo)
-     VALUES ($1,'colecionador',200,200,'cadastro'),($1,'apostas',200,200,'cadastro'),($1,'arena',100,100,'cadastro')`,
+     VALUES ($1,'token',500,500,'cadastro')`,
     [id]
   );
   await pool.query("INSERT INTO ranking (usuario_id) VALUES ($1)", [id]);

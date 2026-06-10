@@ -26,9 +26,8 @@ export async function rotasTokenomics(app: FastifyInstance) {
     };
     try { out.usuarios = N((await pool.query("SELECT count(*)::int n FROM usuarios")).rows[0]?.n); } catch {}
     try {
-      const c = (await pool.query("SELECT COALESCE(sum(saldo_colecionador),0) col, COALESCE(sum(saldo_apostas),0) apo, COALESCE(sum(saldo_arena),0) are FROM usuarios_carteiras")).rows[0] as any;
-      out.tokens.col = N(c.col); out.tokens.apo = N(c.apo); out.tokens.are = N(c.are);
-      out.tokens.total = out.tokens.col + out.tokens.apo + out.tokens.are;
+      const c = (await pool.query("SELECT COALESCE(sum(saldo),0) total FROM usuarios_carteiras")).rows[0] as any;
+      out.tokens.total = N(c.total);
     } catch {}
     try {
       const g = (await pool.query("SELECT COALESCE(sum(custo_brl),0) gasto, count(*)::int ops FROM gastos_log")).rows[0] as any;

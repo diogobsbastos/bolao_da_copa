@@ -90,8 +90,8 @@ export async function rotasJogar(app: FastifyInstance) {
 
   app.get("/jogar/dados", async (req, reply) => {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
-    let cart = (await pool.query("SELECT saldo_colecionador c, saldo_apostas a, saldo_arena ar FROM usuarios_carteiras WHERE usuario_id=$1", [u.id])).rows[0] as any;
-    if (!cart) { try { await pool.query("INSERT INTO usuarios_carteiras (usuario_id) VALUES ($1) ON CONFLICT DO NOTHING", [u.id]); } catch {} cart = { c: 200, a: 200, ar: 100 }; }
+    let cart = (await pool.query("SELECT saldo FROM usuarios_carteiras WHERE usuario_id=$1", [u.id])).rows[0] as any;
+    if (!cart) { try { await pool.query("INSERT INTO usuarios_carteiras (usuario_id) VALUES ($1) ON CONFLICT DO NOTHING", [u.id]); } catch {} cart = { saldo: 500 }; }
     let pos: any = null, pontos = 0, total = 0;
     try {
       total = Number(((await pool.query("SELECT count(*) n FROM ranking")).rows[0] as any)?.n || 0);
@@ -108,7 +108,7 @@ export async function rotasJogar(app: FastifyInstance) {
     let acessoFull = false; let pf: any = {};
     try { pf = (await pool.query("SELECT acesso_full, nome_time, avatar, pagou FROM usuarios WHERE id=$1", [u.id])).rows[0] as any || {}; acessoFull = !!pf.acesso_full || u.papel === "admin"; } catch {}
     let valorPago = 0; try { valorPago = Number(((await pool.query("SELECT COALESCE(SUM(valor),0) v FROM depositos WHERE usuario_id=$1 AND status='approved'", [u.id])).rows[0] as any)?.v || 0); } catch {}
-    return { ok: true, autoPreencher: autoP, iaConectada: iaOn, acessoFull, me: { id: u.id, nome: u.nome || u.email, email: u.email, papel: u.papel, nomeTime: pf.nome_time || "", avatar: pf.avatar || "", pagou: !!pf.pagou, valorPago }, carteiras: { colecionador: Number(cart.c || 0), apostas: Number(cart.a || 0), arena: Number(cart.ar || 0) }, ranking: { pos, pontos, total }, proximo, palpitesPendentes: pend };
+    return { ok: true, autoPreencher: autoP, iaConectada: iaOn, acessoFull, me: { id: u.id, nome: u.nome || u.email, email: u.email, papel: u.papel, nomeTime: pf.nome_time || "", avatar: pf.avatar || "", pagou: !!pf.pagou, valorPago }, carteiras: { saldo: Number(cart.saldo || 0) }, ranking: { pos, pontos, total }, proximo, palpitesPendentes: pend };
   });
 
   app.post("/jogar/perfil", async (req, reply) => {

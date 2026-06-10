@@ -7,10 +7,10 @@ const novoCodigo = () => randomBytes(5).toString("hex").toUpperCase();
 async function cfg(k: string): Promise<string> { try { const { rows } = await pool.query("SELECT valor FROM config WHERE chave=$1", [k]); return (rows as any[])[0]?.valor ?? ""; } catch { return ""; } }
 async function baseUrl(): Promise<string> { return (await cfg("base_url_publica")) || "https://oracle-vipworks.duckdns.org"; }
 
-async function creditarTokens(uid: number, col: number, apo: number, are: number, tipo: string): Promise<void> {
-  const r = (await pool.query("UPDATE usuarios_carteiras SET saldo_colecionador=saldo_colecionador+$2, saldo_apostas=saldo_apostas+$3, saldo_arena=saldo_arena+$4 WHERE usuario_id=$1 RETURNING saldo_colecionador c, saldo_apostas a, saldo_arena ar", [uid, col, apo, are])).rows[0] as any;
+async function creditarTokens(uid: number, valor: number, tipo: string): Promise<void> {
+  const r = (await pool.query("UPDATE usuarios_carteiras SET saldo=saldo+$2 WHERE usuario_id=$1 RETURNING saldo", [uid, valor])).rows[0] as any;
   if (!r) return;
-  try { await pool.query("INSERT INTO transacoes_tokens (usuario_id,carteira,valor,saldo_apos,tipo) VALUES ($1,'colecionador',$2,$3,$6),($1,'apostas',$4,$5,$6),($1,'arena',$7,$8,$6)", [uid, col, r.c, apo, r.a, tipo, are, r.ar]); } catch {}
+  try { await pool.query("INSERT INTO transacoes_tokens (usuario_id,carteira,valor,saldo_apos,tipo) VALUES ($1,'token',$2,$3,$4)", [uid, valor, r.saldo, tipo]); } catch {}
 }
 async function grantPacote(uid: number, n: number, origem: string): Promise<void> {
   const cards = (await pool.query("SELECT id FROM jogadores WHERE figurinha IS NOT NULL ORDER BY random() LIMIT $1", [n])).rows as any[];
@@ -51,7 +51,7 @@ export async function aoPagar(uid: number): Promise<void> {
     const ref = u?.referido_por;
     if (ref) {
       const ind = (await pool.query("UPDATE indicacoes SET status='pago', pago_em=now(), recompensa_dada=true WHERE referrer_id=$1 AND indicado_id=$2 AND tipo='normal' AND recompensa_dada=false RETURNING id", [ref, uid])).rows[0] as any;
-      if (ind) { await creditarTokens(ref, 20, 20, 10, "indicacao"); await grantPacote(ref, 5, "indicacao"); console.log("[indicacao] recompensa p/ referrer", ref, "por indicado", uid); }
+      if (ind) { await creditarTokens(ref, 50, "indicacao"); await grantPacote(ref, 5, "indicacao"); console.log("[indicacao] recompensa p/ referrer", ref, "por indicado", uid); }
     }
   } catch (e: any) { console.log("[indicacao] erro aoPagar", String(e?.message ?? e)); }
 }

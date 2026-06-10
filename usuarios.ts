@@ -39,9 +39,7 @@ export async function rotasUsuarios(app: FastifyInstance) {
       await client.query("INSERT INTO usuarios_carteiras (usuario_id) VALUES ($1)", [id]);
       await client.query(
         `INSERT INTO transacoes_tokens (usuario_id, carteira, valor, saldo_apos, tipo)
-         VALUES ($1,'colecionador',200,200,'cadastro'),
-                ($1,'apostas',200,200,'cadastro'),
-                ($1,'arena',100,100,'cadastro')`,
+         VALUES ($1,'token',500,500,'cadastro')`,
         [id]
       );
       await client.query("INSERT INTO ranking (usuario_id) VALUES ($1)", [id]);
@@ -50,7 +48,7 @@ export async function rotasUsuarios(app: FastifyInstance) {
       return reply.code(201).send({
         id,
         codigo_referral: u.rows[0].codigo_referral,
-        carteiras: { colecionador: 200, apostas: 200, arena: 100 },
+        carteiras: { saldo: 500 },
       });
     } catch (e: any) {
       await client.query("ROLLBACK");
@@ -66,7 +64,7 @@ export async function rotasUsuarios(app: FastifyInstance) {
   app.get("/usuarios/:id/carteiras", async (req, reply) => {
     const { id } = req.params as { id: string };
     const r = await pool.query(
-      "SELECT saldo_colecionador, saldo_apostas, saldo_arena FROM usuarios_carteiras WHERE usuario_id=$1",
+      "SELECT saldo FROM usuarios_carteiras WHERE usuario_id=$1",
       [id]
     );
     if (!r.rows[0]) return reply.code(404).send({ erro: "usuário não encontrado" });

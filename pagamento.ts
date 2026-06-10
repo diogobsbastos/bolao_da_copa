@@ -25,7 +25,7 @@ async function creditarDeposito(depId: number): Promise<boolean> {
     const cards = (await pool.query("SELECT id FROM jogadores WHERE posicao=$1 AND figurinha IS NOT NULL ORDER BY random() LIMIT $2", [pos, n])).rows as any[];
     for (const c of cards) await pool.query("INSERT INTO inventario_figurinhas (usuario_id, jogador_id, origem) VALUES ($1,$2,'pacote_base')", [uid, c.id]);
   }
-  try { await pool.query("UPDATE usuarios_carteiras SET saldo_colecionador = saldo_colecionador WHERE usuario_id=$1", [uid]); } catch {}
+  try { await pool.query("UPDATE usuarios_carteiras SET saldo = saldo WHERE usuario_id=$1", [uid]); } catch {}
   try { await aoPagar(uid); } catch {}
   console.log("[pagamento] pacote base creditado p/ usuario", uid, "deposito", depId);
   return true;
