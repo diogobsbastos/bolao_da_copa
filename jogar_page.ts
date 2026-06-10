@@ -227,7 +227,7 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
 .mascbar{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--bd);border-radius:14px;padding:10px 12px;margin-bottom:12px}
 .masc{width:46px;height:46px;flex:none;cursor:pointer;transition:filter .3s,opacity .3s}.masc svg{width:100%;height:100%;display:block}
 .grow{flex:1;min-width:0}
-.free{margin-left:auto;display:inline-flex;align-items:center;background:#d6f5e3;color:#0f7a45;font-size:8px;font-weight:800;padding:2px 6px;border-radius:6px;letter-spacing:.3px;line-height:1}
+.free{margin-left:auto;display:inline-flex;align-items:center;background:#d6f5e3;color:#0f7a45;font-size:8px;font-weight:600;padding:2px 6px;border-radius:6px;letter-spacing:0;line-height:1}
 .side{gap:1px}
 .side a{padding:7px 10px;font-size:13px;border-radius:10px;gap:10px;transition:background .12s}
 .side a .ic{width:20px;height:20px;display:flex;align-items:center;justify-content:center}
@@ -262,6 +262,21 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
 .profstat{flex:1;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px 8px;text-align:center}
 .profstat .v{font-size:19px;font-weight:800}
 .profstat .l{font-size:10.5px;color:var(--mut);font-weight:700;margin-top:2px}
+.avov{position:fixed;inset:0;background:rgba(8,13,24,.72);display:none;align-items:center;justify-content:center;z-index:300;padding:16px}
+.avov.on{display:flex}
+.avbox{background:var(--surface,#fff);border:1px solid var(--bd);border-radius:18px;padding:18px 18px 16px;width:min(340px,92vw);text-align:center;box-shadow:0 22px 56px rgba(0,0,0,.45)}
+.avtitle{font-weight:800;font-size:16px;margin-bottom:4px}
+.avhint{font-size:12px;color:var(--mut);margin-bottom:14px}
+.avframe{position:relative;width:248px;height:248px;margin:0 auto 14px;border-radius:50%;overflow:hidden;background:#0d1118;cursor:grab;touch-action:none;user-select:none}
+.avframe.drag{cursor:grabbing}
+.avframe img{position:absolute;max-width:none;-webkit-user-drag:none;user-select:none;pointer-events:none}
+.avring{position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 2px rgba(255,255,255,.85) inset,0 0 0 9999px rgba(8,13,24,.35);pointer-events:none}
+.avzwrap{display:flex;align-items:center;gap:10px;margin:0 4px 14px}
+.avzoom{flex:1;-webkit-appearance:none;appearance:none;height:5px;border-radius:999px;background:var(--bd);outline:none}
+.avzoom::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--pri);cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.avzoom::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--pri);cursor:pointer;border:2px solid #fff}
+.avacts{display:flex;gap:10px;justify-content:center}
+.avacts .btn{flex:1}
 .convlink input{width:100%;background:var(--surface2);border:1px solid var(--bd);color:var(--tx);border-radius:9px;padding:9px;font-size:12px;margin:4px 0 10px}
 .convbtns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .cbtn{display:flex;align-items:center;justify-content:center;gap:5px;border:0;border-radius:10px;padding:11px 6px;font-weight:800;font-size:12.5px;cursor:pointer;text-decoration:none}
@@ -311,7 +326,6 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
   <span class="w" title="Colecionador">&#129689; <span id="w-col">0</span></span>
   <span class="w" title="Apostas">&#127919; <span id="w-apo">0</span></span>
   <span class="w" title="Arena">&#9876; <span id="w-are">0</span></span>
-  <button class="tgl" id="tgl" onclick="tema()" title="Tema claro/escuro">&#127769;</button>
   <div class="pwrap">
    <span class="av" id="av" onclick="togDrop(event)" title="Perfil">?</span>
    <div class="pdrop" id="pdrop">
@@ -320,6 +334,7 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
     <a onclick="nav('deposito')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg> Dep&oacute;sito</a>
     <a onclick="nav('convidar')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="1"/><path d="M2 9h20v3H2zM12 9v11M9 9a2.5 2.5 0 1 1 3-3.5A2.5 2.5 0 1 1 15 9"/></svg> Convidar <span class="free">FULL</span></a>
     <a onclick="nav('perfil')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M16 12h3"/><path d="M3 9h12a2 2 0 0 1 0 4"/></svg> Carteira</a>
+    <a onclick="tema()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg> <span id="themelbl">Modo claro</span></a>
     <div class="pdsep"></div>
     <a class="dang" onclick="sair()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4"/><path d="m9 16-4-4 4-4M5 12h11"/></svg> Sair</a>
    </div>
@@ -489,6 +504,12 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
 </div>
 <div class="mov" id="mov" onclick="if(event.target===this)fecha()"><div class="modal"><button class="mx" onclick="fecha()" title="Fechar">&times;</button><div id="mbody"></div><div id="mfoot" style="margin-top:12px;text-align:right"></div></div></div>
 <div class="bloqov" id="bloqueio"><div class="bloqcard"><div class="bloqtitle">&#128274; Desbloqueie pra jogar</div><div class="muted" style="margin:6px 0 14px;line-height:1.5">O Bol&atilde;o Copa 26 &eacute; s&oacute; pra quem &eacute; <b>full</b>. Pague <b>R$10</b> (uma vez) ou use um <b>convite full</b> de um amigo.</div><button class="btn" style="width:100%" onclick="bloqPagar()">&#128179; Pagar com PIX (R$10)</button><div class="bloqor">ou</div><div class="bloqcode"><input id="bloq-code" placeholder="cole seu convite full"><button class="btn ghost" onclick="bloqResgatar()">Resgatar</button></div><div id="bloq-msg" class="muted" style="margin-top:8px;font-size:12px"></div></div></div>
+<div class="avov" id="avcrop" onclick="if(event.target===this)avCancel()"><div class="avbox">
+ <div class="avtitle">Ajustar foto</div><div class="avhint">Arraste para posicionar &middot; use o zoom</div>
+ <div class="avframe" id="avframe"><img id="avimg" alt=""><div class="avring"></div></div>
+ <div class="avzwrap"><span style="font-size:14px">&#9728;</span><input class="avzoom" id="avzoom" type="range" min="1" max="3" step="0.01" value="1" oninput="avZoom()"><span style="font-size:19px">&#9728;</span></div>
+ <div class="avacts"><button class="btn ghost" onclick="avCancel()">Cancelar</button><button class="btn" onclick="avConfirm()">Salvar foto</button></div>
+</div></div>
 <div class="tourov" id="tour" onclick="if(event.target===this)tourClose()"><div class="tourcard" id="tourcard"><div class="tourtop"><span id="tour-prog">&mdash;</span><span class="tourtbtns"><button class="tourq" onclick="tourAudit()" title="Ver os dados que a IA recebeu">?</button><button class="tourx" onclick="tourClose()" title="Fechar">&times;</button></span></div><div class="tourgame"><div class="tg-side"><span class="flagw" id="tour-flagC"></span><span id="tour-nomeC">&mdash;</span></div><div class="tg-score"><div class="tg-stepper"><button onclick="tourStep('c',1)">&#9650;</button><input id="tpc" inputmode="numeric" value="0"><button onclick="tourStep('c',-1)">&#9660;</button></div><span class="tg-x">&times;</span><div class="tg-stepper"><button onclick="tourStep('v',1)">&#9650;</button><input id="tpv" inputmode="numeric" value="0"><button onclick="tourStep('v',-1)">&#9660;</button></div></div><div class="tg-side"><span class="flagw" id="tour-flagV"></span><span id="tour-nomeV">&mdash;</span></div></div><div class="tourbubble"><span class="trb" id="tour-robo"><svg viewBox="0 0 64 64"><defs><linearGradient id="trg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2bd07a"/><stop offset="1" stop-color="#0f7a45"/></linearGradient></defs><line x1="32" y1="9" x2="32" y2="16" stroke="#0f7a45" stroke-width="2.6"/><circle cx="32" cy="7" r="3.4" fill="#f5c451" stroke="#0a1228" stroke-width="1.2"/><rect x="8" y="26" width="5" height="12" rx="2.5" fill="#0f7a45" stroke="#0a1228" stroke-width="1.4"/><rect x="51" y="26" width="5" height="12" rx="2.5" fill="#0f7a45" stroke="#0a1228" stroke-width="1.4"/><rect x="12" y="15" width="40" height="34" rx="12" fill="url(#trg)" stroke="#0a1228" stroke-width="2.2"/><rect x="18" y="24" width="28" height="15" rx="7.5" fill="#0a1228"/><circle cx="26" cy="31.5" r="3.6" fill="#7cffb0"/><circle cx="38" cy="31.5" r="3.6" fill="#7cffb0"/><circle cx="27" cy="32.6" r="1.5" fill="#0a1228"/><circle cx="39" cy="32.6" r="1.5" fill="#0a1228"/><path d="M26 44 Q32 48 38 44" fill="none" stroke="#0a1228" stroke-width="2" stroke-linecap="round"/></svg></span><span id="tour-resumo">analisando o jogo&hellip;</span><span class="tfont" id="tour-fonte"></span></div><div class="touraviso" id="tour-aviso" style="display:none"></div><div class="touractions"><button class="btn ghost tprev" onclick="tourPrev()" title="Anterior">&#8249;</button><button class="btn ghost" onclick="tourSkip()">Pular</button><button class="btn" id="tour-aplicar" onclick="tourApply()">Aplicar e pr&oacute;ximo &#8594;</button></div></div></div>
 <script>
 var BASE=location.pathname.replace(/\\/jogar.*$/,"");
@@ -535,7 +556,18 @@ function setProfile(me,c,full){
  var apo=document.getElementById("p-apo");if(apo)apo.textContent=c.apostas;
  var are=document.getElementById("p-are");if(are)are.textContent=c.arena;
 }
-function avatarPick(inp){var fi=inp.files&&inp.files[0];if(!fi)return;var rd=new FileReader();rd.onload=function(){var im=new Image();im.onload=function(){var sz=256,cv=document.createElement("canvas");cv.width=sz;cv.height=sz;var ct=cv.getContext("2d");var mn=Math.min(im.width,im.height);ct.drawImage(im,(im.width-mn)/2,(im.height-mn)/2,mn,mn,0,0,sz,sz);salvarAvatar(cv.toDataURL("image/jpeg",0.85));};im.src=rd.result;};rd.readAsDataURL(fi);}
+var AV={};var AVV=248;
+function avatarPick(inp){var fi=inp.files&&inp.files[0];if(!fi)return;var rd=new FileReader();rd.onload=function(){var im=new Image();im.onload=function(){avOpen(im);};im.src=rd.result;};rd.readAsDataURL(fi);inp.value="";}
+function avOpen(im){AV.im=im;AV.base=AVV/Math.min(im.width,im.height);document.getElementById("avzoom").value=1;AV.eff=AV.base;AV.dw=im.width*AV.eff;AV.dh=im.height*AV.eff;AV.ox=(AVV-AV.dw)/2;AV.oy=(AVV-AV.dh)/2;document.getElementById("avimg").src=im.src;avRender();document.getElementById("avcrop").classList.add("on");}
+function avClamp(){if(AV.ox>0)AV.ox=0;if(AV.oy>0)AV.oy=0;if(AV.ox<AVV-AV.dw)AV.ox=AVV-AV.dw;if(AV.oy<AVV-AV.dh)AV.oy=AVV-AV.dh;}
+function avRender(){avClamp();var g=document.getElementById("avimg");g.style.width=AV.dw+"px";g.style.height=AV.dh+"px";g.style.left=AV.ox+"px";g.style.top=AV.oy+"px";}
+function avZoom(){var z=parseFloat(document.getElementById("avzoom").value)||1;var neff=AV.base*z;var cx=(AVV/2-AV.ox)/AV.eff,cy=(AVV/2-AV.oy)/AV.eff;AV.eff=neff;AV.dw=AV.im.width*neff;AV.dh=AV.im.height*neff;AV.ox=AVV/2-cx*neff;AV.oy=AVV/2-cy*neff;avRender();}
+(function(){var fr=null;function dn(e){fr=document.getElementById("avframe");fr.classList.add("drag");AV.px=(e.touches?e.touches[0].clientX:e.clientX);AV.py=(e.touches?e.touches[0].clientY:e.clientY);e.preventDefault();}
+function mv(e){if(!fr)return;var x=(e.touches?e.touches[0].clientX:e.clientX),y=(e.touches?e.touches[0].clientY:e.clientY);AV.ox+=x-AV.px;AV.oy+=y-AV.py;AV.px=x;AV.py=y;avRender();e.preventDefault();}
+function up(){if(fr){fr.classList.remove("drag");fr=null;}}
+document.addEventListener("DOMContentLoaded",function(){var el=document.getElementById("avframe");if(!el)return;el.addEventListener("mousedown",dn);el.addEventListener("touchstart",dn,{passive:false});window.addEventListener("mousemove",mv);el.addEventListener("touchmove",mv,{passive:false});window.addEventListener("mouseup",up);el.addEventListener("touchend",up);el.addEventListener("wheel",function(e){var z=parseFloat(document.getElementById("avzoom").value)||1;z=Math.min(3,Math.max(1,z+(e.deltaY<0?0.12:-0.12)));document.getElementById("avzoom").value=z;avZoom();e.preventDefault();},{passive:false});});})();
+function avCancel(){document.getElementById("avcrop").classList.remove("on");}
+function avConfirm(){var sz=256,cv=document.createElement("canvas");cv.width=sz;cv.height=sz;var ct=cv.getContext("2d");var sx=-AV.ox/AV.eff,sy=-AV.oy/AV.eff,sw=AVV/AV.eff,sh=AVV/AV.eff;ct.drawImage(AV.im,sx,sy,sw,sh,0,0,sz,sz);avCancel();salvarAvatar(cv.toDataURL("image/jpeg",0.85));}
 async function salvarAvatar(data){var r=await fetch(BASE+"/jogar/perfil/avatar",{method:"POST",headers:H(),body:JSON.stringify({dataUrl:data})});var d=await r.json().catch(function(){return{};});if(d&&d.ok){toast("Foto atualizada \u2705");loadDados();}else toast((d&&d.erro)||"erro na foto",1);}
 async function salvarPerfil(){var nome=document.getElementById("p-nome").value.trim();var time=document.getElementById("p-time").value.trim();var st=document.getElementById("p-save-st");if(st)st.textContent="salvando\u2026";var r=await fetch(BASE+"/jogar/perfil",{method:"POST",headers:H(),body:JSON.stringify({nome:nome,nomeTime:time})});var d=await r.json().catch(function(){return{};});if(d&&d.ok){if(st)st.textContent="salvo \u2705";toast("Perfil salvo \u2705");loadDados();setTimeout(function(){if(st)st.textContent="";},2200);}else{if(st)st.textContent="";toast((d&&d.erro)||"erro ao salvar",1);}}
 async function loadDados(){
@@ -863,8 +895,8 @@ function odds(id){
  modal('<h3>'+fl(j.casa.iso)+' '+esc(j.casa.pt)+' &times; '+esc(j.visitante.pt)+' '+fl(j.visitante.iso)+'</h3><div class="muted" style="font-size:12px;margin-bottom:8px">Odds 1X2 &middot; '+esc(o.fonte||"")+'</div>'+ro(fl(j.casa.iso)+' '+esc(j.casa.pt)+' (vitória)',o.casa)+ro('Empate',o.empate)+ro(fl(j.visitante.iso)+' '+esc(j.visitante.pt)+' (vitória)',o.fora)+((o.url||o.gid)?('<a class="s365link" href="'+esc(o.url||('https://www.365scores.com/pt-br/football/match/g-'+o.gid+'#id='+o.gid))+'" target="_blank"><img src="'+S365LOGO+'" style="height:18px;margin-right:7px;vertical-align:middle">Ver tudo no 365scores &#8599;</a>'):''));
 }
 
-function tema(){var l=document.body.classList.toggle("light");localStorage.setItem("tema",l?"light":"dark");var t=document.getElementById("tgl");if(t)t.textContent=l?"\u2600\uFE0F":"\uD83C\uDF19";}
-if(localStorage.getItem("tema")==="light"){document.body.classList.add("light");var _t=document.getElementById("tgl");if(_t)_t.textContent="\u2600\uFE0F";}
+function tema(){var l=document.body.classList.toggle("light");localStorage.setItem("tema",l?"light":"dark");var lb=document.getElementById("themelbl");if(lb)lb.textContent=l?"Modo escuro":"Modo claro";}
+if(localStorage.getItem("tema")==="light"){document.body.classList.add("light");var _tl=document.getElementById("themelbl");if(_tl)_tl.textContent="Modo escuro";}
 if(localStorage.getItem("mcol")==="1"&&window.innerWidth>760){document.body.classList.add("mcol");}
 if(!TOKEN){location.href=(BASE||"")+"/";}else{loadDados();}
 </script></body></html>`;
