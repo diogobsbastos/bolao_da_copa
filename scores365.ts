@@ -23,11 +23,14 @@ async function s365(path: string): Promise<any> {
   const r = await fetch(S365 + path, { headers: HDRS });
   return await r.json().catch(() => ({}));
 }
+function slug365(x: any): string { return String(x || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); }
 function game365Url(g: any): string {
-  const h = g?.homeCompetitor, a = g?.awayCompetitor;
-  const hn = h?.nameForURL, an = a?.nameForURL;
-  const slug = (hn && an) ? (hn + "-" + an + "-" + (h?.id || "") + "-" + (a?.id || "") + "-" + (g?.competitionId || "")) : ("g-" + (g?.id || ""));
-  return "https://www.365scores.com/pt-br/football/match/" + slug + "#id=" + (g?.id || "");
+  const h = g?.homeCompetitor, a = g?.awayCompetitor; const comp = g?.competitionId, gid = g?.id;
+  const hn = h?.nameForURL, an = a?.nameForURL; const cs = slug365(g?.competitionDisplayName);
+  if (hn && an && h?.id && a?.id && comp && gid) {
+    return "https://www.365scores.com/pt-br/football/match/" + cs + "-" + comp + "/" + hn + "-" + an + "-" + a.id + "-" + h.id + "-" + comp + "#id=" + gid;
+  }
+  return "https://www.365scores.com/pt-br/football/match/g-" + (gid || "") + "#id=" + (gid || "");
 }
 function odds1x2(g: any): any {
   const bo = Array.isArray(g?.bestOdds) ? g.bestOdds : [];
