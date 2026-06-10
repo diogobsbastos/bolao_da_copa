@@ -101,7 +101,7 @@ th,td{padding:8px 8px;border-bottom:1px solid var(--bd);text-align:left}th{color
 .tourbubble .trb svg{width:100%;height:100%;display:block}
 .tourbubble #tour-resumo{flex:1}
 .tourbubble .tfont{flex:none;align-self:center;font-size:10.5px;font-weight:800;color:var(--mut);background:var(--surface2);border-radius:999px;padding:3px 9px;white-space:nowrap}
-.comocalc{color:var(--rc,#14794a);text-decoration:underline;cursor:pointer;margin-left:2px}
+.comocalc{color:var(--mut);cursor:pointer;margin-left:5px;font-size:12px;opacity:.7}.comocalc:hover{color:var(--rc,#14794a);opacity:1}
 .touraviso{display:flex;align-items:center;gap:7px;background:rgba(245,196,81,.14);border:1px solid rgba(245,196,81,.45);color:var(--gold);font-size:11.5px;font-weight:700;line-height:1.35;border-radius:10px;padding:8px 10px;margin-bottom:12px}
 .touractions{display:flex;gap:8px;align-items:center}
 .touractions .btn{flex:1}
@@ -579,7 +579,7 @@ async function tourShow(i){
  document.getElementById("tpc").value=d.pc;document.getElementById("tpv").value=d.pv;
  var fonte=d.fonte==="ia"?"sua IA":"lógica";
  rb.textContent=d.resumo||"";
- TCUR=d;if(rf){if(d.fonte==="logica"&&d.passos&&d.passos.length){rf.innerHTML='por '+fonte+' <span class="comocalc" onclick="tourComoCalc()">como calculei?</span>';}else{rf.textContent="por "+fonte;}rf.title="";}
+ TCUR=d;if(rf){if(d.fonte==="logica"&&d.passos&&d.passos.length){rf.innerHTML='por '+fonte+'<span class="comocalc" onclick="tourComoCalc()" title="Como a lógica calculou (passo a passo)">&#9432;</span>';}else{rf.textContent="por "+fonte;}rf.title="";}
  var av=document.getElementById("tour-aviso");if(av){if(d.aviso){av.style.display="";av.innerHTML="&#9888;&#65039; "+esc(d.aviso);}else{av.style.display="none";}}
  if(d.aviso&&!TFORCELOGIC)tourQuotaChoice(g.id);
  if(ap)ap.disabled=false;
