@@ -60,8 +60,8 @@ h1{font-size:18px;margin:0 0 12px}
 .tabs{display:inline-flex;gap:3px;margin-bottom:14px;background:var(--card2);border:1px solid var(--bd);border-radius:999px;padding:4px}
 .tab{padding:7px 18px;border-radius:999px;background:transparent;border:0;color:var(--mut);font-weight:700;font-size:13px;cursor:pointer;transition:.15s;white-space:nowrap}
 .tab.lock{color:#aab0ba !important;opacity:.8;cursor:not-allowed}
-#bolao-tabs{display:flex;align-items:center;width:100%;max-width:100%;box-sizing:border-box;overflow:hidden;background:var(--surface);border-radius:14px;padding:10px 12px;gap:12px}
-.tabL{flex:0 0 250px;display:flex;align-items:center;gap:6px;min-width:0;overflow-x:auto}
+#bolao-tabs{display:flex;align-items:center;width:100%;max-width:100%;box-sizing:border-box;overflow:hidden;background:var(--surface);border-radius:14px;padding:10px 12px;gap:0}
+.tabL{flex:0 0 50%;display:flex;align-items:center;gap:6px;min-width:0;overflow-x:auto;padding-right:12px}
 .tabR{flex:1;min-width:0;display:flex;align-items:center;padding-left:12px;border-left:1px solid var(--bd)}
 .tabM{display:flex;align-items:center;gap:4px;width:100%;overflow-x:auto}
 .lpbtn{display:inline-flex;align-items:center;gap:7px;margin:0 0 14px;padding:10px 18px;border:0;border-radius:999px;background:linear-gradient(135deg,#f6c83a,#e0a008);color:#3a2a00;font-weight:800;font-size:13px;cursor:pointer;box-shadow:0 5px 16px rgba(224,160,8,.45)}
@@ -252,8 +252,8 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
 .pghead h1{margin:0 0 5px;font-size:20px;line-height:1.15}
 .pgchip{font-size:11.5px;font-weight:700;color:var(--pri2);background:var(--surface2);padding:3px 10px;border-radius:999px;vertical-align:middle;margin-left:7px}
 .pgsub{margin:0;color:var(--mut);font-size:13px;line-height:1.5}
-.actpanel{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--bd);border-radius:14px;padding:10px 12px;margin-bottom:14px}
-.act-ia{display:flex;align-items:center;gap:10px;flex:0 0 250px;min-width:0;overflow:hidden}
+.actpanel{display:flex;align-items:center;gap:0;flex-wrap:wrap;background:var(--surface);border:1px solid var(--bd);border-radius:14px;padding:10px 12px;margin-bottom:14px}
+.act-ia{display:flex;align-items:center;gap:10px;flex:0 0 50%;min-width:0;overflow:hidden;padding-right:12px}
 .act-ia .bubble{flex:1;max-width:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .act-logic{display:flex;align-items:center;gap:9px;flex:1;min-width:0;padding-left:12px;border-left:1px solid var(--bd)}
 #btn-auto{flex:1;height:38px;padding:0 16px;font-size:13px;border-radius:11px}
