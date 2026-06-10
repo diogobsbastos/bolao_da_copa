@@ -45,8 +45,8 @@ h1{font-size:18px;margin:0 0 12px}
 .iaresumo .iainfo{display:flex;flex-direction:column;line-height:1.25;flex:1;min-width:0}
 .iaresumo .iainfo b{font-size:14px}.iaresumo .iainfo small{color:var(--mut);font-size:12px}
 .iaracts{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.btn.dang{background:transparent;color:var(--no);border:1px solid rgba(226,55,68,.45);box-shadow:none}
-.btn.dang:hover{background:rgba(226,55,68,.12);border-color:var(--no);transform:none;filter:none;box-shadow:none}
+.btn.dang{background:linear-gradient(135deg,#e9485a,#b91c2b);color:#fff;border:0;box-shadow:0 4px 12px rgba(226,55,68,.28)}
+.btn.dang:hover{background:linear-gradient(135deg,#e9485a,#b91c2b);color:#fff;filter:brightness(1.06);transform:translateY(-1px);box-shadow:0 7px 18px rgba(226,55,68,.36)}
 
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .muted{color:var(--mut);font-size:13px}
