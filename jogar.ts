@@ -208,6 +208,15 @@ export async function rotasJogar(app: FastifyInstance) {
     catch (e: any) { return { ok: false, erro: String(e?.message ?? e).slice(0, 140) }; }
   });
 
+  app.post("/jogar/ia/testar", async (req, reply) => {
+    const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    const b = (req.body ?? {}) as any;
+    const provedor = String(b.provedor || "gemini"), modelo = String(b.modelo || ""), api_key = String(b.api_key || ""), base_url = String(b.base_url || "");
+    if (!api_key || !modelo) return { ok: false, erro: "informe a chave e o modelo" };
+    try { const r = await invocarTexto({ provedor, modelo, api_key, base_url } as any, "Responda apenas: OK"); return { ok: true, resposta: String(r.texto || "").trim().slice(0, 40) || "OK", tokens: { in: r.usage.in, out: r.usage.out } }; }
+    catch (e: any) { return { ok: false, erro: String(e?.message ?? e).slice(0, 140) }; }
+  });
+
   app.post("/jogar/ia/preencher", async (req, reply) => {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
     const rod = Number((req.body as any)?.rodada || 0);
