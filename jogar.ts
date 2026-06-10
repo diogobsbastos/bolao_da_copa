@@ -388,8 +388,8 @@ export async function rotasJogar(app: FastifyInstance) {
     const meu = (await pool.query("SELECT campeao, vice, terceiro, quarto, artilheiro_id, artilheiro_nome FROM palpites_longo WHERE usuario_id=$1", [u.id])).rows[0] || {};
     const selRows = (await pool.query("SELECT DISTINCT s FROM (SELECT selecao_casa s FROM jogos WHERE selecao_casa<>'A definir' UNION SELECT selecao_visitante FROM jogos WHERE selecao_visitante<>'A definir') q")).rows as any[];
     const selecoes = selRows.map((r: any) => { const t = timePT(r.s); return { en: r.s, pt: t.pt, iso: t.iso }; }).sort((a: any, b: any) => String(a.pt).localeCompare(String(b.pt)));
-    const jogRows = (await pool.query("SELECT id, nome, selecao FROM jogadores ORDER BY nome")).rows as any[];
-    const jogadores = jogRows.map((j: any) => ({ id: j.id, nome: j.nome, sel: timePT(j.selecao).pt }));
+    const jogRows = (await pool.query("SELECT id, nome, selecao, figurinha FROM jogadores ORDER BY nome")).rows as any[];
+    const jogadores = jogRows.map((j: any) => ({ id: j.id, nome: j.nome, sel: timePT(j.selecao).pt, fig: j.figurinha || "" }));
     return { ok: true, locked, trava, meu, selecoes, jogadores };
   });
 
@@ -409,5 +409,34 @@ export async function rotasJogar(app: FastifyInstance) {
       ON CONFLICT (usuario_id) DO UPDATE SET campeao=$2,vice=$3,terceiro=$4,quarto=$5,artilheiro_id=$6,artilheiro_nome=$7,atualizado_em=now()`,
       [u.id, campeao, vice, terceiro, quarto, artId, artNome]);
     return { ok: true };
+  });
+
+  app.get("/jogar/longo/auto", async (req, reply) => {
+    const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    const modo = String((req.query as any)?.modo || "logica");
+    const selRows = (await pool.query("SELECT DISTINCT s FROM (SELECT selecao_casa s FROM jogos WHERE selecao_casa<>'A definir' UNION SELECT selecao_visitante FROM jogos WHERE selecao_visitante<>'A definir') q")).rows as any[];
+    const selecoes = selRows.map((r: any) => r.s as string);
+    if (modo !== "ia") {
+      const ord = selecoes.slice().sort((a, b) => rankOf(a) - rankOf(b));
+      const art = (await pool.query("SELECT j.id, j.nome, j.figurinha FROM jogadores_365 g JOIN jogadores j ON j.id=g.jogador_id WHERE g.shooting IS NOT NULL ORDER BY g.shooting DESC NULLS LAST, g.overall DESC NULLS LAST LIMIT 1")).rows[0] as any;
+      return { ok: true, modo: "logica", campeao: ord[0] || "", vice: ord[1] || "", terceiro: ord[2] || "", quarto: ord[3] || "", artilheiro_id: art?.id || null, artilheiro_nome: art?.nome || "", artilheiro_fig: art?.figurinha || "" };
+    }
+    const prov = (await pool.query("SELECT provedor, modelo, api_key, base_url FROM usuarios_llm WHERE usuario_id=$1", [u.id])).rows[0] as any;
+    if (!prov || !prov.api_key) return { ok: false, erro: "conecte sua IA primeiro (menu Conectar IA)" };
+    const lista = selecoes.map((en) => timePT(en).pt).join(", ");
+    const prompt = "Voce e especialista na Copa do Mundo 2026. Das selecoes a seguir, preveja o podio final (campeao, vice, 3o, 4o) e o ARTILHEIRO da Copa. SELECOES: " + lista + ". Responda SOMENTE JSON valido {\"campeao\":\"\",\"vice\":\"\",\"terceiro\":\"\",\"quarto\":\"\",\"artilheiro\":\"\"} com os nomes das selecoes EXATAMENTE como na lista; artilheiro = nome de um jogador. Nada fora do JSON.";
+    try {
+      const t0 = Date.now();
+      const rr = await invocarTexto({ provedor: prov.provedor, modelo: prov.modelo, api_key: prov.api_key, base_url: prov.base_url } as any, prompt);
+      try { await registrarGasto({ modelo: prov.modelo, tokens_in: rr.usage.in, tokens_out: rr.usage.out, tokens_cache: rr.usage.cache, processo: String(u.id), origem: "jogador", tempo: (Date.now() - t0) / 1000 }); } catch {}
+      const mm = String(rr.texto).match(/\{[\s\S]*\}/); if (!mm) return { ok: false, erro: "a IA nao retornou um palpite valido" };
+      const o = JSON.parse(mm[0]);
+      const norm = (x: any) => String(x || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z]/g, "");
+      const mapPt = new Map<string, string>(); for (const en of selecoes) mapPt.set(norm(timePT(en).pt), en);
+      const toEn = (pt: any) => mapPt.get(norm(pt)) || "";
+      let art: any = null;
+      if (o.artilheiro) { const an = norm(o.artilheiro); const jl = (await pool.query("SELECT id, nome, figurinha FROM jogadores")).rows as any[]; art = jl.find((j: any) => norm(j.nome) === an) || jl.find((j: any) => norm(j.nome).indexOf(an) >= 0 || an.indexOf(norm(j.nome)) >= 0); }
+      return { ok: true, modo: "ia", campeao: toEn(o.campeao), vice: toEn(o.vice), terceiro: toEn(o.terceiro), quarto: toEn(o.quarto), artilheiro_id: art?.id || null, artilheiro_nome: art?.nome || String(o.artilheiro || ""), artilheiro_fig: art?.figurinha || "" };
+    } catch (e: any) { return { ok: false, erro: String(e?.message ?? e).slice(0, 140) }; }
   });
 }
