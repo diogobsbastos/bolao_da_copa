@@ -55,10 +55,10 @@ Confronto só abre quando a fase anterior acaba → palpite **por fase**, trava 
 ### Arena (PvP por soma das notas do XI)
 - Aposta fixa **50** cada → pote **100** → vencedor leva **90** (rake **10** = ralo anti-inflação).
 - **1 arena garantida por rodada** — os 50 saem do drip (o +50/rodada paga exatamente a arena). Extras: +50 cada.
-- Pontos de vitória com retorno decrescente e teto: **1ª 25 · 2ª 15 · 3ª 8**, **máx 3 arenas/rodada**.
+- Pontos de **ranking**: **vitória 50** (cada, **até 3 batalhas/rodada**) · **derrota 10** (ponto de experiência por ter jogado). Estimula jogar tanto quanto o Bolão.
 - **Teto de overall no XI** (anti-monstro): o titular tem que caber num orçamento de nota — não dá pra escalar 11 craques. (calibrar junto do Marketplace.)
 - **Matchmaking por força de elenco** (forte pega forte; não esmaga novato).
-- `config.arena = {"stake":50,"rake":10,"pts":[25,15,8],"max_rodada":3,"teto_xi":null}`.
+- `config.arena = {"stake":50,"rake":10,"pts":[50,50,50],"pts_derrota":10,"max_rodada":3,"teto_xi":null}`. (pts = 50 por vitória até 3x; pts_derrota = experiência ao perdedor.)
 
 ### Marketplace (saquinhos) — FECHA no fim da fase de grupos
 - **Normal 50** (5 cartas, chance base) · **Especial 120** (7 cartas, chance turbinada) · **Lendário 250** (garante 1 top).
