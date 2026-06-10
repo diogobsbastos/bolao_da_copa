@@ -31,19 +31,37 @@ export async function casarFc26(): Promise<any> {
     }
     const nossos = (await pool.query("SELECT athlete_id, nome, selecao FROM jogadores_365")).rows as any[];
     await setStatus({ rodando: true, fase: "casando", feitos: 0, total: nossos.length });
-    let casados = 0, k = 0;
+    const byNac = new Map<string, any[]>();
+    for (const [nac, mp] of byNacNome) byNac.set(nac, [...mp.values()]);
+    const usado = new Set<number>();
+    const aplicar = async (athlete_id: number, m: any) => { usado.add(m.fc_id); await pool.query("UPDATE jogadores_365 SET fc_id=$1,pace=$2,shooting=$3,passing=$4,dribbling=$5,defending=$6,physical=$7,pe=$8,fc_pos=$9,fc_time=$10 WHERE athlete_id=$11", [m.fc_id, m.pace, m.shooting, m.passing, m.dribbling, m.defending, m.physical, m.pe, m.pos, m.time, athlete_id]); };
+    const lev = (a: string, b: string): number => { const m = a.length, n = b.length; if (!m) return n; if (!n) return m; const d: number[] = Array(n + 1).fill(0).map((_, j) => j); for (let i = 1; i <= m; i++) { let prev = d[0]; d[0] = i; for (let j = 1; j <= n; j++) { const tmp = d[j]; d[j] = Math.min(d[j] + 1, d[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = tmp; } } return d[n]; };
+    const ratio = (a: string, b: string): number => { const L = Math.max(a.length, b.length); return L ? 1 - lev(a, b) / L : 1; };
+    const toks = (s2: string) => String(s2).split(/\s+/).map(norm).filter((t) => t.length >= 3);
+    let casados = 0, fuzzy = 0, k = 0; const pendentes: any[] = [];
     for (const j of nossos) {
       const nn = norm(j.nome), nac = norm(j.selecao);
       let m = byNacNome.get(nac)?.get(nn) || null;
       if (!m) { const g = glob.get(nn); if (g && g.length === 1) m = g[0]; }
-      if (m) {
-        await pool.query("UPDATE jogadores_365 SET fc_id=$1,pace=$2,shooting=$3,passing=$4,dribbling=$5,defending=$6,physical=$7,pe=$8,fc_pos=$9,fc_time=$10 WHERE athlete_id=$11",
-          [m.fc_id, m.pace, m.shooting, m.passing, m.dribbling, m.defending, m.physical, m.pe, m.pos, m.time, j.athlete_id]);
-        casados++;
-      }
-      k++; if (k % 200 === 0) await setStatus({ rodando: true, fase: "casando", feitos: k, total: nossos.length, casados });
+      if (m && !usado.has(m.fc_id)) { await aplicar(j.athlete_id, m); casados++; } else pendentes.push({ j, nn, nac });
+      k++; if (k % 300 === 0) await setStatus({ rodando: true, fase: "casando (exato)", feitos: k, total: nossos.length, casados });
     }
-    await setStatus({ rodando: false, fase: "concluido", feitos: nossos.length, total: nossos.length, casados, csv: lines.length - 1 });
+    let p = 0;
+    for (const { j, nn, nac } of pendentes) {
+      const cands = (byNac.get(nac) || []).filter((c) => !usado.has(c.fc_id));
+      const ourT = toks(j.nome); const ourSur = ourT[ourT.length - 1] || "";
+      let best: any = null, bs = 0, second = 0;
+      for (const c of cands) {
+        const fcT = toks(c.nome_n.length ? c.nome : ""); const fcSur = (fcT[fcT.length - 1] || c.nome_n);
+        let sc = ratio(nn, c.nome_n);
+        if (ourSur && fcSur && ourSur === fcSur && ourSur.length >= 4) sc = Math.max(sc, 0.92);
+        for (const a of ourT) for (const b of (fcT.length ? fcT : [c.nome_n])) { if (a.length >= 4 && b.length >= 4 && (a.startsWith(b) || b.startsWith(a))) sc = Math.max(sc, 0.84); }
+        if (sc > bs) { second = bs; best = c; bs = sc; } else if (sc > second) second = sc;
+      }
+      if (best && bs >= 0.82 && (bs - second >= 0.03 || cands.length === 1)) { await aplicar(j.athlete_id, best); fuzzy++; }
+      p++; if (p % 100 === 0) await setStatus({ rodando: true, fase: "casando (fuzzy)", feitos: p, total: pendentes.length, casados: casados + fuzzy });
+    }
+    await setStatus({ rodando: false, fase: "concluido", feitos: nossos.length, total: nossos.length, casados: casados + fuzzy, exato: casados, fuzzy, csv: lines.length - 1 });
     await setCfg("casar_fc26", "");
     console.log("[fc26] casados", casados, "de", nossos.length);
     return { ok: true, casados, total: nossos.length };
