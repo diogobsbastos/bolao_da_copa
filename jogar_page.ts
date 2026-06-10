@@ -68,7 +68,7 @@ th,td{padding:8px 8px;border-bottom:1px solid var(--bd);text-align:left}th{color
 .rkrow{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:9px 13px;margin-bottom:8px;transition:.15s}
 .rkrow:hover{border-color:var(--rkc,#1faa59)}
 .rkrow.me{box-shadow:0 0 0 2px var(--rkc,#1faa59) inset;border-color:transparent}
-.rkrow.top1{background:linear-gradient(135deg,rgba(255,193,7,.16),var(--card));border-color:rgba(255,193,7,.45)}
+.rkrow.top1{background:linear-gradient(135deg,color-mix(in srgb,var(--rkc,#1faa59) 28%,var(--card)),color-mix(in srgb,var(--rkc,#1faa59) 8%,var(--card)));border:1.6px solid var(--rkc,#1faa59);box-shadow:0 4px 16px color-mix(in srgb,var(--rkc,#1faa59) 34%,transparent)}
 .rkpos{width:32px;text-align:center;font-weight:800;font-size:15px;color:var(--mut);flex:none}
 .rkmedal{font-size:22px}
 .rkav{width:42px;height:42px;border-radius:50%;overflow:hidden;flex:none;background:linear-gradient(135deg,var(--pri),var(--pri2));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px}

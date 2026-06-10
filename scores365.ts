@@ -220,6 +220,7 @@ export async function refreshDiario(force = false): Promise<any> {
   await mapearGameIds().catch(() => {});
   await coletarJogadores365().catch((e: any) => console.log("[jogadores365] erro diario", String(e?.message ?? e)));
   await setCfg("last_daily_refresh", hoje);
+  await agendarResultados().catch(() => {});
   console.log("[refresh-diario] dados365:", JSON.stringify(dados));
   console.log("[refresh-diario]", hoje, "odds:", (odds?.comOdds ?? JSON.stringify(odds)), "lineups:", (lineups?.comLineup ?? JSON.stringify(lineups)));
   return { hoje, odds, lineups };
@@ -234,43 +235,80 @@ function statusFinal365(g: any): boolean {
 
 // Coletor de RESULTADOS REAIS: por jogo com gid e sem resultado, busca o placar final no 365scores,
 // grava em jogos.resultado_casa/visitante (orientacao pelo nome) e dispara a apuracao (pontos+token).
+// Processa UM jogo: busca o placar final no 365, e se o jogo ja terminou grava resultado_* + status='final' e apura.
+async function processarResultadoJogo(j: { id: number; selecao_casa: string; selecao_visitante: string; gid: string; inicio: any }): Promise<{ jogo: number; estado: string; placar?: string; tokens?: number }> {
+  const gj = await s365(`/game?appTypeId=5&langId=1&userCountryId=21&timezoneName=America/Sao_Paulo&gameId=${j.gid}`);
+  const g = gj?.game; if (!g) return { jogo: j.id, estado: "sem game" };
+  const hs = numScore(g.homeCompetitor?.score), ascore = numScore(g.awayCompetitor?.score);
+  if (hs == null || ascore == null) return { jogo: j.id, estado: "sem placar" };
+  const velho = j.inicio ? (Date.now() - new Date(j.inicio).getTime()) > 150 * 60 * 1000 : false;
+  if (!statusFinal365(g) && !velho) return { jogo: j.id, estado: "em andamento" };
+  const homeNome = String(g.homeCompetitor?.name || "");
+  let rc: number, rv: number;
+  if (casaLado(al(j.selecao_casa), homeNome)) { rc = hs; rv = ascore; }
+  else if (casaLado(al(j.selecao_visitante), homeNome)) { rc = ascore; rv = hs; }
+  else return { jogo: j.id, estado: "orientacao nao casou" };
+  await pool.query("UPDATE jogos SET resultado_casa=$2, resultado_visitante=$3, resultado_em=now(), status='final' WHERE id=$1 AND resultado_casa IS NULL", [j.id, rc, rv]);
+  const ap = await apurarJogo(j.id);
+  return { jogo: j.id, estado: "final", placar: rc + "-" + rv, tokens: ap.tokens };
+}
+
+// Varredura manual (botao admin): olha todos os jogos com gid ja terminados e ainda sem resultado.
 export async function coletarResultados(force = false): Promise<any> {
   const jogos = (await pool.query(
     "SELECT id, selecao_casa, selecao_visitante, odds->>'gid' AS gid, inicio FROM jogos WHERE odds->>'gid' IS NOT NULL AND resultado_casa IS NULL AND (inicio < now() - interval '100 minutes' OR $1) ORDER BY inicio NULLS LAST, id",
     [force]
   )).rows as any[];
-  let capturados = 0, apurados = 0; const detalhe: any[] = []; const agora = Date.now();
+  let capturados = 0; const detalhe: any[] = [];
   for (const j of jogos) {
-    try {
-      const gj = await s365(`/game?appTypeId=5&langId=1&userCountryId=21&timezoneName=America/Sao_Paulo&gameId=${j.gid}`);
-      const g = gj?.game; if (!g) { detalhe.push({ jogo: j.id, skip: "sem game" }); continue; }
-      const hs = numScore(g.homeCompetitor?.score), ascore = numScore(g.awayCompetitor?.score);
-      if (hs == null || ascore == null) { detalhe.push({ jogo: j.id, skip: "sem placar" }); continue; }
-      const velho = j.inicio ? (agora - new Date(j.inicio).getTime()) > 150 * 60 * 1000 : false;
-      if (!statusFinal365(g) && !velho) { detalhe.push({ jogo: j.id, skip: "em andamento" }); continue; }
-      const homeNome = String(g.homeCompetitor?.name || "");
-      let rc: number, rv: number;
-      if (casaLado(al(j.selecao_casa), homeNome)) { rc = hs; rv = ascore; }
-      else if (casaLado(al(j.selecao_visitante), homeNome)) { rc = ascore; rv = hs; }
-      else { detalhe.push({ jogo: j.id, skip: "orientacao nao casou" }); continue; }
-      await pool.query("UPDATE jogos SET resultado_casa=$2, resultado_visitante=$3, resultado_em=now(), status='final' WHERE id=$1", [j.id, rc, rv]);
-      capturados++;
-      const ap = await apurarJogo(j.id); if (ap.ok) apurados++;
-      detalhe.push({ jogo: j.id, placar: rc + "-" + rv, palpites: ap.palpites, tokens: ap.tokens });
-      await sleep(150);
-    } catch (e: any) { detalhe.push({ jogo: j.id, erro: String(e?.message ?? e).slice(0, 80) }); }
+    try { const r = await processarResultadoJogo(j); detalhe.push(r); if (r.estado === "final") capturados++; await sleep(150); }
+    catch (e: any) { detalhe.push({ jogo: j.id, erro: String(e?.message ?? e).slice(0, 80) }); }
   }
-  const status = { em: new Date().toISOString(), olhados: jogos.length, capturados, apurados, detalhe };
+  const status = { em: new Date().toISOString(), olhados: jogos.length, capturados, apurados: capturados, detalhe };
   await setCfg("resultados_status", JSON.stringify(status));
-  if (capturados) console.log("[resultados]", capturados, "capturados,", apurados, "apurados");
+  if (capturados) console.log("[resultados] varredura:", capturados, "capturados/apurados");
   return status;
+}
+
+// ===== Agendamento POR HORARIO de cada jogo (sem crontab do SO) =====
+// Para cada jogo: 1a checagem em inicio + GRACE_MIN; se ainda nao terminou (prorrogacao/penaltis), re-tenta a cada RETRY_MIN ate MAX_TENTATIVAS.
+const GRACE_MIN = 115;        // ~apito final de um jogo de 90'
+const RETRY_MIN = 5;
+const MAX_TENTATIVAS = 16;    // ~80 min de janela extra (cobre prorrogacao + penaltis do mata-mata)
+const armados = new Set<number>();
+
+async function checarJogoAgendado(id: number, tentativa: number): Promise<void> {
+  let j: any = null;
+  try { j = (await pool.query("SELECT id, selecao_casa, selecao_visitante, odds->>'gid' AS gid, inicio FROM jogos WHERE id=$1 AND resultado_casa IS NULL AND odds->>'gid' IS NOT NULL", [id])).rows[0]; } catch {}
+  if (!j) { armados.delete(id); return; } // ja capturado / sem gid
+  try {
+    const r = await processarResultadoJogo(j);
+    if (r.estado === "final") { armados.delete(id); console.log("[resultados] jogo", id, "FINAL", r.placar, "tokens", r.tokens); return; }
+  } catch (e: any) { console.log("[resultados] erro jogo", id, String(e?.message ?? e).slice(0, 80)); }
+  if (tentativa + 1 < MAX_TENTATIVAS) setTimeout(() => { checarJogoAgendado(id, tentativa + 1).catch(() => {}); }, RETRY_MIN * 60 * 1000);
+  else armados.delete(id); // desiste; o re-arme horario pega de novo se preciso
+}
+
+// Arma os timers dos jogos que terminam nas proximas ~26h (evita overflow do setTimeout). Boot faz catch-up dos que ja passaram.
+export async function agendarResultados(): Promise<void> {
+  let jogos: any[] = [];
+  try { jogos = (await pool.query("SELECT id, inicio FROM jogos WHERE odds->>'gid' IS NOT NULL AND resultado_casa IS NULL AND apurado=false AND inicio IS NOT NULL AND inicio < now() + interval '26 hours' ORDER BY inicio")).rows as any[]; } catch { return; }
+  const agora = Date.now(); let n = 0;
+  for (const j of jogos) {
+    if (armados.has(j.id)) continue;
+    const delay = (new Date(j.inicio).getTime() + GRACE_MIN * 60 * 1000) - agora;
+    armados.add(j.id); n++;
+    if (delay <= 0) checarJogoAgendado(j.id, 0).catch(() => {});                       // ja deveria ter terminado -> checa agora
+    else setTimeout(() => { checarJogoAgendado(j.id, 0).catch(() => {}); }, delay);    // agenda pro apito
+  }
+  if (n) console.log("[resultados] agendados", n, "jogo(s) pelo horario");
 }
 
 export function agendadorDiario(): void {
   setTimeout(() => { refreshDiario(false).catch((e: any) => console.log("[refresh-diario] erro boot", String(e?.message ?? e))); }, 4000);
   setInterval(() => { refreshDiario(false).catch(() => {}); }, 60 * 60 * 1000);
-  setTimeout(() => { coletarResultados().catch((e: any) => console.log("[resultados] erro boot", String(e?.message ?? e))); }, 12000);
-  setInterval(() => { coletarResultados().catch(() => {}); }, 20 * 60 * 1000);
+  setTimeout(() => { agendarResultados().catch((e: any) => console.log("[resultados] erro boot", String(e?.message ?? e))); }, 12000); // boot: arma timers + catch-up
+  setInterval(() => { agendarResultados().catch(() => {}); }, 60 * 60 * 1000); // de hora em hora: arma a proxima janela de jogos
 }
 
 // Diagnóstico: loga a estrutura crua das lineups de um (ou vários) gid no boot, se config.lineup_probe estiver setado.
