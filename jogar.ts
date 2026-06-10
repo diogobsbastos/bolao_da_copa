@@ -290,7 +290,7 @@ export async function rotasJogar(app: FastifyInstance) {
     } catch (e: any) {
       const t = String(e?.message ?? e).toLowerCase();
       const lo = logico();
-      lo.aviso = (t.indexOf("quota") >= 0 || t.indexOf("exceeded") >= 0 || t.indexOf("rate") >= 0 || t.indexOf("429") >= 0) ? "Cota gratis da IA no limite agora — usei a logica." : "Sua IA falhou aqui — usei a logica.";
+      lo.aviso = (t.indexOf("quota") >= 0 || t.indexOf("exceeded") >= 0 || t.indexOf("rate") >= 0 || t.indexOf("429") >= 0) ? "Sua IA bateu o limite grátis agora — palpitei este jogo pela lógica das odds. Tente de novo em ~1 min ou troque o modelo." : "Sua IA não respondeu aqui — palpitei este jogo pela lógica das odds.";
       return lo;
     }
   });
