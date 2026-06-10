@@ -152,6 +152,7 @@ body.mcol .side a .tag{display:none}
 .mascbar{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--bd);border-radius:14px;padding:10px 12px;margin-bottom:12px}
 .masc{width:46px;height:46px;flex:none;cursor:pointer;transition:filter .3s,opacity .3s}.masc svg{width:100%;height:100%;display:block}
 .grow{flex:1;min-width:0}
+.free{display:inline-block;background:linear-gradient(135deg,#f5c451,#f0931e);color:#1a1200;font-size:8.5px;font-weight:800;padding:1px 5px;border-radius:6px;letter-spacing:.3px;vertical-align:middle;margin-left:2px}
 .masc.off{opacity:.82}
 .masc.on{animation:bob 2.4s ease-in-out infinite;filter:drop-shadow(0 4px 10px rgba(31,170,89,.35))}
 .masc.think{animation:bob .55s ease-in-out infinite}
@@ -206,7 +207,7 @@ body.mcol .side a .tag{display:none}
   <a data-s="arena" onclick="nav('arena')"><span class="ic">&#9876;</span> Arena</a>
   <a data-s="rank" onclick="nav('rank')"><span class="ic">&#127942;</span> Ranking</a>
   <a data-s="deposito" onclick="nav('deposito')"><span class="ic">&#128179;</span> Dep&oacute;sito</a>
-  <a data-s="ia" onclick="nav('ia')"><span class="ic">&#129302;</span> Conectar IA</a>
+  <a data-s="ia" onclick="nav('ia')"><span class="ic">&#129302;</span> Conectar IA <span class="free">GR&Aacute;TIS</span></a>
   <a class="soon"><span class="ic">&#127920;</span> Bet <span class="tag">Em breve</span></a>
   <a onclick="sair()" style="margin-top:auto"><span class="ic">&#128682;</span> Sair</a>
  </nav>
