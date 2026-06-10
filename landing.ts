@@ -1,7 +1,28 @@
 import type { FastifyInstance } from "fastify";
+import { pool } from "./db.js";
 
 export async function rotasLanding(app: FastifyInstance) {
-  app.get("/", async (_req, reply) => reply.type("text/html").send(LANDING));
+  app.get("/", async (req, reply) => {
+    let html = LANDING;
+    try {
+      const cod = String((req.query as any)?.full || (req.query as any)?.ref || "").trim().toUpperCase();
+      if (cod) {
+        let nome = "";
+        const f = (await pool.query("SELECT nome FROM usuarios WHERE full_code=$1 AND pagou=true", [cod])).rows[0] as any;
+        if (f) nome = f.nome;
+        else { const r = (await pool.query("SELECT nome FROM usuarios WHERE codigo_referral=$1", [cod])).rows[0] as any; if (r) nome = r.nome; }
+        if (nome) {
+          const primeiro = String(nome).trim().split(/\s+/)[0];
+          const t = primeiro + " te convidou pro Bolão Copa 26 — jogue de graça";
+          const d = primeiro + " liberou seu acesso FULL grátis: Bolão, Arena PvP, Apostas e Figurinhas da Copa 2026. Toque e entre.";
+          html = html
+            .replace("Bolão Copa 26 — você foi convidado a jogar de graça", t)
+            .replace("Bolão, Arena PvP, Apostas e Figurinhas da Copa do Mundo 2026. Você ganhou acesso grátis pelo convite — entre e monte seu time.", d);
+        }
+      }
+    } catch {}
+    reply.type("text/html").send(html);
+  });
   app.get("/og.png", async (_req, reply) => reply.header("cache-control","public, max-age=86400").type("image/png").send(Buffer.from(OG_B64, "base64")));
 }
 
