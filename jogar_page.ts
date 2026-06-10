@@ -253,6 +253,7 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
 .act-ia{display:flex;align-items:center;gap:10px;flex:1 1 260px;min-width:0}
 .act-ia .bubble{flex:1;max-width:none}
 .act-logic{display:flex;align-items:center;gap:9px;flex:none;margin-left:auto;padding-left:12px;border-left:1px solid var(--bd)}
+#btn-auto{padding:8px 16px;font-size:13px;border-radius:11px}
 .sw{position:relative;display:inline-block;width:42px;height:24px;flex:none;cursor:pointer}
 .sw input{opacity:0;width:0;height:0;position:absolute}
 .sl{position:absolute;inset:0;background:var(--surface2);border:1px solid var(--bd);border-radius:999px;transition:.2s}
