@@ -13,8 +13,8 @@ const LANDING = `<!doctype html><html lang="pt-br"><head><meta charset="utf-8">
 <meta property="og:site_name" content="Bolão Copa 26">
 <meta property="og:title" content="Bolão Copa 26 — você foi convidado a jogar de graça">
 <meta property="og:description" content="Bolão, Arena PvP, Apostas e Figurinhas da Copa do Mundo 2026. Você ganhou acesso grátis pelo convite — entre e monte seu time.">
-<meta property="og:url" content="https://oracle-vipworks.duckdns.org/">
-<meta property="og:image" content="https://oracle-vipworks.duckdns.org/og.png">
+<meta property="og:url" content="https://oracle-vipworks.duckdns.org/bolao-copa26/">
+<meta property="og:image" content="https://oracle-vipworks.duckdns.org/bolao-copa26/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
