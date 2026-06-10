@@ -157,13 +157,59 @@ ${NAV_CSS}
     </div>
    </section>
 
+
+   <section id="pg-regras" class="sec hide">
+    <h2>Regras &amp; Pontua&ccedil;&atilde;o</h2>
+    <div class="muted" style="margin-bottom:6px">Tudo aqui grava direto no <code>config</code> e vale na hora (sem deploy). Conecte (token/login) para carregar e salvar. <span id="regras-conn" class="muted"></span></div>
+
+    <div class="card" style="margin-top:14px">
+     <h3>&#127919; Bol&atilde;o &mdash; fase de grupos <code>pontos_regra</code></h3>
+     <div style="margin-top:8px"><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">Placar exato <input type="number" id="r-exato" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">Vencedor + saldo <input type="number" id="r-vsaldo" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">S&oacute; vencedor/empate <input type="number" id="r-venc" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">Gols de um time <input type="number" id="r-gol" style="width:62px"></label></div>
+     <div class="save"><button class="sm" onclick="salvarRegra(&#39;pontos_regra&#39;)">Salvar</button><span id="s-pontos_regra" class="muted"></span></div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+     <h3>&#127942; Eliminat&oacute;rias &mdash; multiplicador por fase <code>mata_mult</code></h3>
+     <div style="margin-top:8px"><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">Rodada de 32 &times; <input type="number" id="m-r32" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">Oitavas &times; <input type="number" id="m-oitavas" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">Quartas &times; <input type="number" id="m-quartas" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">Semi &times; <input type="number" id="m-semi" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">3&ordm; lugar &times; <input type="number" id="m-terceiro" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">Final &times; <input type="number" id="m-final" style="width:62px"></label></div>
+     <div class="save"><button class="sm" onclick="salvarRegra(&#39;mata_mult&#39;)">Salvar</button><span id="s-mata_mult" class="muted"></span></div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+     <h3>&#127881; Palpites de longo prazo <code>longo_prazo</code></h3>
+     <div style="margin-top:8px"><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">Campe&atilde;o <input type="number" id="lp-campeao" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">Vice <input type="number" id="lp-vice" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">3&ordm; <input type="number" id="lp-terceiro" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">4&ordm; <input type="number" id="lp-quarto" style="width:62px"></label></div>
+     <div style="margin-top:4px"><span class="muted" style="font-size:12px">Artilheiro (top 3): </span><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">1&ordm; <input type="number" id="lp-art0" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">2&ordm; <input type="number" id="lp-art1" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">3&ordm; <input type="number" id="lp-art2" style="width:62px"></label></div>
+     <div class="save"><button class="sm" onclick="salvarRegra(&#39;longo_prazo&#39;)">Salvar pontos</button><span id="s-longo_prazo" class="muted"></span></div>
+     <div style="margin-top:10px;border-top:1px solid var(--bd);padding-top:10px"><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">Trava do palpite (ISO) <input type="text" id="lp-trava" style="width:230px"></label>
+     <button class="sm ghost" onclick="salvarRegra(&#39;longo_trava&#39;)">Salvar trava</button><span id="s-longo_trava" class="muted"></span></div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+     <h3>&#9876;&#65039; Arena (PvP) <code>arena</code></h3>
+     <div style="margin-top:8px"><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">Stake <input type="number" id="ar-stake" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">Rake <input type="number" id="ar-rake" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">Vit. 1&ordf; <input type="number" id="ar-pts1" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">Vit. 2&ordf; <input type="number" id="ar-pts2" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">Vit. 3&ordf; <input type="number" id="ar-pts3" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">Derrota <input type="number" id="ar-derrota" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">M&aacute;x/rodada <input type="number" id="ar-max" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">Teto XI (vazio=sem) <input type="number" id="ar-teto" style="width:92px"></label></div>
+     <div class="save"><button class="sm" onclick="salvarRegra(&#39;arena&#39;)">Salvar</button><span id="s-arena" class="muted"></span></div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+     <h3>&#128722; Marketplace &mdash; saquinhos <code>pacotes</code></h3>
+     <div style="margin-top:8px"><b style="font-size:13px">Normal</b> <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">pre&ccedil;o <input type="number" id="pk-n-preco" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">cartas <input type="number" id="pk-n-cartas" style="width:62px"></label></div>
+     <div style="margin-top:4px"><b style="font-size:13px">Especial</b> <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">pre&ccedil;o <input type="number" id="pk-e-preco" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">cartas <input type="number" id="pk-e-cartas" style="width:62px"></label></div>
+     <div style="margin-top:4px"><b style="font-size:13px">Lend&aacute;rio</b> <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">pre&ccedil;o <input type="number" id="pk-l-preco" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">cartas <input type="number" id="pk-l-cartas" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">Garante top <input type="checkbox" id="pk-l-top"></label></div>
+     <div class="save"><button class="sm" onclick="salvarRegra(&#39;pacotes&#39;)">Salvar</button><span id="s-pacotes" class="muted"></span></div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+     <h3>&#128176; Pote de Ouro &mdash; split do top 3 <code>pote_split</code></h3>
+     <div style="margin-top:8px"><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">1&ordm; (%) <input type="number" id="ps-1" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">2&ordm; (%) <input type="number" id="ps-2" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">3&ordm; (%) <input type="number" id="ps-3" style="width:62px"></label></div>
+     <div class="save"><button class="sm" onclick="salvarRegra(&#39;pote_split&#39;)">Salvar</button><span id="s-pote_split" class="muted"></span></div>
+    </div>
+   </section>
   </div>
  </main>
 </div>
 <script>
 ${NAV_JS}
 var BASE=_b();
-var TITLES={dash:"Dashboard",jogos:"Jogos / Rodadas",users:"Usuarios & Carteiras",rank:"Ranking",integ:"Integracoes / Crons"};
+var TITLES={dash:"Dashboard",jogos:"Jogos / Rodadas",users:"Usuarios & Carteiras",rank:"Ranking",integ:"Integracoes / Crons",regras:"Regras & Pontuacao"};
 function nav(pg){
  document.querySelectorAll(".sec").forEach(function(s){s.classList.add("hide")});
  var el=document.getElementById("pg-"+pg);if(el)el.classList.remove("hide");
@@ -172,6 +218,7 @@ function nav(pg){
  if(pg==="rank")loadRank();
  if(pg==="jogos")loadJogos();
  if(pg==="integ")loadInteg();
+ if(pg==="regras")loadRegras();
 }
 function tok(){return document.getElementById("tok").value.trim();}
 function H(){var t=tok();var h={"content-type":"application/json"};if(t){h["x-admin-token"]=t;}else{var s=localStorage.getItem("sessao");if(s){h["authorization"]="Bearer "+s;}}return h;}
@@ -243,6 +290,36 @@ async function forcarRefresh(){
  var m=document.getElementById("integ-msg");if(m)m.textContent="atualizando odds + escala&ccedil;&otilde;es (pode levar ~30s)...";
  try{var r=await fetch(BASE+"/admin/scores365/refresh",{method:"POST",headers:H()});await r.json().catch(function(){});if(m)m.textContent="pronto.";}catch(e){if(m)m.textContent="falhou.";}
  loadInteg();
+}
+function rNumv(id){var e=document.getElementById(id);var n=parseInt(e&&e.value,10);return isNaN(n)?0:n;}
+async function loadRegras(){
+ var st=document.getElementById("regras-conn");
+ var r=await fetch(BASE+"/admin/regras",{headers:H()});
+ if(!r.ok){if(st)st.textContent="conecte (token/login) para carregar.";return;}
+ var d=(await r.json()).regras||{};
+ function S(id,v){var e=document.getElementById(id);if(e!=null&&v!=null)e.value=v;}
+ var p=d.pontos_regra||{};S("r-exato",p.exato);S("r-vsaldo",p.vencedor_saldo);S("r-venc",p.vencedor);S("r-gol",p.gol_time);
+ var m=d.mata_mult||{};S("m-r32",m.r32);S("m-oitavas",m.oitavas);S("m-quartas",m.quartas);S("m-semi",m.semi);S("m-terceiro",m.terceiro);S("m-final",m.final);
+ var l=d.longo_prazo||{};S("lp-campeao",l.campeao);S("lp-vice",l.vice);S("lp-terceiro",l.terceiro);S("lp-quarto",l.quarto);var a=l.artilheiro||[];S("lp-art0",a[0]);S("lp-art1",a[1]);S("lp-art2",a[2]);
+ S("lp-trava",d.longo_trava);
+ var ar=d.arena||{};S("ar-stake",ar.stake);S("ar-rake",ar.rake);var ap=ar.pts||[];S("ar-pts1",ap[0]);S("ar-pts2",ap[1]);S("ar-pts3",ap[2]);S("ar-derrota",ar.pts_derrota);S("ar-max",ar.max_rodada);S("ar-teto",ar.teto_xi);
+ var pk=d.pacotes||{};var pn=pk.normal||{},pe=pk.especial||{},pl=pk.lendario||{};S("pk-n-preco",pn.preco);S("pk-n-cartas",pn.cartas);S("pk-e-preco",pe.preco);S("pk-e-cartas",pe.cartas);S("pk-l-preco",pl.preco);S("pk-l-cartas",pl.cartas);var lt=document.getElementById("pk-l-top");if(lt)lt.checked=!!pl.garante_top;
+ var ps=d.pote_split||[];S("ps-1",ps[0]);S("ps-2",ps[1]);S("ps-3",ps[2]);
+ if(st)st.textContent="carregado.";
+}
+async function salvarRegra(chave){
+ var valor;
+ if(chave==="pontos_regra")valor={exato:rNumv("r-exato"),vencedor_saldo:rNumv("r-vsaldo"),vencedor:rNumv("r-venc"),gol_time:rNumv("r-gol")};
+ else if(chave==="mata_mult")valor={r32:rNumv("m-r32"),oitavas:rNumv("m-oitavas"),quartas:rNumv("m-quartas"),semi:rNumv("m-semi"),terceiro:rNumv("m-terceiro"),final:rNumv("m-final")};
+ else if(chave==="longo_prazo")valor={campeao:rNumv("lp-campeao"),vice:rNumv("lp-vice"),terceiro:rNumv("lp-terceiro"),quarto:rNumv("lp-quarto"),artilheiro:[rNumv("lp-art0"),rNumv("lp-art1"),rNumv("lp-art2")]};
+ else if(chave==="longo_trava")valor=(document.getElementById("lp-trava").value||"").trim();
+ else if(chave==="arena"){var t=document.getElementById("ar-teto").value;valor={stake:rNumv("ar-stake"),rake:rNumv("ar-rake"),pts:[rNumv("ar-pts1"),rNumv("ar-pts2"),rNumv("ar-pts3")],pts_derrota:rNumv("ar-derrota"),max_rodada:rNumv("ar-max"),teto_xi:(t===""||t==null?null:parseInt(t,10))};}
+ else if(chave==="pacotes")valor={normal:{preco:rNumv("pk-n-preco"),cartas:rNumv("pk-n-cartas")},especial:{preco:rNumv("pk-e-preco"),cartas:rNumv("pk-e-cartas")},lendario:{preco:rNumv("pk-l-preco"),cartas:rNumv("pk-l-cartas"),garante_top:!!document.getElementById("pk-l-top").checked}};
+ else if(chave==="pote_split")valor=[rNumv("ps-1"),rNumv("ps-2"),rNumv("ps-3")];
+ var st=document.getElementById("s-"+chave);if(st)st.textContent="salvando...";
+ var r=await fetch(BASE+"/admin/regras",{method:"POST",headers:H(),body:JSON.stringify({chave:chave,valor:valor})});
+ var j=await r.json().catch(function(){return{};});
+ if(st)st.textContent=(r.ok&&j.ok)?"salvo \u2713":("erro: "+(j.erro||r.status));
 }
 if(localStorage.getItem("sessao")){conectar();}
 (function(){var q=new URLSearchParams(location.search).get("pg");if(q&&document.getElementById("pg-"+q))nav(q);})();

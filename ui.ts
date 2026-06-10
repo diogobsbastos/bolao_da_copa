@@ -13,6 +13,7 @@ const ITENS: Array<[string, string, string]> = [
   ["cartas", "&#127981; Fabrica (nome/posicao)", "/admin/cartas"],
   ["users", "&#128100; Usuarios &amp; Carteiras", "/admin?pg=users"],
   ["rank", "&#127942; Ranking", "/admin?pg=rank"],
+  ["regras", "&#128221; Regras", "/admin?pg=regras"],
   ["integ", "&#128268; Integracoes / Crons", "/admin?pg=integ"],
   ["deploy", "&#128190; Git &amp; Deploy", "/admin/deploy"],
 ];

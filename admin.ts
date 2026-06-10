@@ -89,6 +89,37 @@ export async function rotasAdmin(app: FastifyInstance) {
     return { ok: true, agora: new Date().toISOString(), ultimo_refresh: await cfg1("last_daily_refresh"), lineups, odds365, contagem, pontos };
   });
 
+  const REGRA_KEYS = ["pontos_regra","mata_mult","longo_prazo","arena","pacotes","pote_split","longo_trava"];
+  app.get("/admin/regras", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    const out: Record<string, unknown> = {};
+    for (const k of REGRA_KEYS) {
+      const { rows } = await pool.query("SELECT valor FROM config WHERE chave=$1", [k]);
+      const raw = (rows as any[])[0]?.valor ?? null;
+      if (raw == null) { out[k] = null; continue; }
+      if (k === "longo_trava") { out[k] = raw; continue; }
+      try { out[k] = JSON.parse(raw); } catch { out[k] = raw; }
+    }
+    return { ok: true, regras: out };
+  });
+  app.post("/admin/regras", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    const body = (req.body ?? {}) as any;
+    const chave = String(body.chave || "");
+    if (!REGRA_KEYS.includes(chave)) return reply.code(400).send({ erro: "chave invalida" });
+    let toStore: string;
+    if (chave === "longo_trava") {
+      toStore = String(body.valor ?? "");
+    } else {
+      try {
+        if (typeof body.valor === "string") { JSON.parse(body.valor); toStore = body.valor; }
+        else { toStore = JSON.stringify(body.valor); }
+      } catch { return reply.code(400).send({ erro: "json invalido" }); }
+    }
+    await pool.query("INSERT INTO config (chave, valor) VALUES ($1,$2) ON CONFLICT (chave) DO UPDATE SET valor=$2, atualizado_em=now()", [chave, toStore]);
+    return { ok: true };
+  });
+
   app.get("/admin/ping", async (req, reply) => {
     if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
     const alvo = (req.query as any)?.alvo as string;
