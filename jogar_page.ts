@@ -58,7 +58,8 @@ th,td{padding:8px 8px;border-bottom:1px solid var(--bd);text-align:left}th{color
 .qr b{background:#fff;color:#000;padding:4px 8px;border-radius:6px;font-size:11px}
 .pack{border:1px solid var(--bd);border-radius:14px;padding:16px;background:linear-gradient(160deg,var(--card2),var(--card))}
 .pack.base{border-color:var(--gold)}
-.toast{position:fixed;top:14px;right:14px;z-index:60;background:#10151e;border:1px solid var(--bd);border-left:4px solid var(--pri2);padding:11px 15px;border-radius:10px;font-size:13px;box-shadow:0 10px 30px rgba(0,0,0,.4);max-width:300px}
+.toast{position:fixed;top:66px;right:16px;z-index:120;background:#171c26;color:#eef1f6;border:1px solid #2a3344;border-left:4px solid var(--pri2);padding:11px 15px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 14px 36px rgba(0,0,0,.5);max-width:300px;animation:tin .18s ease}
+@keyframes tin{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
 .toast.err{border-left-color:var(--no)}
 .scrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:25}
 @media(max-width:760px){
