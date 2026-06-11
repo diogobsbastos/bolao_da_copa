@@ -394,7 +394,7 @@ body.mcol .side a .tag,body.mcol .side a .free,body.mcol .side a .dot,body.mcol 
 @media(max-width:540px){.mpcards{grid-template-columns:1fr}}
 
 /* ===== Popup translúcido pós-login (onboarding) ===== */
-.ob-ov{position:fixed;inset:0;background:rgba(8,12,24,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:9000;opacity:0;transition:opacity .2s ease;padding:20px}
+.ob-ov{position:fixed;inset:0;background:rgba(8,12,24,.22);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;z-index:9000;opacity:0;transition:opacity .2s ease;padding:20px}
 .ob-ov.on{opacity:1}
 .ob-box{position:relative;background:linear-gradient(180deg,#fff 0%,#fafcff 100%);color:#1a2233;border-radius:22px;padding:30px 26px 22px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.4);transform:translateY(20px) scale(.96);transition:transform .25s cubic-bezier(.2,.9,.4,1.2);text-align:center;overflow:hidden}
 .ob-ov.on .ob-box{transform:translateY(0) scale(1)}
