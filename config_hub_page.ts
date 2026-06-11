@@ -375,6 +375,8 @@ function delHorNoticias(h){HORN=HORN.filter(function(x){return x!==h;});saveHorN
 async function saveHorNoticias(){renderHorN();var m=document.getElementById("msg-noticias");if(m)m.textContent="hor\u00e1rios salvos";await fetch(BASE+"/admin/llm/noticias-horarios",{method:"POST",headers:H(),body:JSON.stringify({horarios:HORN})});}
 var _noticiasLista=[];
 async function loadNoticiasLLM(){var r=await fetch(BASE+"/admin/llm/noticias",{headers:H()});if(!r.ok)return;var d=await r.json();_noticiasLista=d.lista||[];var ids=d.ids||[];renderNoticiasSelects([ids[0]?String(ids[0]):"",ids[1]?String(ids[1]):"",ids[2]?String(ids[2]):""]);}
+function svcColor(nm){var m={"NVIDIA":"#76b900","Groq":"#f55036","OpenRouter":"#6566f1","Cerebras":"#f76b15","Gemini":"#1a73e8","OpenAI":"#10a37f","Mistral":"#fa5111","Anthropic":"#d97757"};return m[nm]||"#64748b";}
+function svcBadge(p){var nm=svcName(p.base_url,p.provedor);return '<span style="display:inline-block;font-size:10px;font-weight:800;letter-spacing:.5px;color:#fff;background:'+svcColor(nm)+';padding:3px 9px;border-radius:6px;white-space:nowrap;align-self:center;margin-right:6px">'+esc(nm).toUpperCase()+'</span>';}
 function renderNoticiasSelects(desired){var raw=desired||[1,2,3].map(function(n){var s=document.getElementById("sel-noticias-"+n);return s?s.value:"";});var seen={};var cur=raw.map(function(v){if(v&&seen[v])return "";if(v)seen[v]=1;return v;});[1,2,3].forEach(function(n){var s=document.getElementById("sel-noticias-"+n);if(!s)return;var mine=cur[n-1];var taken=cur.filter(function(v,i){return i!==(n-1)&&v;});var opts='<option value="">&mdash; nenhuma &mdash;</option>';_noticiasLista.forEach(function(p){var id=String(p.id);if(taken.indexOf(id)>=0)return;opts+='<option value="'+id+'"'+(id===mine?" selected":"")+'>'+svcName(p.base_url,p.provedor)+' \u00b7 '+p.modelo+'</option>';});s.innerHTML=opts;s.value=mine;});}
 async function salvarNoticiasLLM(){renderNoticiasSelects();var ids=[1,2,3].map(function(n){var s=document.getElementById("sel-noticias-"+n);return s?s.value:"";});var m=document.getElementById("msg-noticias");if(m)m.textContent="salvando...";var r=await fetch(BASE+"/admin/llm/noticias",{method:"POST",headers:H(),body:JSON.stringify({ids:ids})});if(m)m.textContent=r.ok?"salvo \u2713":"erro";}
 async function loadLLM(papel){
@@ -390,9 +392,9 @@ async function loadLLM(papel){
   var tipo='<span class="pill '+loc+'">'+(loc==="local"?"LOCAL":"CLOUD")+'</span>';
   var teste=p.ultimo_teste?('<div class="m">'+esc(p.ultimo_teste)+'</div>'):'';
   return '<div class="prov'+(p.em_uso?" uso":"")+'">'+tipo+
-   '<div class="pinfo"><b>'+esc(svcName(p.base_url,p.provedor))+'</b> <span class="m" style="opacity:.6">('+esc(p.provedor)+')</span> &middot; <span class="m">'+esc(p.modelo)+'</span> '+uso+
+   '<div class="pinfo"><b>'+esc(p.modelo)+'</b> '+uso+
    (p.base_url?('<div class="m">'+esc(p.base_url)+'</div>'):'')+teste+'</div>'+
-   '<div class="pacts">'+
+   '<div class="pacts">'+svcBadge(p)+
     (p.em_uso?'':'<button class="sm gr" onclick="usar('+p.id+')">usar</button>')+
     '<button class="sm gh" onclick="testar('+p.id+')">testar</button>'+
     '<button class="sm gh" onclick=\\'editar('+JSON.stringify(JSON.stringify(p))+',"'+papel+'")\\'>editar</button>'+
