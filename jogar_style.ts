@@ -383,7 +383,7 @@ body.mcol .side a .tag,body.mcol .side a .free,body.mcol .side a .dot,body.mcol 
 .mpclabel{color:#5b6472;font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:.4px}
 .mpcbonus{background:#f5c451;color:#3a2a08;font-weight:800;font-size:10px;padding:2px 7px;border-radius:999px}
 .mpcprice{font-size:26px;font-weight:900;color:#1a2233;line-height:1.1;margin:2px 0}
-.mpcprice::before{content:"R$ ";font-size:14px;font-weight:700;color:#5b6472;vertical-align:8px;margin-right:2px}
+.mpcprice::before{content:"R$ ";font-size:17px;font-weight:800;color:#1a2233;vertical-align:5px;margin-right:3px}
 .mpctk{font-size:13px;color:#1a2233;margin:0 0 10px}
 .mpctk b{color:#009ee3;font-size:16px;font-weight:900}
 .mpcgo{display:block;background:#009ee3;color:#fff;font-weight:800;font-size:13px;padding:9px;border-radius:9px;box-shadow:0 3px 9px rgba(0,158,227,.3)}
