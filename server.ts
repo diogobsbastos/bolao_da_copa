@@ -22,6 +22,7 @@ import { rotasIndicacao } from "./indicacao.js";
 import { rotasDeploy, runDeployCmd } from "./deploy.js";
 import { rotasApiFootball, syncSeFlag } from "./apifootball.js";
 import { rotasScores365, syncOddsSeFlag, agendadorDiario } from "./scores365.js";
+import { rotasComando, iniciarComando } from "./comando.js";
 import { injetarMenu } from "./ui.js";
 
 const app = Fastify({ logger: true, bodyLimit: 30 * 1024 * 1024 });
@@ -84,12 +85,14 @@ await app.register(rotasIndicacao);
 await app.register(rotasDeploy);
 await app.register(rotasApiFootball);
 await app.register(rotasScores365);
+await app.register(rotasComando);
 
 // executa comando de deploy pendente (git) gravado em config.deploy_cmd
 await runDeployCmd().catch((e) => app.log.error(e));
 await syncSeFlag().catch((e) => app.log.error(e));
 await syncOddsSeFlag().catch((e) => app.log.error(e));
 agendadorDiario();
+iniciarComando();
 casarFc26SeFlag(); // refresh diário interno: odds + lineups -> banco (jogadores só leem)
 setTimeout(() => { autoPreencherTick().catch(() => {}); }, 8000); // auto-preencher no boot
 setInterval(() => { autoPreencherTick().catch(() => {}); }, 15 * 60 * 1000); // a cada 15min: preenche faltantes 1h antes do jogo

@@ -1,0 +1,110 @@
+import type { FastifyInstance, FastifyRequest } from "fastify";
+import { pool } from "./db.js";
+import { usuarioDaReq } from "./auth.js";
+import { PAGINA_COMANDO } from "./comando_page.js";
+import { atualizarDadosJogo, coletarResultadoJogo, syncOdds } from "./scores365.js";
+import { autoPreencherTick } from "./jogar.js";
+
+async function admOk(req: FastifyRequest): Promise<boolean> {
+  const t = req.headers["x-admin-token"]; const e = process.env.ADMIN_TOKEN ?? "";
+  if (e && t === e) return true; const u = await usuarioDaReq(req); return u?.papel === "admin";
+}
+async function setCfg(k: string, v: string): Promise<void> { try { await pool.query("INSERT INTO config (chave,valor) VALUES ($1,$2) ON CONFLICT (chave) DO UPDATE SET valor=$2, atualizado_em=now()", [k, v]); } catch {} }
+
+// Mapa de acoes do robo. Fase 1: dados do jogo, auto-preencher, resultado(+gols+apuracao) e odds = REAIS.
+const ACOES: Record<string, (p: any) => Promise<any>> = {
+  atualizar_dados_jogo: (p) => atualizarDadosJogo(Number(p?.jogo_id)),
+  auto_preencher: async () => { await autoPreencherTick(); return { ok: true, msg: "auto-preencher rodado" }; },
+  coletar_resultado: (p) => coletarResultadoJogo(Number(p?.jogo_id)),
+  atualizar_odds: () => syncOdds(),
+  gerar_noticias: async () => ({ ok: true, placeholder: true, msg: "Noticias IA (Cron 01): modulo a construir" }),
+  injetar_tokens: async () => ({ ok: true, placeholder: true, msg: "Drip de tokens diario: modulo a construir" }),
+  liquidar_bets: async () => ({ ok: true, placeholder: true, msg: "Bet: fora do Beta 1.0" }),
+  arena_resolver: async () => ({ ok: true, placeholder: true, msg: "Arena PvP: modulo a construir" }),
+  regua_figurinhas: async () => ({ ok: true, placeholder: true, msg: "Regua de notas (figurinhas): modulo a construir" }),
+};
+
+let TICKANDO = false;
+export async function tickTarefas(): Promise<void> {
+  if (TICKANDO) return; TICKANDO = true;
+  try {
+    await setCfg("tarefas_last_tick", new Date().toISOString());
+    const due = (await pool.query("SELECT id, acao, parametros FROM tarefas_agendadas WHERE status='pendente' AND horario_gatilho <= now() ORDER BY horario_gatilho LIMIT 20")).rows as any[];
+    for (const t of due) {
+      await pool.query("UPDATE tarefas_agendadas SET status='rodando', tentativas=tentativas+1, atualizado_em=now() WHERE id=$1", [t.id]);
+      try {
+        const fn = ACOES[t.acao];
+        const res = fn ? await fn(t.parametros || {}) : { ok: false, erro: "acao desconhecida: " + t.acao };
+        const ok = res && res.ok !== false;
+        await pool.query("UPDATE tarefas_agendadas SET status=$2, log=$3, atualizado_em=now() WHERE id=$1", [t.id, ok ? "concluido" : "erro", JSON.stringify(res).slice(0, 600)]);
+      } catch (e: any) {
+        await pool.query("UPDATE tarefas_agendadas SET status='erro', log=$2, atualizado_em=now() WHERE id=$1", [t.id, ("EXC: " + String(e?.message ?? e)).slice(0, 600)]);
+      }
+    }
+  } finally { TICKANDO = false; }
+}
+
+async function upsertTarefa(chave: string, categoria: string, acao: string, horario: Date, params: any): Promise<void> {
+  try {
+    await pool.query(
+      "INSERT INTO tarefas_agendadas (chave_unica, categoria, acao, horario_gatilho, parametros) VALUES ($1,$2,$3,$4,$5) ON CONFLICT (chave_unica) DO UPDATE SET horario_gatilho=EXCLUDED.horario_gatilho, atualizado_em=now() WHERE tarefas_agendadas.status='pendente'",
+      [chave, categoria, acao, horario.toISOString(), JSON.stringify(params || {})]
+    );
+  } catch {}
+}
+
+export async function gerarTarefasDosJogos(): Promise<any> {
+  const jogos = (await pool.query("SELECT id, inicio, rodada FROM jogos WHERE inicio IS NOT NULL AND selecao_casa<>'A definir' AND selecao_visitante<>'A definir' AND inicio > now() - interval '1 day' AND inicio < now() + interval '40 days'")).rows as any[];
+  for (const j of jogos) {
+    const ini = new Date(j.inicio);
+    const pre = new Date(ini.getTime() - 30 * 60000);
+    const res = new Date(ini.getTime() + 120 * 60000);
+    await upsertTarefa("jogo:" + j.id + ":dados", "Jogos", "atualizar_dados_jogo", pre, { jogo_id: j.id });
+    await upsertTarefa("jogo:" + j.id + ":auto", "Jogos", "auto_preencher", pre, { jogo_id: j.id, rodada: j.rodada });
+    await upsertTarefa("jogo:" + j.id + ":res", "Pontuacao", "coletar_resultado", res, { jogo_id: j.id });
+  }
+  const hoje = new Date(); const ymd = hoje.toISOString().slice(0, 10);
+  const at = (h: number, m = 0) => { const d = new Date(hoje); d.setHours(h, m, 0, 0); return d; };
+  for (const h of [0, 4, 8, 12, 16, 20]) await upsertTarefa("diario:odds:" + ymd + ":" + h, "Diario", "atualizar_odds", at(h), {});
+  await upsertTarefa("diario:noticias:" + ymd, "Diario", "gerar_noticias", at(3), {});
+  await upsertTarefa("diario:tokens:" + ymd, "Diario", "injetar_tokens", at(0, 1), {});
+  return { ok: true, jogos: jogos.length };
+}
+
+export function iniciarComando(): void {
+  setTimeout(() => { gerarTarefasDosJogos().catch(() => {}); }, 8000);
+  setInterval(() => { gerarTarefasDosJogos().catch(() => {}); }, 60 * 60 * 1000);
+  setTimeout(() => { tickTarefas().catch(() => {}); }, 15000);
+  setInterval(() => { tickTarefas().catch(() => {}); }, 60 * 1000);
+}
+
+export async function rotasComando(app: FastifyInstance) {
+  app.get("/admin/comando", async (_req, reply) => reply.header("cache-control", "no-store").type("text/html").send(PAGINA_COMANDO));
+  app.get("/admin/comando/tarefas", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    const q = (req.query as any) || {};
+    const dia = /^\d{4}-\d{2}-\d{2}$/.test(q.dia || "") ? q.dia : null;
+    const cat = q.cat && q.cat !== "Todos" ? String(q.cat) : null;
+    const params: any[] = []; let where = "WHERE 1=1";
+    if (dia) { params.push(dia); where += " AND horario_gatilho::date = $" + params.length + "::date"; }
+    else { where += " AND horario_gatilho >= now() - interval '12 hours' AND horario_gatilho <= now() + interval '36 hours'"; }
+    if (cat) { params.push(cat); where += " AND categoria = $" + params.length; }
+    const tarefas = (await pool.query("SELECT id, categoria, acao, horario_gatilho, status, tentativas, log FROM tarefas_agendadas " + where + " ORDER BY horario_gatilho", params)).rows;
+    let lastTick = ""; try { lastTick = (await pool.query("SELECT valor FROM config WHERE chave='tarefas_last_tick'")).rows[0]?.valor || ""; } catch {}
+    return { ok: true, tarefas, lastTick, agora: new Date().toISOString() };
+  });
+  app.post("/admin/comando/retry", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    const id = Number((req.body as any)?.id); if (!Number.isInteger(id)) return reply.code(400).send({ erro: "id invalido" });
+    await pool.query("UPDATE tarefas_agendadas SET status='pendente', atualizado_em=now() WHERE id=$1", [id]); return { ok: true };
+  });
+  app.post("/admin/comando/rodar-agora", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    const id = Number((req.body as any)?.id); if (!Number.isInteger(id)) return reply.code(400).send({ erro: "id invalido" });
+    await pool.query("UPDATE tarefas_agendadas SET status='pendente', horario_gatilho=now() WHERE id=$1", [id]); await tickTarefas(); return { ok: true };
+  });
+  app.post("/admin/comando/gerar", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    return await gerarTarefasDosJogos();
+  });
+}

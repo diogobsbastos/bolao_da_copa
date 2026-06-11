@@ -209,6 +209,26 @@ export async function coletarDados365(): Promise<any> {
   return { ok: true, jogos: n };
 }
 
+export async function atualizarDadosJogo(jogoId: number): Promise<any> {
+  const j = (await pool.query("SELECT id, odds->>'gid' AS gid FROM jogos WHERE id=$1", [jogoId])).rows[0] as any;
+  if (!j?.gid) return { ok: false, erro: "sem gid (jogo distante ou nao mapeado)" };
+  const gj = await s365(`/game?appTypeId=5&langId=1&userCountryId=21&timezoneName=America/Sao_Paulo&gameId=${j.gid}`);
+  const g = gj?.game; if (!g) return { ok: false, erro: "sem game no 365" };
+  const base: any = extrai365(g);
+  const hcId = g.homeCompetitor?.id, acId = g.awayCompetitor?.id;
+  try { const r = await s365(`/stats/?appTypeId=5&langId=1&competitors=${hcId},${acId}&games=${j.gid}`); base.golsLideres = golsLideres(r, g.homeCompetitor?.countryId, g.awayCompetitor?.countryId); } catch {}
+  const cache = new Map<number, any>();
+  try { base.casa.ultimas5 = await ultimas5(hcId, base.casa.recentIds, cache); } catch {}
+  try { base.visitante.ultimas5 = await ultimas5(acId, base.visitante.recentIds, cache); } catch {}
+  await pool.query("UPDATE jogos SET dados365=$1 WHERE id=$2", [JSON.stringify(base), jogoId]);
+  try { const lu = await lineupsDoJogo(j.gid); if (lu) await pool.query("UPDATE jogos SET lineup_casa=$1, lineup_visitante=$2, lineup_em=now() WHERE id=$3", [JSON.stringify(lu.home?.lineup ?? null), JSON.stringify(lu.away?.lineup ?? null), jogoId]); } catch {}
+  return { ok: true, jogo: jogoId, gid: j.gid };
+}
+export async function coletarResultadoJogo(jogoId: number): Promise<any> {
+  const j = (await pool.query("SELECT id, selecao_casa, selecao_visitante, odds->>'gid' AS gid, inicio FROM jogos WHERE id=$1", [jogoId])).rows[0] as any;
+  if (!j?.gid) return { ok: false, erro: "sem gid" };
+  return await processarResultadoJogo(j);
+}
 export async function coletarSeFlag(): Promise<void> { try { if ((await cfg("coletar365")) !== "go") return; await setCfg("coletar365", ""); await coletarDados365(); } catch {} }
 
 export async function refreshDiario(force = false): Promise<any> {
