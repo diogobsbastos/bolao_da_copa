@@ -252,7 +252,7 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}\nbody.mcol .side .r
 .pgsub{margin:0;color:var(--mut);font-size:13px;line-height:1.5}
 .actpanel{display:grid;grid-template-columns:1.05fr 0.95fr;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--bd);border-radius:14px;padding:10px 12px;margin-bottom:14px}
 .act-ia{display:flex;align-items:center;gap:10px;min-width:0}
-.act-ia .bubble{flex:1;max-width:none;white-space:normal;overflow:visible;display:flex;align-items:center;gap:8px}
+.act-ia .bubble{flex:1;max-width:none;white-space:normal;overflow:hidden;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:space-between}
 .act-logic{display:flex;align-items:center;gap:9px;min-width:0;padding-left:12px;border-left:1px solid var(--bd)}
 #btn-auto{flex:1;height:38px;padding:0 16px;font-size:13px;border-radius:11px}
 .sw{position:relative;display:inline-block;width:42px;height:24px;flex:none;cursor:pointer}
@@ -342,7 +342,7 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}\nbody.mcol .side .r
 @keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-6px) rotate(3deg)}}
 .bubble{position:relative;background:var(--surface2);border:1px solid var(--bd);border-radius:12px;padding:8px 12px;font-size:12.5px;font-weight:600;flex:0 1 auto;max-width:360px;line-height:1.4}
 .bubble:before{content:"";position:absolute;left:-7px;top:18px;border:7px solid transparent;border-right-color:var(--bd)}
-.mascf{flex:none}.mascbtnwrap{flex:1;display:flex;justify-content:center}\n.mbtn{background:var(--rc,#14794a);color:#fff;border:0;border-radius:8px;padding:7px 14px;font-weight:800;font-size:12px;cursor:pointer;white-space:nowrap}
+.mascf{flex:1 1 auto;min-width:110px}.mascbtnwrap{flex:0 0 auto;display:flex}\n.mbtn{background:var(--rc,#14794a);color:#fff;border:0;border-radius:8px;padding:7px 14px;font-weight:800;font-size:12px;cursor:pointer;white-space:nowrap}
 .mlink{color:var(--rc,#14794a);font-weight:800;cursor:pointer;letter-spacing:.2px;font-size:11px;white-space:nowrap}
 .gstep{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--bd);font-size:13px;line-height:1.5}
 .gnum{flex:none;width:24px;height:24px;border-radius:50%;background:var(--pri);color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center}
