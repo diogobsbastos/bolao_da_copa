@@ -5,7 +5,7 @@ import { PAGINA_COMANDO } from "./comando_page.js";
 import { atualizarDadosJogo, coletarResultadoJogo, syncOdds, confirmarAgenda } from "./scores365.js";
 import { autoPreencherTick } from "./jogar.js";
 import { timePT, noticiasTime, resumirNoticias } from "./jogos_placar.js";
-import { chamarLLM } from "./llm.js";
+import { chamarLLM, invocarTexto } from "./llm.js";
 
 async function admOk(req: FastifyRequest): Promise<boolean> {
   const t = req.headers["x-admin-token"]; const e = process.env.ADMIN_TOKEN ?? "";
@@ -87,7 +87,9 @@ export async function gerarTarefasDosJogos(): Promise<any> {
 async function resumirNoticiasDoDia(): Promise<any> {
   const jogos = (await pool.query("SELECT DISTINCT selecao_casa, selecao_visitante FROM jogos WHERE inicio > now() AND inicio < now() + interval '36 hours' AND selecao_casa<>'A definir' AND selecao_visitante<>'A definir'")).rows as any[];
   const times = new Set<string>(); for (const j of jogos) { times.add(j.selecao_casa); times.add(j.selecao_visitante); }
-  const inv = (p: string) => chamarLLM(p, "texto", { origem: "cron", processo: "resumo_noticias" });
+  let provN: any = null;
+  try { const sid = (await pool.query("SELECT valor FROM config WHERE chave='llm_noticias_id'")).rows[0]?.valor; if (sid) provN = (await pool.query("SELECT provedor, modelo, api_key, base_url FROM llm_provedores WHERE id=$1", [Number(sid)])).rows[0] || null; } catch {}
+  const inv = provN ? ((p: string) => invocarTexto(provN, p).then((r: any) => String(r.texto || ""))) : ((p: string) => chamarLLM(p, "texto", { origem: "cron", processo: "resumo_noticias" }));
   let n = 0;
   for (const en of Array.from(times)) { try { const news = await noticiasTime(timePT(en).pt, en); const r = await resumirNoticias(news, inv, null); n += (r || []).filter((x: any) => x.resumo_ia).length; } catch {} }
   return { ok: true, times: times.size, noticias_resumidas: n };

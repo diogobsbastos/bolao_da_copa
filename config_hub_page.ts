@@ -110,6 +110,9 @@ ${NAV_CSS}
      <button class="add" onclick="abrirForm('texto')">&#10133; Adicionar LLM</button></div>
      <div id="lista-texto"></div></div>
     <div id="wrap-texto" class="card hide"><div class="cardhead"><h3 id="ti-texto">Adicionar provedor</h3><button class="sm gh" onclick="fecharForm('texto')">fechar</button></div><div id="form-texto"></div></div>
+    <div class="card" style="margin-top:14px"><div class="cardhead"><div><h3>&#128240; Leitor de Not&iacute;cias &mdash; LLM dedicada</h3>
+     <div class="sub">Escolha qual LLM (das cadastradas acima) resume as not&iacute;cias na madrugada. Um modelo leve 7B basta &mdash; pode ser free tier (Groq, Gemini) ou local.</div></div></div>
+     <div style="margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><select id="sel-noticias" onchange="salvarNoticiasLLM()" style="min-width:300px;padding:9px;border:1px solid var(--bd);border-radius:9px"><option value="">&mdash; nenhuma (usa o motor de texto em uso) &mdash;</option></select><span id="msg-noticias" class="muted"></span></div></div>
    </section>
 
    <section id="pg-custos" class="hide">
@@ -192,7 +195,7 @@ function N(v){return v==null||v===""?0:Number(v);}
 function num(v,c){c=c==null?4:c;return N(v).toLocaleString("pt-BR",{minimumFractionDigits:c,maximumFractionDigits:c});}
 var DOLAR=5.2;
 function ehImg(m){return (m.papel==="imagem")||/image|imagen|nano[- ]?banana/i.test(m.modelo);}
-function aba(t){document.querySelectorAll("section").forEach(function(s){s.classList.add("hide");});document.getElementById("pg-"+t).classList.remove("hide");document.querySelectorAll(".tab").forEach(function(a){a.classList.toggle("on",a.getAttribute("data-t")===t);});if(t==="banco"){loadBanco();loadJ365();}if(t==="llms")loadLLM("texto");if(t==="img")loadLLM("imagem");if(t==="custos")loadCustos();if(t==="pay")loadPay();}
+function aba(t){document.querySelectorAll("section").forEach(function(s){s.classList.add("hide");});document.getElementById("pg-"+t).classList.remove("hide");document.querySelectorAll(".tab").forEach(function(a){a.classList.toggle("on",a.getAttribute("data-t")===t);});if(t==="banco"){loadBanco();loadJ365();}if(t==="llms"){loadLLM("texto");loadNoticiasLLM();}if(t==="img")loadLLM("imagem");if(t==="custos")loadCustos();if(t==="pay")loadPay();}
 function togManual(){var b=document.getElementById("man-body");var oculto=b.classList.toggle("hide");document.getElementById("man-tog").textContent=oculto?"abrir":"fechar";}
 async function init(){
  var r=await fetch(BASE+"/admin/config",{headers:H()});
@@ -360,6 +363,8 @@ async function atualizarDolar(){
 
 /* ---------- LLM pool ---------- */
 function provLabel(p){return p.provedor==="gemini"?"cloud":(p.base_url?"local":"cloud");}
+async function loadNoticiasLLM(){var s=document.getElementById("sel-noticias");if(!s)return;var r=await fetch(BASE+"/admin/llm/noticias",{headers:H()});if(!r.ok)return;var d=await r.json();var opts='+"'"+'<option value="">&mdash; nenhuma (usa o motor de texto em uso) &mdash;</option>'+"'"+';(d.lista||[]).forEach(function(p){opts+='+"'"+'<option value="'+"'"+'+p.id+'+"'"+'">'+"'"+'+p.provedor+'+"'"+' / '+"'"+'+p.modelo+'+"'"+' ('+"'"+'+p.papel+'+"'"+')</option>'+"'"+';});s.innerHTML=opts;s.value=d.selecionado||"";}
+async function salvarNoticiasLLM(){var s=document.getElementById("sel-noticias");var m=document.getElementById("msg-noticias");if(m)m.textContent="salvando...";var r=await fetch(BASE+"/admin/llm/noticias",{method:"POST",headers:H(),body:JSON.stringify({id:s.value})});if(m)m.textContent=r.ok?"salvo \u2713":"erro";}
 async function loadLLM(papel){
  var alvo=papel==="texto"?"lista-texto":"lista-imagem";
  var box=document.getElementById(alvo);box.innerHTML='<div class="muted">carregando...</div>';

@@ -102,6 +102,19 @@ export async function rotasLLM(app: FastifyInstance) {
     return (rows as Prov[]).map((p) => ({ ...p, api_key_set: Boolean(p.api_key), api_key: p.api_key ? ("..." + p.api_key.slice(-4)) : "" }));
   });
 
+  app.get("/admin/llm/noticias", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    let sel = ""; try { sel = (await pool.query("SELECT valor FROM config WHERE chave='llm_noticias_id'")).rows[0]?.valor || ""; } catch {}
+    const { rows } = await pool.query("SELECT id, provedor, modelo, papel FROM llm_provedores ORDER BY papel, id");
+    return { ok: true, selecionado: sel, lista: rows };
+  });
+  app.post("/admin/llm/noticias", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    const id = String((req.body as any)?.id ?? "");
+    await pool.query("INSERT INTO config (chave, valor) VALUES ('llm_noticias_id',$1) ON CONFLICT (chave) DO UPDATE SET valor=$1, atualizado_em=now()", [id]);
+    return { ok: true };
+  });
+
   // busca a chave salva de um provedor (pra reusar ao buscar modelos/testar sem redigitar)
   async function keyDe(id: any, fornecida: string): Promise<string> {
     if (fornecida) return fornecida;
