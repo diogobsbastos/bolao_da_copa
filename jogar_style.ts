@@ -3,7 +3,7 @@ body.light{--card:#ffffff;--card2:#eef1f8;--tx:#1b2230;--mut:#5d6678;--bd:#e2e6f
 .tgl{background:var(--surface2);border:1px solid var(--bd);color:var(--tx);width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:15px;flex:none;display:flex;align-items:center;justify-content:center}
 *{box-sizing:border-box}html,body{margin:0}body{font-family:'Poppins',system-ui,Segoe UI,Roboto,sans-serif;background:var(--bgrad) fixed;color:var(--tx);min-height:100vh;-webkit-tap-highlight-color:transparent;overflow-x:clip}
 a{color:inherit;text-decoration:none}
-.top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;padding:8px 14px;height:52px;box-sizing:border-box;background:var(--panel);backdrop-filter:blur(8px);border-bottom:1px solid var(--bd)}
+.top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;padding:8px 14px;height:52px;box-sizing:border-box;background:var(--panel);backdrop-filter:blur(8px);border-bottom:1px solid var(--bd)}.top{padding-right:max(14px,calc(100% - 1050px))}@media(max-width:760px){.top{padding-right:14px}}
 .burger{font-size:22px;background:none;border:0;color:var(--tx);cursor:pointer;display:none}
 .brand{font-weight:800;font-size:15px;white-space:nowrap}
 .brand b{color:var(--pri2)}\n.brand span{text-transform:uppercase}\n.brand .bmgr{font-size:9px;font-weight:800;letter-spacing:.5px;color:var(--mut);background:var(--surface2);border:1px solid var(--bd);border-radius:6px;padding:2px 7px;white-space:nowrap;align-self:center;text-transform:none}
