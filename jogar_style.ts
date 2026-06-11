@@ -107,7 +107,7 @@ th,td{padding:8px 8px;border-bottom:1px solid var(--bd);text-align:left}th{color
  repeating-linear-gradient(0deg,rgba(0,0,0,0) 0 8px,rgba(255,255,255,.0) 8px 16px);
  border:8px solid #fff;margin:10px auto;display:flex;align-items:center;justify-content:center}
 .qr b{background:#fff;color:#000;padding:4px 8px;border-radius:6px;font-size:11px}
-.pack{border:1px solid var(--bd);border-radius:14px;padding:14px;background:linear-gradient(160deg,var(--card2),var(--card))}
+.pack{position:relative;border:1px solid var(--bd);border-radius:14px;padding:14px;background:linear-gradient(160deg,var(--card2),var(--card))}.pkflag{position:absolute;top:0;right:0;display:flex;align-items:center;gap:4px;background:linear-gradient(135deg,#ffe07a,#e0a008);color:#3a2a00;font-weight:800;font-size:13px;padding:5px 13px;border-radius:0 14px 0 14px;box-shadow:0 4px 12px rgba(0,0,0,.35);z-index:3}
 .pack.base{border-color:var(--gold)}
 .mpframe{background:#fff;color:#1a2233;border:1px solid #d9dee8;border-radius:16px;overflow:hidden;max-width:420px;margin:0 auto;box-shadow:0 10px 30px rgba(20,30,60,.14)}
 .mpframe .muted{color:#6b7280}
