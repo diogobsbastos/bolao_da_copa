@@ -36,19 +36,15 @@ export async function rotasUsuarios(app: FastifyInstance) {
         [b.email, hashSenha(b.senha), b.nome ?? null, b.telefone ?? null, gerarReferral(), referidoPor]
       );
       const id = u.rows[0].id as number;
-      await client.query("INSERT INTO usuarios_carteiras (usuario_id) VALUES ($1)", [id]);
-      await client.query(
-        `INSERT INTO transacoes_tokens (usuario_id, carteira, valor, saldo_apos, tipo)
-         VALUES ($1,'token',500,500,'cadastro')`,
-        [id]
-      );
+      // saldo zero. ganha 500 so se pagar (deposito_pix) ou usar convite FULL (aplicarEntrada).
+      await client.query("INSERT INTO usuarios_carteiras (usuario_id, saldo) VALUES ($1, 0)", [id]);
       await client.query("INSERT INTO ranking (usuario_id) VALUES ($1)", [id]);
       await client.query("COMMIT");
       try { if (b.codigo || b.referral) await aplicarEntrada(id, b.codigo || b.referral); } catch {}
       return reply.code(201).send({
         id,
         codigo_referral: u.rows[0].codigo_referral,
-        carteiras: { saldo: 500 },
+        carteiras: { saldo: 0 },
       });
     } catch (e: any) {
       await client.query("ROLLBACK");

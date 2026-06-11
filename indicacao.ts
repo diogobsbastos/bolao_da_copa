@@ -29,7 +29,7 @@ export async function aplicarEntrada(novoId: number, codigo: string | null | und
     if (full && !full.full_usado && full.pagou) {
       await pool.query("UPDATE usuarios SET full_usado=true WHERE id=$1", [full.id]);
       await pool.query("UPDATE usuarios SET acesso_full=true, tipo_entrada='full_gift', referido_por=$2 WHERE id=$1", [novoId, full.id]);
-      await grantPacoteBase(novoId);
+      await creditarTokens(novoId, 500, 'referral'); // ganha 500 tokens por entrar via convite FULL
       await pool.query("INSERT INTO indicacoes (referrer_id, indicado_id, tipo, status) VALUES ($1,$2,'full','entrou')", [full.id, novoId]);
       console.log("[indicacao] convite FULL usado: referrer", full.id, "-> novo", novoId);
       return;
@@ -94,7 +94,7 @@ export async function rotasIndicacao(app: FastifyInstance) {
     if (full.id === u.id) return { ok: false, erro: "você não pode usar o próprio convite" };
     await pool.query("UPDATE usuarios SET full_usado=true WHERE id=$1", [full.id]);
     await pool.query("UPDATE usuarios SET acesso_full=true, tipo_entrada='full_gift', referido_por=COALESCE(referido_por,$2) WHERE id=$1", [u.id, full.id]);
-    await grantPacoteBase(u.id);
+    await creditarTokens(u.id, 500, 'referral'); // ganha 500 tokens por resgatar convite FULL
     await pool.query("INSERT INTO indicacoes (referrer_id, indicado_id, tipo, status) VALUES ($1,$2,'full','entrou')", [full.id, u.id]);
     return { ok: true };
   });

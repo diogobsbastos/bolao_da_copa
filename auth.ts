@@ -32,12 +32,8 @@ async function criarJogador(email: string, nome: string | null, senhaHash: strin
     [email, senhaHash, nome, ref]
   );
   const id = ins.rows[0].id as number;
-  await pool.query("INSERT INTO usuarios_carteiras (usuario_id) VALUES ($1)", [id]);
-  await pool.query(
-    `INSERT INTO transacoes_tokens (usuario_id, carteira, valor, saldo_apos, tipo)
-     VALUES ($1,'token',500,500,'cadastro')`,
-    [id]
-  );
+  // saldo zero no cadastro. so ganha 500 SE pagar R$10 (deposito_pix) OU usar convite FULL (aplicarEntrada).
+  await pool.query("INSERT INTO usuarios_carteiras (usuario_id, saldo) VALUES ($1, 0)", [id]);
   await pool.query("INSERT INTO ranking (usuario_id) VALUES ($1)", [id]);
   if (codigo) { try { await aplicarEntrada(id, codigo); } catch {} }
   return id;
