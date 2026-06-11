@@ -237,7 +237,7 @@ html{scrollbar-width:thin;scrollbar-color:var(--bar,#14a06a) transparent}.main{s
 body.mcol .side{width:58px;padding:10px 6px}
 body.mcol .side a{justify-content:center;font-size:0;gap:0;padding:10px 0}
 body.mcol .side a .ic{font-size:18px}
-body.mcol .side a .tag,body.mcol .side a .free{display:none}
+body.mcol .side a .tag,body.mcol .side a .free{display:none}\nbody.mcol .side .radar{display:none}
 .sbtn{background:var(--surface2);color:var(--rc,#1faa59)}
 .sbtn:hover{background:color-mix(in srgb,var(--rc,#1faa59) 18%,var(--surface2));color:var(--rc,#1faa59)}
 .su:hover{background:color-mix(in srgb,var(--rc,#1faa59) 18%,var(--surface2));color:var(--rc,#1faa59)}
