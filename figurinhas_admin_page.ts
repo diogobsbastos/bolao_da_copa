@@ -179,8 +179,10 @@ function renderTimes(){
  if(!TIMES.length){box.innerHTML='<div class="muted">nenhum time.</div>';return;}
  box.innerHTML=TIMES.map(function(t,i){
   var fl=t.bandeira?('<img src="'+t.bandeira+'" loading="lazy">'):'<div style="font-size:34px">&#127937;</div>';
-  var st="border-color:"+(t.cor||"#ccc")+";background:"+hexA(t.cor,0.06);
-  return '<div class="time" style="'+st+'" onclick="abrirTime('+i+')">'+fl+'<div class="nm">'+esc(t.selecao_pt)+'</div><div class="ct"><b>'+t.reais+'</b>/'+t.qtd+' reais</div></div>';
+  var st="position:relative;border-color:"+(t.cor||"#ccc")+";background:"+hexA(t.cor,0.06);
+  var falta=(t.qtd||0)-(t.reais||0);
+  var badge=falta>0?'<span style="position:absolute;right:6px;bottom:6px;background:#e23744;color:#fff;font-size:11px;font-weight:800;line-height:1;padding:3px 7px;border-radius:999px;box-shadow:0 0 0 2px #fff">falta '+falta+'</span>':'';
+  return '<div class="time" style="'+st+'" onclick="abrirTime('+i+')">'+fl+'<div class="nm">'+esc(t.selecao_pt)+'</div><div class="ct"><b>'+t.reais+'</b>/'+t.qtd+' reais</div>'+badge+'</div>';
  }).join("");
 }
 function mostrarTimes(){document.getElementById("view-time").style.display="none";document.getElementById("view-times").style.display="block";document.getElementById("busca").style.display="none";document.getElementById("armada").style.display="none";init();}
