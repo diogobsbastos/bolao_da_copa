@@ -75,7 +75,7 @@ ${CSS}
 
   <section class="sec" id="s-time">
    <div class="pghead"><div class="pghl"><h1>Meu Time</h1></div><div class="muted" style="margin:0">Escale seu XI no 4-4-2. Toque num titular e depois numa reserva pra trocar.</div></div>
-   <div class="card" id="tm-vazio" style="display:none"><div class="muted">Voc&ecirc; ainda n&atilde;o tem cartas. Abra seu Clube no Marketplace pra montar o time.</div><div style="margin-top:12px"><button class="btn" onclick="nav('market')">Abrir meu Clube</button></div></div>
+   <div class="card" id="tm-vazio" style="display:none"><div class="muted">Voc&ecirc; ainda n&atilde;o tem cartas. Abra seu Clube no Marketplace pra montar o time.</div><div style="margin-top:12px"><button class="btn btnclb" onclick="confirmarAbrirPacote()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="13.5" rx="9" ry="4"/><ellipse cx="12" cy="13.5" rx="4.5" ry="1.5"/><path d="M3 13.5v2.5c0 2.2 4 4 9 4s9-1.8 9-4v-2.5"/><path d="M5 4v3l2-1zM12 3v3l2-1zM19 4v3l2-1z"/></svg>Abrir meu Clube</button></div></div>
    <div id="tm-wrap" style="display:none">
     <div class="tmtop">
      <div class="tmtopL"><div class="tmbadge"><div><div class="k">Forma&ccedil;&atilde;o</div><div class="v">4-4-2</div></div></div><div class="tmbadge"><div><div class="k">For&ccedil;a do elenco</div><div class="v gold" id="tm-forca">--</div></div></div><div class="tmbadge"><div><div class="k">Cartas</div><div class="v" id="tm-qt">--</div></div></div></div>
