@@ -4,6 +4,7 @@ import { usuarioDaReq } from "./auth.js";
 import { PAGINA_COMANDO } from "./comando_page.js";
 import { atualizarDadosJogo, coletarResultadoJogo, syncOdds, confirmarAgenda } from "./scores365.js";
 import { autoPreencherTick } from "./jogar.js";
+import { timePT } from "./jogos_placar.js";
 
 async function admOk(req: FastifyRequest): Promise<boolean> {
   const t = req.headers["x-admin-token"]; const e = process.env.ADMIN_TOKEN ?? "";
@@ -100,7 +101,8 @@ export async function rotasComando(app: FastifyInstance) {
     if (dia) { params.push(dia); where += " AND dia_ref = $" + params.length + "::date"; }
     else { where += " AND dia_ref = (now() AT TIME ZONE 'America/Sao_Paulo')::date"; }
     if (cat) { params.push(cat); where += " AND categoria = $" + params.length; }
-    const tarefas = (await pool.query("SELECT id, categoria, acao, horario_gatilho, dia_ref, status, tentativas, log FROM tarefas_agendadas " + where + " ORDER BY horario_gatilho", params)).rows.map((t: any) => ({ ...t, fonte: FONTE[t.acao] || "\u2014" }));
+    const sql = "SELECT t.id, t.categoria, t.acao, t.horario_gatilho, t.dia_ref, t.status, t.tentativas, t.log, j.selecao_casa, j.selecao_visitante, j.inicio AS jogo_inicio FROM tarefas_agendadas t LEFT JOIN jogos j ON j.id = NULLIF(t.parametros->>'jogo_id','')::int " + where + " ORDER BY t.horario_gatilho";
+    const tarefas = (await pool.query(sql, params)).rows.map((t: any) => { const o: any = { id: t.id, categoria: t.categoria, acao: t.acao, horario_gatilho: t.horario_gatilho, status: t.status, tentativas: t.tentativas, log: t.log, fonte: FONTE[t.acao] || "\u2014" }; if (t.selecao_casa) { const cc = timePT(t.selecao_casa), vv = timePT(t.selecao_visitante); o.jogo = { casa_pt: cc.pt, casa_iso: cc.iso, visit_pt: vv.pt, visit_iso: vv.iso, inicio: t.jogo_inicio }; } return o; });
     let lastTick = ""; try { lastTick = (await pool.query("SELECT valor FROM config WHERE chave='tarefas_last_tick'")).rows[0]?.valor || ""; } catch {}
     return { ok: true, tarefas, lastTick, agora: new Date().toISOString() };
   });

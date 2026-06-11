@@ -29,6 +29,7 @@ export const PAGINA_COMANDO = `<!doctype html><html lang="pt-br"><head><meta cha
 .tk .body{flex:1;min-width:0}
 .tk .ac{font-weight:700;font-size:13.5px}
 .tk .meta{font-size:11.5px;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.jgline{font-size:13px;color:var(--tx);margin:2px 0 3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}.jgline b{color:var(--mut);font-weight:700}.ko{font-size:11px;font-weight:700;color:#2a44b8;background:#eef6ff;padding:2px 8px;border-radius:6px;margin-left:4px}.fl{width:20px;height:14px;object-fit:cover;border-radius:2px;background:#e6e8f0}
 .cat{display:inline-block;font-size:10px;font-weight:800;padding:2px 7px;border-radius:6px;background:#eef1f6;color:#5a6275;margin-right:6px}
 .st{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;white-space:nowrap}
 .st.pendente{background:#eef1f6;color:#5a6275}.st.rodando{background:#e6ecff;color:#2a44b8}.st.concluido{background:#e6f7ee;color:#0f7a45}.st.erro{background:#fdeaec;color:#b4232f}.st.ignorado{background:#fdf3e0;color:#9a6a00}
@@ -78,6 +79,7 @@ function shiftDia(n){diaDate.setDate(diaDate.getDate()+n);load();}
 function hojeDia(){diaDate=new Date();load();}
 function H(){var h={"content-type":"application/json"};var s=localStorage.getItem("sessao");if(s){h["authorization"]="Bearer "+s;}return h;}
 function esc(v){return String(v==null?"":v).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function fl(iso){return iso?('<img class="fl" src="https://flagcdn.com/w40/'+iso+'.png" onerror="this.style.opacity=.2">'):"";}
 function hhmm(s){var d=new Date(s);if(isNaN(d))return "--:--";return d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});}
 var ICO={atualizar_dados_jogo:"\u{1F504}",auto_preencher:"\u{1F916}",coletar_resultado:"\u{1F3C1}",atualizar_odds:"\u{1F4B9}",gerar_noticias:"\u{1F4F0}",injetar_tokens:"\u{1FA99}",liquidar_bets:"\u{1F3B0}",arena_resolver:"\u{2694}",regua_figurinhas:"\u{1F0CF}",confirmar_agenda:"\u{1F4C5}"};
 var ROT={atualizar_dados_jogo:"Atualizar dados do jogo",auto_preencher:"Auto-preencher palpites",coletar_resultado:"Coletar resultado + apurar",atualizar_odds:"Atualizar odds",gerar_noticias:"Gerar noticias (IA)",injetar_tokens:"Injetar tokens diarios",liquidar_bets:"Liquidar Bets",arena_resolver:"Resolver Arenas",regua_figurinhas:"Regua de notas",confirmar_agenda:"Confirmar agenda (horarios reais)"};
@@ -106,9 +108,10 @@ async function load(){
   if(st==="erro")acts='<button class="act" onclick="retry('+t.id+')">tentar de novo</button>';
   else if(st==="pendente")acts='<button class="act" onclick="rodar('+t.id+')">rodar agora</button>';
   var meta='<span class="cat">'+esc(t.categoria)+'</span><span class="fonte">'+esc(t.fonte||"\u2014")+'</span>'+(t.tentativas?("tent. "+t.tentativas+" · "):"")+(t.log?esc(String(t.log).slice(0,80)):"agendada");
+  var jogoHtml=t.jogo?('<div class="jgline">'+fl(t.jogo.casa_iso)+esc(t.jogo.casa_pt)+' <b>x</b> '+esc(t.jogo.visit_pt)+fl(t.jogo.visit_iso)+'<span class="ko">apito '+hhmm(t.jogo.inicio)+'</span></div>'):'';
   return '<div class="tk '+st+'"><span class="hr">'+hhmm(t.horario_gatilho)+'</span>'
    +'<span class="ico">'+(ICO[t.acao]||"⚙")+'</span>'
-   +'<div class="body"><div class="ac">'+esc(ROT[t.acao]||t.acao)+'</div><div class="meta">'+meta+'</div></div>'
+   +'<div class="body"><div class="ac">'+esc(ROT[t.acao]||t.acao)+'</div>'+jogoHtml+'<div class="meta">'+meta+'</div></div>'
    +stHtml+acts+'</div>';
  }).join("");
 }
