@@ -100,8 +100,13 @@ async function normalizarBase(time: string, tipo: string): Promise<void> {
 }
 async function provImagem(): Promise<any | null> {
   let { rows } = await pool.query("SELECT * FROM llm_provedores WHERE em_uso=true AND papel='imagem' ORDER BY id LIMIT 1");
+  if (!rows.length || !(rows[0] as any).api_key) ({ rows } = await pool.query("SELECT * FROM llm_provedores WHERE papel='imagem' AND api_key<>'' ORDER BY id LIMIT 1"));
   if (!rows.length) ({ rows } = await pool.query("SELECT * FROM llm_provedores WHERE papel='imagem' ORDER BY id LIMIT 1"));
   return (rows as any[])[0] ?? null;
+}
+async function provImagemPara(fin: string): Promise<any | null> {
+  try { const id = await getCfg("img_uso_" + fin); if (id) { const r: any = (await pool.query("SELECT * FROM llm_provedores WHERE id=$1", [Number(id)])).rows[0]; if (r && r.api_key) return r; } } catch {}
+  return provImagem();
 }
 async function gerarImagemGemini(prov: any, prompt: string, refB64: string): Promise<{ b64: string }> {
   if (typeof fetch !== "function") throw new Error("fetch indisponivel");
@@ -112,6 +117,28 @@ async function gerarImagemGemini(prov: any, prompt: string, refB64: string): Pro
   const parts: any[] = j?.candidates?.[0]?.content?.parts || [];
   for (const p of parts) { const d = p.inlineData || p.inline_data; if (d?.data) return { b64: d.data }; }
   throw new Error("o modelo nao retornou imagem");
+}
+
+async function gerarImagemNvidia(prov: any, prompt: string, refB64: string): Promise<{ b64: string }> {
+  if (typeof fetch !== "function") throw new Error("fetch indisponivel");
+  const url = "https://ai.api.nvidia.com/v1/genai/" + prov.modelo;
+  const body: any = { prompt, cfg_scale: 3.5, width: 1024, height: 1024, seed: 0, steps: 50 };
+  if (refB64) body.image = "data:image/png;base64," + refB64;
+  const r = await fetch(url, { method: "POST", headers: { authorization: "Bearer " + (prov.api_key || ""), accept: "application/json", "content-type": "application/json" }, body: JSON.stringify(body) });
+  const txt = await r.text();
+  let j: any = null; try { j = JSON.parse(txt); } catch {}
+  if (!r.ok) throw new Error("NVIDIA http " + r.status + ": " + txt.slice(0, 200));
+  let b64 = "";
+  if (j) { if (Array.isArray(j.artifacts) && j.artifacts[0]) b64 = j.artifacts[0].base64 || j.artifacts[0].b64_json || ""; else if (Array.isArray(j.data) && j.data[0]) b64 = j.data[0].b64_json || j.data[0].b64 || ""; else if (typeof j.image === "string") b64 = j.image; else if (typeof j.b64_json === "string") b64 = j.b64_json; }
+  if (b64.indexOf("data:") === 0) b64 = b64.split(",").pop() as string;
+  if (!b64) throw new Error("NVIDIA: resposta sem imagem (" + txt.slice(0, 160) + ")");
+  return { b64 };
+}
+async function gerarImagem(prov: any, prompt: string, refB64: string): Promise<{ b64: string }> {
+  const b = String(prov.base_url || "").toLowerCase();
+  const mm = String(prov.modelo || "").toLowerCase();
+  if (b.includes("nvidia") || mm.indexOf("black-forest") === 0 || mm.includes("flux")) return gerarImagemNvidia(prov, prompt, refB64);
+  return gerarImagemGemini(prov, prompt, refB64);
 }
 async function tilesDoTime(time: string) {
   let tipo: any = {}, ocr: any = {}, arquivos: string[] = [];
@@ -253,19 +280,20 @@ export async function rotasCartas(app: FastifyInstance) {
     const tipo = b.tipo === "goleiro" ? "goleiro" : "jogador";
     const ref = /^\d+\.png$/.test(String(b.ref)) ? String(b.ref) : (tipo === "goleiro" ? "02.png" : "08.png");
     if (!time || time.includes("/") || time.includes("..")) return reply.code(400).send({ erro: "time invalido" });
-    const prov = await provImagem();
-    if (!prov) return reply.code(400).send({ erro: "configure o Motor de Imagem (gemini-2.5-flash-image)" });
+    const prov = await provImagemPara("molde");
+    if (!prov) return reply.code(400).send({ erro: "configure o Motor de Imagem (Gemini ou NVIDIA FLUX)" });
+    req.log.info("NANO_MOTOR id=" + (prov as any).id + " modelo=" + prov.modelo + " base=" + prov.base_url + " key=" + (prov.api_key ? "sim" : "VAZIA"));
     try {
       const refB64 = (await readFile(join(DIR, time, ref))).toString("base64");
       const prompt = (await getCfg("prompt_fig_base")) || PROMPT_BASE;
       const t0 = Date.now();
-      const out = await gerarImagemGemini(prov, prompt, refB64);
+      const out = await gerarImagem(prov, prompt, refB64);
       await mkdir(fabDir(time), { recursive: true });
       await writeFile(baseFab(time, tipo), Buffer.from(out.b64, "base64"));
       await normalizarBase(time, tipo);
       await registrarGasto({ modelo: prov.modelo, imagens: 1, processo: "base_" + tipo + ":" + time, origem: "cartas", tempo: (Date.now() - t0) / 1000 });
       return { ok: true, url: "/fig/cartabase/" + encodeURIComponent(time) + "/" + tipo + ".png?v=" + Date.now(), ref };
-    } catch (e: any) { return reply.code(502).send({ ok: false, erro: String(e?.message ?? e).slice(0, 200) }); }
+    } catch (e: any) { return reply.code(502).send({ ok: false, erro: "[motor: " + prov.modelo + " | chave:" + (prov.api_key ? "sim" : "NAO") + "] " + String(e?.message ?? e).slice(0, 170) }); }
   });
 
   app.post("/admin/cartas/lote", async (req, reply) => {
