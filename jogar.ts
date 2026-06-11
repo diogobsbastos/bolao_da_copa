@@ -424,10 +424,50 @@ export async function rotasJogar(app: FastifyInstance) {
     const plano: [string, number][] = [["Goalkeeper", 1], ["Defence", 4], ["Midfield", 4], ["Offence", 2]];
     const cartas: any[] = [];
     for (const [pos, n] of plano) {
-      const cards = (await pool.query("SELECT id, nome, posicao, selecao, raridade, figurinha FROM jogadores WHERE posicao=$1 AND figurinha IS NOT NULL ORDER BY random() LIMIT $2", [pos, n])).rows as any[];
+      const cards = (await pool.query("SELECT id, nome, posicao, selecao, raridade, figurinha FROM jogadores j WHERE j.posicao=$1 AND j.figurinha IS NOT NULL AND EXISTS(SELECT 1 FROM jogadores_365 g WHERE g.jogador_id=j.id AND g.overall IS NOT NULL) ORDER BY random() LIMIT $2", [pos, n])).rows as any[];
       for (const c of cards) { await pool.query("INSERT INTO inventario_figurinhas (usuario_id, jogador_id, origem) VALUES ($1,$2,'clube') ON CONFLICT DO NOTHING", [u.id, c.id]); cartas.push(c); }
     }
     return { ok: true, cartas, saldo: novoSaldo };
+  });
+  const SLOTS_442 = ["GOL","LE","ZE","ZD","LD","ME","MC2","MC1","MD","AE","AD"];
+  const grpDePos = (p: string) => { const x = (p || "").toLowerCase(); if (x.indexOf("goal") >= 0) return "GOL"; if (x.indexOf("def") >= 0) return "DEF"; if (x.indexOf("mid") >= 0) return "MEI"; return "ATA"; };
+  const grpDeSlot = (slot: string) => { if (slot === "GOL") return "GOL"; if (["LE","ZE","ZD","LD"].indexOf(slot) >= 0) return "DEF"; if (["ME","MC2","MC1","MD"].indexOf(slot) >= 0) return "MEI"; return "ATA"; };
+  app.get("/jogar/time", async (req, reply) => {
+    const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    const inv = (await pool.query("SELECT j.id, j.nome, j.posicao, j.selecao, j.raridade, j.figurinha, g.overall FROM inventario_figurinhas i JOIN jogadores j ON j.id=i.jogador_id LEFT JOIN jogadores_365 g ON g.jogador_id=j.id WHERE i.usuario_id=$1 ORDER BY g.overall DESC NULLS LAST, i.criado_em DESC", [u.id])).rows as any[];
+    const byId = new Map<number, any>(); for (const c of inv) byId.set(Number(c.id), c);
+    const grupos: any = { GOL: [], DEF: [], MEI: [], ATA: [] };
+    for (const c of inv) grupos[grpDePos(c.posicao)].push(c);
+    let esc: any = {};
+    try { esc = ((await pool.query("SELECT escalacao FROM usuarios WHERE id=$1", [u.id])).rows[0] as any)?.escalacao || {}; } catch {}
+    if (typeof esc !== "object" || esc === null) esc = {};
+    const usados = new Set<number>(); const titular: any = {};
+    for (const slot of SLOTS_442) { const id = Number(esc[slot] || 0); if (id && byId.has(id) && !usados.has(id) && grpDePos(byId.get(id).posicao) === grpDeSlot(slot)) { titular[slot] = id; usados.add(id); } }
+    let mudou = false;
+    for (const slot of SLOTS_442) { if (titular[slot]) continue; const g = grpDeSlot(slot); const cand = grupos[g].find((c: any) => !usados.has(Number(c.id))); if (cand) { titular[slot] = Number(cand.id); usados.add(Number(cand.id)); mudou = true; } }
+    if (mudou) { try { await pool.query("UPDATE usuarios SET escalacao=$2 WHERE id=$1", [u.id, JSON.stringify(titular)]); } catch {} }
+    const escOut: any = {}; for (const slot of SLOTS_442) escOut[slot] = titular[slot] ? byId.get(titular[slot]) : null;
+    const banco: any = { GOL: [], DEF: [], MEI: [], ATA: [] };
+    for (const c of inv) if (!usados.has(Number(c.id))) banco[grpDePos(c.posicao)].push(c);
+    let soma = 0, qt = 0; for (const slot of SLOTS_442) { const c = escOut[slot]; if (c && c.overall != null) { soma += Number(c.overall); qt++; } }
+    const forca = qt ? Math.round(soma / qt) : null;
+    return { ok: true, formacao: "4-4-2", escalacao: escOut, banco, forca, totalCartas: inv.length };
+  });
+  app.post("/jogar/time/trocar", async (req, reply) => {
+    const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    const b = (req.body ?? {}) as any; const slot = String(b.slot || ""); const jid = Number(b.jogador_id || 0);
+    if (SLOTS_442.indexOf(slot) < 0 || !jid) return reply.code(400).send({ erro: "dados invalidos" });
+    const card = (await pool.query("SELECT j.id, j.posicao FROM inventario_figurinhas i JOIN jogadores j ON j.id=i.jogador_id WHERE i.usuario_id=$1 AND j.id=$2", [u.id, jid])).rows[0] as any;
+    if (!card) return reply.code(400).send({ erro: "carta nao e sua" });
+    if (grpDePos(card.posicao) !== grpDeSlot(slot)) return reply.code(400).send({ erro: "posicao incompativel" });
+    let esc: any = {};
+    try { esc = ((await pool.query("SELECT escalacao FROM usuarios WHERE id=$1", [u.id])).rows[0] as any)?.escalacao || {}; } catch {}
+    if (typeof esc !== "object" || esc === null) esc = {};
+    let outroSlot = ""; for (const sx of SLOTS_442) if (Number(esc[sx]) === jid) outroSlot = sx;
+    const antigo = esc[slot] || null; esc[slot] = jid;
+    if (outroSlot && outroSlot !== slot) esc[outroSlot] = antigo;
+    try { await pool.query("UPDATE usuarios SET escalacao=$2 WHERE id=$1", [u.id, JSON.stringify(esc)]); } catch (e: any) { return { ok: false, erro: String(e?.message ?? e).slice(0, 120) }; }
+    return { ok: true };
   });
   app.get("/jogar/news", async (req, reply) => {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });

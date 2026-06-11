@@ -22,7 +22,7 @@ async function creditarDeposito(depId: number): Promise<boolean> {
   const uid = (upd.rows[0] as any).usuario_id;
   const plano: [string, number][] = [["Goalkeeper", 1], ["Defence", 4], ["Midfield", 4], ["Offence", 2]];
   for (const [pos, n] of plano) {
-    const cards = (await pool.query("SELECT id FROM jogadores WHERE posicao=$1 AND figurinha IS NOT NULL ORDER BY random() LIMIT $2", [pos, n])).rows as any[];
+    const cards = (await pool.query("SELECT id FROM jogadores j WHERE j.posicao=$1 AND j.figurinha IS NOT NULL AND EXISTS(SELECT 1 FROM jogadores_365 g WHERE g.jogador_id=j.id AND g.overall IS NOT NULL) ORDER BY random() LIMIT $2", [pos, n])).rows as any[];
     for (const c of cards) await pool.query("INSERT INTO inventario_figurinhas (usuario_id, jogador_id, origem) VALUES ($1,$2,'pacote_base')", [uid, c.id]);
   }
   try { await pool.query("UPDATE usuarios_carteiras SET saldo = saldo WHERE usuario_id=$1", [uid]); } catch {}
@@ -92,7 +92,7 @@ export async function rotasPagamento(app: FastifyInstance) {
   // ----- Jogador: inventario (figurinhas liberadas) -----
   app.get("/jogar/inventario", async (req, reply) => {
     const u = await usuarioDaReq(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
-    const rows = (await pool.query("SELECT j.id, j.nome, j.posicao, j.selecao, j.raridade, j.figurinha FROM inventario_figurinhas i JOIN jogadores j ON j.id=i.jogador_id WHERE i.usuario_id=$1 ORDER BY i.criado_em DESC", [u.id])).rows as any[];
+    const rows = (await pool.query("SELECT j.id, j.nome, j.posicao, j.selecao, j.raridade, j.figurinha, g.overall FROM inventario_figurinhas i JOIN jogadores j ON j.id=i.jogador_id LEFT JOIN jogadores_365 g ON g.jogador_id=j.id WHERE i.usuario_id=$1 ORDER BY i.criado_em DESC", [u.id])).rows as any[];
     return { ok: true, figurinhas: rows };
   });
 
