@@ -110,11 +110,11 @@ export async function rotasJogar(app: FastifyInstance) {
     try { await pool.query("INSERT INTO ranking (usuario_id, pontos_bolao, pontos_arena) SELECT $1,0,0 WHERE NOT EXISTS (SELECT 1 FROM ranking WHERE usuario_id=$1)", [u.id]); } catch {}
     let cart = (await pool.query("SELECT saldo FROM usuarios_carteiras WHERE usuario_id=$1", [u.id])).rows[0] as any;
     if (!cart) { try { await pool.query("INSERT INTO usuarios_carteiras (usuario_id) VALUES ($1) ON CONFLICT DO NOTHING", [u.id]); } catch {} cart = { saldo: 500 }; }
-    let pos: any = null, pontos = 0, total = 0;
+    let pos: any = null, pontos = 0, total = 0, arena = 0;
     try {
       total = Number(((await pool.query("SELECT count(*) n FROM ranking")).rows[0] as any)?.n || 0);
-      const meu = (await pool.query("SELECT pontos_bolao FROM ranking WHERE usuario_id=$1", [u.id])).rows[0] as any;
-      pontos = Number(meu?.pontos_bolao || 0);
+      const meu = (await pool.query("SELECT pontos_bolao, pontos_arena FROM ranking WHERE usuario_id=$1", [u.id])).rows[0] as any;
+      pontos = Number(meu?.pontos_bolao || 0); arena = Number(meu?.pontos_arena || 0);
       pos = Number(((await pool.query("SELECT count(*)+1 n FROM ranking WHERE pontos_bolao > (SELECT COALESCE(pontos_bolao,0) FROM ranking WHERE usuario_id=$1)", [u.id])).rows[0] as any)?.n || 0);
     } catch {}
     const pj = (await pool.query("SELECT selecao_casa, selecao_visitante, inicio, rodada FROM jogos WHERE inicio >= now() AND selecao_casa<>'A definir' AND selecao_visitante<>'A definir' ORDER BY inicio ASC LIMIT 1")).rows[0] as any;
@@ -130,7 +130,7 @@ export async function rotasJogar(app: FastifyInstance) {
     let longoFeito = false; try { longoFeito = !!((await pool.query("SELECT 1 FROM palpites_longo WHERE usuario_id=$1 AND campeao IS NOT NULL AND campeao<>'' AND vice IS NOT NULL AND vice<>'' AND terceiro IS NOT NULL AND terceiro<>'' AND quarto IS NOT NULL AND quarto<>'' AND artilheiro_id IS NOT NULL", [u.id])).rowCount); } catch {}
     let stRod = [0,0,0]; try { const sr = (await pool.query("SELECT j.rodada AS r, count(*) AS n FROM jogos j WHERE j.fase='grupos' AND j.selecao_casa<>'A definir' AND j.selecao_visitante<>'A definir' AND j.inicio>=now() AND NOT EXISTS (SELECT 1 FROM palpites_bolao pb WHERE pb.jogo_id=j.id AND pb.usuario_id=$1) GROUP BY j.rodada", [u.id])).rows as any[]; for (const x of sr) { const i = Number(x.r) - 1; if (i>=0 && i<3) stRod[i] = Number(x.n); } } catch {}
     let poteTot=0;try{const _pr=await pool.query("SELECT COALESCE(SUM(valor),0) AS v FROM depositos WHERE status='approved'");poteTot=Number(_pr.rows[0].v)||0;}catch{}
-    return { ok: true, pote: poteTot, autoPreencher: autoP, iaConectada: iaOn, acessoFull, me: { id: u.id, nome: u.nome || u.email, email: u.email, papel: u.papel, nomeTime: pf.nome_time || "", avatar: pf.avatar || "", pagou: !!pf.pagou, valorPago }, carteiras: { saldo: Number(cart.saldo || 0) }, ranking: { pos, pontos, total }, proximo, palpitesPendentes: pend, mataAberto, longoFeito, steps: { rod: stRod, ca: longoFeito } };
+    return { ok: true, pote: poteTot, autoPreencher: autoP, iaConectada: iaOn, acessoFull, me: { id: u.id, nome: u.nome || u.email, email: u.email, papel: u.papel, nomeTime: pf.nome_time || "", avatar: pf.avatar || "", pagou: !!pf.pagou, valorPago }, carteiras: { saldo: Number(cart.saldo || 0) }, ranking: { pos, pontos, total, arena }, proximo, palpitesPendentes: pend, mataAberto, longoFeito, steps: { rod: stRod, ca: longoFeito } };
   });
 
   app.post("/jogar/perfil", async (req, reply) => {
