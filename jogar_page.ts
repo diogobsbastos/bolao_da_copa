@@ -532,32 +532,43 @@ async function tourAudit(){
  modal(auditHtml(c));
 }
 
-var DEPID=null,DEPTIMER=null;
+var DEPID=null,DEPTIMER=null,DEPVAL=0,DEPPACS=null;
 var DEPSEALS='<div class="mpseals"><span>&#128274; Conex\u00e3o segura</span><span>&#9889; PIX &middot; Banco Central</span><span>&#128273; Dados criptografados</span></div>';
-function loadDeposito(){var b=document.getElementById("dep-body");if(!b)return;if(DEPTIMER){clearTimeout(DEPTIMER);DEPTIMER=null;}DEPID=null;
- b.innerHTML='<div class="mpprod"><div class="mpprice">R$ 10,00</div><div class="muted" style="margin-top:4px">Pacote Base &middot; 11 figurinhas (1 goleiro, 4 defesa, 4 meio, 2 ataque)</div></div>'
- +'<button class="btn mppay" onclick="depCriar()">&#9889; Pagar com PIX</button>'
- +'<div class="mptrust">&#128179; Aprova&ccedil;&atilde;o na hora pelo Mercado Pago. Voc&ecirc; paga no app do seu banco lendo o QR ou colando o c&oacute;digo PIX.</div>'+DEPSEALS;}
-async function depCriar(){var b=document.getElementById("dep-body");b.innerHTML='<div class="muted" style="padding:24px">gerando seu PIX seguro&hellip; &#128274;</div>';
- var r=await fetch(BASE+"/jogar/deposito/criar",{method:"POST",headers:H()});var d=await r.json().catch(function(){return{};});
- if(!d||!d.ok){b.innerHTML='<div class="muted">'+esc((d&&d.erro)||"n\u00e3o consegui gerar o PIX")+'</div><button class="btn ghost" style="margin-top:10px" onclick="loadDeposito()">Voltar</button>';return;}
- DEPID=d.id;
- b.innerHTML='<div class="mpprod"><div style="font-weight:800;font-size:15px">R$ '+Number(d.valor).toFixed(2).replace(".",",")+' &middot; Pacote Base</div></div>'
+async function loadDeposito(){var b=document.getElementById("dep-body");if(!b)return;if(DEPTIMER){clearTimeout(DEPTIMER);DEPTIMER=null;}DEPID=null;
+ b.innerHTML='<div class="muted" style="padding:14px;text-align:center">carregando&hellip;</div>';
+ if(!DEPPACS){try{var r=await fetch(BASE+"/jogar/deposito/pacotes",{headers:H()});var d=await r.json();DEPPACS=(d&&d.ok&&d.pacotes&&d.pacotes.length)?d.pacotes:[{brl:10,tokens:500,label:"Iniciante",destaque:true}];}catch(e){DEPPACS=[{brl:10,tokens:500,label:"Iniciante",destaque:true}];}}
+ var cards="";for(var i=0;i<DEPPACS.length;i++){var p=DEPPACS[i];var bn=p.bonus?('<span class="mpcbonus">'+esc(p.bonus)+'</span>'):"";var lb=p.label?('<div class="mpclabel">'+esc(p.label)+'</div>'):"";var dst=p.destaque?" mpdst":"";cards+='<button class="mpcard'+dst+'" onclick="depCriar('+Number(p.brl)+')"><div class="mpctop">'+lb+bn+'</div><div class="mpcprice">R$ '+Number(p.brl).toFixed(0)+'</div><div class="mpctk"><b>'+Number(p.tokens).toLocaleString("pt-BR")+'</b> tokens</div><span class="mpcgo">&#9889; Pagar com PIX</span></button>';}
+ b.innerHTML='<div class="mptitle">Escolha o valor</div><div class="mpcards">'+cards+'</div><div class="mptrust">&#128179; Aprova&ccedil;&atilde;o na hora pelo Mercado Pago. Voc&ecirc; paga no app do seu banco lendo o QR ou colando o c&oacute;digo PIX.</div>'+DEPSEALS;}
+async function depCriar(brl){var b=document.getElementById("dep-body");DEPVAL=Number(brl)||10;b.innerHTML='<div class="muted" style="padding:24px;text-align:center">gerando seu PIX seguro&hellip; &#128274;</div>';
+ var r=await fetch(BASE+"/jogar/deposito/criar",{method:"POST",headers:H(),body:JSON.stringify({brl:DEPVAL})});var d=await r.json().catch(function(){return{};});
+ if(!d||!d.ok){b.innerHTML='<div class="mperr">'+esc((d&&d.erro)||"n\u00e3o consegui gerar o PIX")+'</div><button class="btn ghost" style="margin-top:10px;width:100%" onclick="loadDeposito()">Voltar</button>';return;}
+ DEPID=d.id;var tks=Number(d.tokens||0);
+ b.innerHTML='<div class="mpprod"><div style="font-weight:800;font-size:15px">R$ '+Number(d.valor).toFixed(2).replace(".",",")+' &middot; <b>'+tks.toLocaleString("pt-BR")+'</b> tokens</div></div>'
  +(d.qr_base64?('<div class="mpqr"><img src="data:image/png;base64,'+d.qr_base64+'" alt="QR PIX"></div>'):"")
  +'<div class="muted" style="text-align:center;margin:2px 0 8px;font-size:12px">Escaneie no app do seu banco ou copie o c\u00f3digo:</div>'
  +'<div class="mpcopy"><input id="dep-cc" value="'+esc(d.qr_code||"")+'" readonly onclick="this.select()"><button class="btn ghost" onclick="depCopiar()">Copiar</button></div>'
- +'<div id="dep-status" class="mpstatus"><span class="dot"></span> Aguardando pagamento&hellip;</div>'
- +(d.teste?'<button class="btn mpsim" onclick="depSimular()">&#129514; Simular pagamento aprovado (sandbox)</button>':"")+DEPSEALS;
- depPoll();}
+ +'<div id="dep-status" class="mpstatus"><span class="dot"></span> Aguardando pagamento&hellip; <small id="dep-elapsed"></small></div>'
+ +(d.teste?'<button class="btn mpsim" onclick="depSimular()">&#129514; Simular pagamento aprovado (sandbox)</button>':"")
+ +'<button class="btn ghost" style="margin-top:8px;width:100%" onclick="loadDeposito()">&larr; Trocar valor</button>'
+ +DEPSEALS;
+ depPollInit();}
 function depCopiar(){var i=document.getElementById("dep-cc");if(!i)return;try{if(navigator.clipboard)navigator.clipboard.writeText(i.value);else{i.select();document.execCommand("copy");}}catch(e){i.select();}toast("C\u00f3digo PIX copiado \u2705");}
-async function depPoll(){if(!DEPID)return;if(!document.getElementById("s-deposito").classList.contains("on")){return;}
+var DEPSTART=0;
+function depPollInit(){DEPSTART=Date.now();depPoll();var t=setInterval(function(){var el=document.getElementById("dep-elapsed");if(!el){clearInterval(t);return;}var s=Math.floor((Date.now()-DEPSTART)/1000);var mm=Math.floor(s/60),ss=s%60;el.textContent="("+(mm<10?"0":"")+mm+":"+(ss<10?"0":"")+ss+")";},1000);}
+async function depPoll(){if(!DEPID)return;var sec=document.getElementById("s-deposito");if(!sec||!sec.classList.contains("on")){return;}
  var r=await fetch(BASE+"/jogar/deposito/status?id="+DEPID,{headers:H()});var d=await r.json().catch(function(){return{};});
- if(d&&d.ok&&d.creditado){depSucesso(d.figurinhas);return;}
+ if(d&&d.ok&&d.creditado){depSucesso(Number(d.tokens||0));return;}
  DEPTIMER=setTimeout(depPoll,3500);}
 async function depSimular(){var r=await fetch(BASE+"/jogar/deposito/simular",{method:"POST",headers:H(),body:JSON.stringify({id:DEPID})});var d=await r.json().catch(function(){return{};});if(d&&d.ok)depPoll();else toast((d&&d.erro)||"erro",1);}
-function depSucesso(figs){if(DEPTIMER){clearTimeout(DEPTIMER);DEPTIMER=null;}var b=document.getElementById("dep-body");
- b.innerHTML='<div class="mpok"><div class="okcheck">&#10003;</div><div style="font-size:17px;font-weight:800">Pagamento aprovado!</div><div class="muted" style="margin:6px 0 12px">Seu <b>Pacote Base</b> (11 figurinhas) foi liberado e voc\u00ea virou <b>FULL</b>.</div><div style="background:rgba(31,170,89,.12);border:1px solid rgba(31,170,89,.4);border-radius:12px;padding:12px;margin-bottom:14px"><b>&#127873; Voc\u00ea ganhou 1 convite FULL!</b><div class="muted" style="font-size:12.5px;margin-top:3px">Presenteie um amigo com acesso full gr\u00e1tis &mdash; ele entra sem pagar.</div></div><button class="btn" style="width:100%" onclick="nav(&#39;convidar&#39;)">&#127873; Enviar convite full</button><button class="btn ghost" style="width:100%;margin-top:8px" onclick="nav(&#39;time&#39;)">Ver meu time</button></div>';
+function depSucesso(tokens){if(DEPTIMER){clearTimeout(DEPTIMER);DEPTIMER=null;}var b=document.getElementById("dep-body");
+ b.innerHTML='<div class="mpok"><div class="okcheck">&#10003;</div><div style="font-size:18px;font-weight:800">Pagamento aprovado!</div><div class="okprize"><span>+ <b>'+Number(tokens).toLocaleString("pt-BR")+'</b> tokens creditados</span></div><div class="muted" style="margin:6px 0 12px">Saldo j\u00e1 atualizado no topo. Bons palpites \u26bd</div><button class="btn" style="width:100%" onclick="nav(&#39;bolao&#39;)">Ir palpitar agora &rarr;</button><button class="btn ghost" style="width:100%;margin-top:8px" onclick="loadDeposito()">Depositar mais</button></div>';
+ try{var saldoEl=document.getElementById("w-saldo");if(saldoEl){var atual=Number(saldoEl.textContent||0);saldoEl.textContent=(atual+Number(tokens)).toLocaleString("pt-BR");}}catch(e){}
  loadDados();}
+// ===== Onboarding popup (1x apos cadastro/login) =====
+async function obCheck(){try{var r=await fetch(BASE+"/jogar/onboarding/popup",{headers:H()});var d=await r.json();if(!d||!d.ok)return;if(d.visto||d.pagou)return;obShow();}catch(e){}}
+function obShow(){if(document.getElementById("ob-ov"))return;var ov=document.createElement("div");ov.id="ob-ov";ov.className="ob-ov";ov.innerHTML='<div class="ob-box"><button class="ob-x" onclick="obClose()" aria-label="Fechar">&times;</button><div class="ob-confetti"></div><div class="ob-emoji">&#127942;</div><div class="ob-h1">Turbine sua conta</div><div class="ob-sub">Voc\u00ea j\u00e1 ganhou <b>500 tokens</b> de boas-vindas. Quer entrar de vez no <b>Pote de Ouro</b>?</div><div class="ob-pkg"><div class="ob-pkgrl"><div><b>R$ 10</b><small>&nbsp;via PIX</small></div><div class="ob-arrow">&rarr;</div><div><b>+500</b><small>&nbsp;tokens</small></div></div></div><div class="ob-cta"><button class="btn ob-go" onclick="obDepositar()">&#9889; Depositar agora</button><button class="btn ghost ob-skip" onclick="obClose()">Agora n&atilde;o</button></div><div class="ob-foot">&#128274; Pagamento processado pelo Mercado Pago</div></div>';document.body.appendChild(ov);requestAnimationFrame(function(){ov.classList.add("on");});}
+function obDepositar(){obClose();nav("deposito");setTimeout(function(){var p=DEPPACS&&DEPPACS[0];if(p)depCriar(Number(p.brl)||10);},250);}
+function obClose(){var ov=document.getElementById("ob-ov");if(ov){ov.classList.remove("on");setTimeout(function(){if(ov&&ov.parentNode)ov.parentNode.removeChild(ov);},220);}try{fetch(BASE+"/jogar/onboarding/popup/visto",{method:"POST",headers:H()});}catch(e){}}
 async function loadConvidar(){
  var b=document.getElementById("conv-body");if(!b)return;b.innerHTML="carregando…";
  var r=await fetch(BASE+"/jogar/indicacao",{headers:H()});var d=await r.json().catch(function(){return{};});
@@ -698,7 +709,7 @@ function tema(){setTema(document.body.classList.contains("light")?"dark":"light"
 function thRefresh(){var l=document.body.classList.contains("light");var a=document.getElementById("th-l"),b=document.getElementById("th-d");if(a)a.classList.toggle("on",l);if(b)b.classList.toggle("on",!l);}
 if(localStorage.getItem("tema")==="light"){document.body.classList.add("light");}thRefresh();
 if(localStorage.getItem("mcol")==="1"&&window.innerWidth>760){document.body.classList.add("mcol");}
-if(!TOKEN){location.href=(BASE||"")+"/";}else{loadDados();}
+if(!TOKEN){location.href=(BASE||"")+"/";}else{loadDados();setTimeout(obCheck,1200);}
 var _UNCARDS=[];
 function abrirPacote(){fetch(BASE+"/jogar/pacote/abrir",{method:"POST",headers:H()}).then(function(r){return r.json();}).then(function(d){if(!d||!d.ok){if(d&&d.jaAbriu){toast("Voce ja abriu seu pacote!");}else if(d&&d.semSaldo){toast("Saldo insuficiente: o pacote custa 300 tokens.");}else{toast("Erro ao abrir o pacote.");}return;}_UNCARDS=d.cartas||[];var ov=document.getElementById("unbox");var e=document.getElementById("uenv");e.src=BASE+"/fig/pack/inicial";e.style.display="";e.style.opacity="1";e.style.animation="upackfloat 3.4s ease-in-out infinite";var fl=document.getElementById("uflash");if(fl)fl.style.opacity="0";var ub=document.getElementById("uburst");if(ub){ub.style.display="";ub.style.opacity="1";}var sps=document.querySelectorAll("#unbox .usp");for(var i=0;i<sps.length;i++){sps[i].style.display="";}document.getElementById("utap").style.display="";document.getElementById("utap").style.opacity="0.9";document.getElementById("ucards").innerHTML="";var uh=document.getElementById("uhead");uh.textContent="TIME COMPLETO";uh.style.opacity="1";document.getElementById("ubtnfim").style.opacity="0";ov.classList.add("on");}).catch(function(){toast("Erro de conexao.");});}
 function rasgarPacote(){var env=document.getElementById("uenv"),tap=document.getElementById("utap"),box=document.getElementById("ucards"),head=document.getElementById("uhead"),fim=document.getElementById("ubtnfim"),fl=document.getElementById("uflash"),ub=document.getElementById("uburst");var h="";for(var i=0;i<_UNCARDS.length;i++){var c=_UNCARDS[i];h+='<div class="ucard"><img src="'+BASE+'/fig/'+c.figurinha+'" alt=""></div>';}env.style.animation="none";if(window.gsap){gsap.to(tap,{duration:0.2,opacity:0});if(fl){gsap.fromTo(fl,{opacity:0},{opacity:1,duration:0.16,yoyo:true,repeat:1});}gsap.to(env,{duration:0.5,scale:1.55,opacity:0,y:-30,rotation:8,ease:"power2.in"});if(ub){gsap.to(ub,{opacity:0,duration:0.45});}gsap.to("#unbox .usp",{opacity:0,duration:0.3});}setTimeout(function(){env.style.display="none";tap.style.display="none";if(ub)ub.style.display="none";var sps=document.querySelectorAll("#unbox .usp");for(var k=0;k<sps.length;k++)sps[k].style.display="none";box.innerHTML=h;head.textContent="SEU TIME CHEGOU!";var cs=box.querySelectorAll(".ucard");if(window.gsap){gsap.to(head,{opacity:1,duration:0.4});gsap.fromTo(cs,{opacity:0,scale:0.4,y:30,rotateY:90},{opacity:1,scale:1,y:0,rotateY:0,duration:0.5,stagger:0.06,ease:"back.out(1.6)"});gsap.to(fim,{opacity:1,duration:0.4,delay:1});}else{for(var k2=0;k2<cs.length;k2++)cs[k2].style.opacity=1;head.style.opacity=1;fim.style.opacity=1;}},520);}
