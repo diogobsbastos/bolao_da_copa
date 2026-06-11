@@ -173,12 +173,12 @@ export async function rotasJogar(app: FastifyInstance) {
   app.post("/jogar/palpite", async (req, reply) => {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
     const b = (req.body ?? {}) as any; const id = Number(b.jogo_id), pc = Number(b.pc), pv = Number(b.pv);
+    const origem = String(b.origem || "manual"); const _palauto = origem === "logica", _palia = origem === "ia";
     if (!Number.isInteger(id) || !Number.isInteger(pc) || !Number.isInteger(pv) || pc < 0 || pv < 0 || pc > 30 || pv > 30) return reply.code(400).send({ erro: "dados invalidos" });
     const jg = (await pool.query("SELECT inicio FROM jogos WHERE id=$1", [id])).rows[0] as any;
     if (!jg) return reply.code(404).send({ erro: "jogo nao existe" });
     if (jg.inicio && new Date(jg.inicio).getTime() <= Date.now()) return reply.code(403).send({ erro: "jogo ja comecou (palpite travado)" });
-    await pool.query(`INSERT INTO palpites_bolao (usuario_id, jogo_id, placar_casa, placar_visitante) VALUES ($1,$2,$3,$4)
-      ON CONFLICT (usuario_id, jogo_id) DO UPDATE SET placar_casa=$3, placar_visitante=$4, auto=false, ia=false, atualizado_em=now()`, [u.id, id, pc, pv]);
+    await pool.query(`INSERT INTO palpites_bolao (usuario_id, jogo_id, placar_casa, placar_visitante, auto, ia) VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT (usuario_id, jogo_id) DO UPDATE SET placar_casa=$3, placar_visitante=$4, auto=$5, ia=$6, atualizado_em=now()`, [u.id, id, pc, pv, _palauto, _palia]);
     return { ok: true };
   });
 
