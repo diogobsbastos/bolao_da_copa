@@ -6,7 +6,7 @@ a{color:inherit;text-decoration:none}
 .top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;padding:8px 14px;height:52px;box-sizing:border-box;background:var(--panel);backdrop-filter:blur(8px);border-bottom:1px solid var(--bd)}
 .burger{font-size:22px;background:none;border:0;color:var(--tx);cursor:pointer;display:none}
 .brand{font-weight:800;font-size:15px;white-space:nowrap}
-.brand b{color:var(--pri2)}
+.brand b{color:var(--pri2)}\n.brand .bmgr{font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--mut);white-space:nowrap;align-self:center}
 .wallets{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end}
 .w{display:flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--bd);border-radius:999px;padding:5px 10px;font-size:12px;font-weight:700}
 .w small{color:var(--mut);font-weight:600}
