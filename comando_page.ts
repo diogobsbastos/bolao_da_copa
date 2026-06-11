@@ -37,12 +37,23 @@ export const PAGINA_COMANDO = `<!doctype html><html lang="pt-br"><head><meta cha
 .act{border:1px solid var(--bd);background:#fff;border-radius:7px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer;color:var(--pri)}
 .spin{display:inline-block;width:9px;height:9px;border:2px solid #2a44b8;border-top-color:transparent;border-radius:50%;animation:sp 1s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
+.mbg{display:none;position:fixed;inset:0;background:rgba(15,20,30,.5);z-index:100;align-items:flex-start;justify-content:center;overflow:auto;padding:30px 14px}
+.mbg.on{display:flex}
+.mod{background:#fff;border-radius:16px;max-width:680px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modh{display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid var(--bd);position:sticky;top:0;background:#fff;border-radius:16px 16px 0 0}
+.modh b{font-size:16px}.mx{border:0;background:#eef1f6;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:15px}
+.modb{padding:16px 20px 24px}.rsec{margin-bottom:16px}.rsec h4{margin:0 0 6px;font-size:14px}.rsec p{margin:0;font-size:13.5px;color:#3a414e;line-height:1.55}
+.rstep{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--bd);font-size:13px;color:#3a414e;line-height:1.45}
+.rstep .rt{font-weight:800;font-size:11.5px;color:#fff;background:var(--pri);border-radius:6px;padding:3px 8px;white-space:nowrap;flex:none}
+.rstep .rt.g{background:var(--ok)}.rstep .rt.r{background:var(--no)}
+.leg{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;margin-right:4px}
+.leg.cinza{background:#eef1f6;color:#5a6275}.leg.azul{background:#e6ecff;color:#2a44b8}.leg.verde{background:#e6f7ee;color:#0f7a45}.leg.vermelho{background:#fdeaec;color:#b4232f}.leg.ambar{background:#fdf3e0;color:#9a6a00}
 ${NAV_CSS}
 </style></head><body>
 <div class="app">
  ${sideHtml("comando")}
  <main class="main">
-  <div class="top"><h2>&#129302; Centro de Comando</h2><span id="conn" class="muted">conectando...</span></div>
+  <div class="top"><h2>&#129302; Centro de Comando</h2><div style="display:flex;align-items:center;gap:12px"><button class="btn ghost" onclick="abrirRegras()">&#128214; Regras</button><span id="conn" class="muted">conectando...</span></div></div>
   <div class="pad">
    <div class="health">
     <span class="dot off" id="rdot"></span>
@@ -66,6 +77,24 @@ ${NAV_CSS}
    </div>
    <div id="tl" class="tl"><div class="muted">carregando...</div></div>
   </div>
+  <div class="mbg" id="regrasBg" onclick="if(event.target===this)fecharRegras()">
+   <div class="mod">
+    <div class="modh"><b>&#128214; Como o Centro de Comando funciona</b><button class="mx" onclick="fecharRegras()">&#10005;</button></div>
+    <div class="modb">
+     <div class="rsec"><h4>&#129302; O Rob&ocirc;</h4><p>Um trabalhador roda a cada <b>1 minuto</b>, l&ecirc; a tabela de tarefas e executa as que j&aacute; venceram. Cada tarefa vira conclu&iacute;da, ignorada (a construir), erro, ou entra em &quot;soneca&quot;.</p></div>
+     <div class="rsec"><h4>&#9917; O ciclo de cada jogo</h4>
+      <div class="rstep"><span class="rt">&minus;30min</span><div><b>Atualizar dados</b> &mdash; odds, escala&ccedil;&atilde;o, stats e <b>not&iacute;cias</b> do jogo, fresqu&iacute;ssimos (365scores + ESPN). Tudo gravado no banco.</div></div>
+      <div class="rstep"><span class="rt">&minus;20min</span><div><b>Auto-preencher</b> &mdash; o rob&ocirc; completa o palpite de quem ligou o autom&aacute;tico e n&atilde;o preencheu, com a info quente.</div></div>
+      <div class="rstep"><span class="rt r">apito</span><div><b>Trava</b> &mdash; no hor&aacute;rio exato, ningu&eacute;m mexe mais no palpite.</div></div>
+      <div class="rstep"><span class="rt g">+120min</span><div><b>Coletar + apurar</b> &mdash; placar real, gols e pontos/tokens. Se o jogo n&atilde;o acabou, tenta a cada 10min (soneca) at&eacute; fechar.</div></div>
+     </div>
+     <div class="rsec"><h4>&#128197; Confirmar agenda (05:00)</h4><p>Rel&ecirc; o hor&aacute;rio real de cada jogo no 365scores. Se foi adiado/adiantado, corrige o in&iacute;cio e re-sincroniza todas as tarefas &mdash; tudo segue o hor&aacute;rio real.</p></div>
+     <div class="rsec"><h4>&#128341; Rotinas di&aacute;rias</h4><p>&#128184; Odds a cada 4h &middot; &#128240; Resumir not&iacute;cias (IA local, de madrugada) &middot; &#129689; Tokens 00:01.</p></div>
+     <div class="rsec"><h4>&#127912; Cores das tarefas</h4><p><span class="leg cinza">pendente</span> agendada &middot; <span class="leg azul">rodando</span> &middot; <span class="leg verde">conclu&iacute;do</span> &middot; <span class="leg vermelho">erro</span> (tem &quot;tentar de novo&quot;) &middot; <span class="leg ambar">a construir</span> (m&oacute;dulo placeholder).</p></div>
+     <div class="rsec"><h4>&#128225; Fontes dos dados</h4><p><b>365scores</b>: resultado, odds, escala&ccedil;&atilde;o, stats, gols &middot; <b>ESPN</b>: not&iacute;cias &middot; <b>IA</b>: resumos &middot; <b>football-data</b>: import inicial &middot; <b>interno</b>: nossa l&oacute;gica.</p></div>
+    </div>
+   </div>
+  </div>
  </main>
 </div>
 <script>
@@ -77,6 +106,8 @@ function ymdBRT(d){return d.toLocaleDateString("sv-SE",{timeZone:"America/Sao_Pa
 function labelBRT(d){return d.toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"2-digit",timeZone:"America/Sao_Paulo"});}
 function shiftDia(n){diaDate.setDate(diaDate.getDate()+n);load();}
 function hojeDia(){diaDate=new Date();load();}
+function abrirRegras(){document.getElementById("regrasBg").classList.add("on");}
+function fecharRegras(){document.getElementById("regrasBg").classList.remove("on");}
 function H(){var h={"content-type":"application/json"};var s=localStorage.getItem("sessao");if(s){h["authorization"]="Bearer "+s;}return h;}
 function esc(v){return String(v==null?"":v).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function fl(iso){return iso?('<img class="fl" src="https://flagcdn.com/w40/'+iso+'.png" onerror="this.style.opacity=.2">'):"";}
