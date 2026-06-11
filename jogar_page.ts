@@ -160,9 +160,8 @@ ${CSS}
   </section>
 
   <section class="sec" id="s-custo">
+   <div class="pghead"><div class="pghl"><h1>&#128176; Custo da sua IA</h1><p class="pgsub">Voc&ecirc; usa <b>a sua pr&oacute;pria chave</b>, ent&atilde;o o custo &eacute; seu &mdash; e no <b>free tier &eacute; R$ 0</b>. Mandamos muito contexto (entrada), a IA responde s&oacute; o placar (sa&iacute;da min&uacute;scula), ent&atilde;o mesmo pagando sai centavos. Acompanhe tudo aqui.</p></div></div>
    <div class="tabs"><button class="tab" onclick="nav('ia')">Conectar</button><button class="tab on" onclick="nav('custo')">Custo</button></div>
-   <h1>&#128176; Custo da sua IA</h1>
-   <div class="muted" style="margin-bottom:12px">Voc&ecirc; usa <b>a sua pr&oacute;pria chave</b>, ent&atilde;o o custo &eacute; seu &mdash; e no <b>free tier &eacute; R$ 0</b>. Mandamos muito contexto (entrada), a IA responde s&oacute; o placar (sa&iacute;da min&uacute;scula), ent&atilde;o mesmo pagando sai centavos. Acompanhe tudo aqui.</div>
    <div class="custgrid">
     <div class="custcard"><div class="custlbl">Gasto total</div><div class="custval" id="cu-gasto">R$ 0,00</div></div>
     <div class="custcard"><div class="custlbl">Palpites da IA</div><div class="custval" id="cu-ops">0</div></div>

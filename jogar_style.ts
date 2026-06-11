@@ -55,7 +55,7 @@ h1{font-size:18px;margin:0 0 12px}
 .tabs{display:inline-flex;gap:3px;margin-bottom:14px;background:var(--card2);border:1px solid var(--bd);border-radius:999px;padding:4px}
 .tab{padding:7px 18px;border-radius:999px;background:transparent;border:0;color:var(--mut);font-weight:700;font-size:13px;cursor:pointer;transition:.15s;white-space:nowrap}
 .tab.lock{color:#aab0ba !important;opacity:.8;cursor:not-allowed}
-#bolao-tabs{display:grid;grid-template-columns:1.05fr 0.95fr;gap:10px;align-items:center;width:100%;max-width:100%;box-sizing:border-box;overflow:hidden;background:var(--surface);border-radius:14px;padding:10px 12px}\n#copa-tabs,#rank-tabs,#s-ia .tabs{background:var(--surface);border:1px solid var(--bd);border-radius:14px;padding:8px 10px}
+#bolao-tabs{display:grid;grid-template-columns:1.05fr 0.95fr;gap:10px;align-items:center;width:100%;max-width:100%;box-sizing:border-box;overflow:hidden;background:var(--surface);border-radius:14px;padding:10px 12px}\n#copa-tabs,#rank-tabs,#s-ia .tabs,#s-custo .tabs{background:var(--surface);border:1px solid var(--bd);border-radius:14px;padding:8px 10px}
 .tabL{display:flex;align-items:center;gap:6px;min-width:0}
 .tabR{min-width:0;display:flex;align-items:center;padding-left:12px;border-left:1px solid var(--bd)}
 .tabM{display:flex;align-items:center;gap:4px;width:100%;overflow-x:auto}
