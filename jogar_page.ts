@@ -80,7 +80,7 @@ ${CSS}
     <div class="tmtop">
      <div class="tmbadge"><div><div class="k">Forma&ccedil;&atilde;o</div><div class="v">4-4-2</div></div></div>
      <div class="tmbadge"><div><div class="k">For&ccedil;a do elenco</div><div class="v gold" id="tm-forca">--</div></div></div>
-     <div class="tmbadge"><div><div class="k">Cartas</div><div class="v" id="tm-qt">--</div></div></div><div class="tmbadge tmsoon"><div><div class="k">&#9888; Em breve</div><div class="v">Forma&ccedil;&atilde;o 4-4-2</div></div></div><div class="tmbadge tmsoon"><div><div class="k">&#9888; Em breve</div><div class="v">Titulares</div></div></div><div class="tmbadge tmsoon"><div><div class="k">&#9888; Em breve</div><div class="v">Reservas</div></div></div><div class="tmbadge tmsoon"><div><div class="k">&#9888; Em breve</div><div class="v">Por posi&ccedil;&atilde;o</div></div></div>
+     <div class="tmbadge"><div><div class="k">Cartas</div><div class="v" id="tm-qt">--</div></div></div><div class="tmbadge tmsoon"><div><div class="k">&#9888; Em breve</div><div class="v">4-4-2</div></div></div><div class="tmbadge tmsoon"><div><div class="k">&#9888; Em breve</div><div class="v">Titulares</div></div></div><div class="tmbadge tmsoon"><div><div class="k">&#9888; Em breve</div><div class="v">Reservas</div></div></div><div class="tmbadge tmsoon"><div><div class="k">&#9888; Em breve</div><div class="v">Por posi&ccedil;&atilde;o</div></div></div>
     </div>
     <div class="tmgrid">
      <div class="tmpit-wrap"><div class="card" style="padding:10px"><div class="pitch tmbig" id="tm-pitch"></div></div></div>
