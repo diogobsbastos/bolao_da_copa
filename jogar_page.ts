@@ -235,7 +235,11 @@ function drawer(){document.getElementById("side").classList.toggle("open");docum
 function menuBtn(){if(window.innerWidth<=760){drawer();}else{var c=document.body.classList.toggle("mcol");localStorage.setItem("mcol",c?"1":"0");}}
 function sair(){localStorage.removeItem("sessao");localStorage.removeItem("papel");location.href=(BASE||"")+"/";}
 function fmtData(s){if(!s)return"";var d=new Date(s);if(isNaN(d))return"";return d.toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});}
+var IS_FULL=false;
+var ABAS_BLOQ={bolao:1,time:1,arena:1,market:1,convidar:1};
 function nav(sec){
+ // Bloqueio freemium: visitante (!FULL) ve a aba por tras, mas com popup por cima cobrando
+ var bloqueado=!IS_FULL && ABAS_BLOQ[sec];
  var mk=({custo:"ia",deposito:"__x",convidar:"__x",perfil:"__x",carteira:"__x"})[sec]||sec;
  document.querySelectorAll(".side a[data-s]").forEach(function(a){a.classList.toggle("on",a.getAttribute("data-s")===mk);});
  var _pd=document.getElementById("pdrop");if(_pd)_pd.classList.remove("open");
@@ -251,6 +255,7 @@ function nav(sec){
  if(sec==="custo")loadCusto();
  if(sec==="deposito")loadDeposito();
  if(sec==="convidar")loadConvidar();
+ if(bloqueado){setTimeout(obShow,80);}
 }
 function setAv(id,av,ini){var e=document.getElementById(id);if(!e)return;if(av){e.innerHTML='<img src="'+av+'">';}else{e.innerHTML="";e.textContent=ini;}}
 function togDrop(e){if(e)e.stopPropagation();var d=document.getElementById("pdrop");if(d)d.classList.toggle("open");}
@@ -303,7 +308,7 @@ async function loadDados(){
  var pb=document.getElementById("d-prox")||{};
  if(d.proximo){var p=d.proximo;pb.innerHTML='<h3>Pr&oacute;ximo jogo &middot; Rodada '+(p.rodada||"-")+'</h3><div style="display:flex;align-items:center;gap:8px;font-weight:700;margin-top:6px">'+fl(p.casa.iso)+' '+esc(p.casa.pt)+' <span class="muted">x</span> '+esc(p.visitante.pt)+' '+fl(p.visitante.iso)+'</div><div class="muted" style="margin-top:4px">'+fmtData(p.inicio)+'</div>';}
  else{pb.innerHTML='<h3>Pr&oacute;ximo jogo</h3><div class="muted">sem jogos futuros agora.</div>';}
- setProfile(me,c,d.acessoFull);
+ IS_FULL=!!d.acessoFull;setProfile(me,c,d.acessoFull);
 }
 var COR_ROD={1:"#14a06a",2:"#e0a008",3:"#e23744"};
 function fl2(iso){return iso?('<img class="jflag" src="https://flagcdn.com/40x30/'+iso+'.png" onerror="this.style.visibility=\\'hidden\\'">'):'<span class="jflag"></span>';}
@@ -712,7 +717,7 @@ function tema(){setTema(document.body.classList.contains("light")?"dark":"light"
 function thRefresh(){var l=document.body.classList.contains("light");var a=document.getElementById("th-l"),b=document.getElementById("th-d");if(a)a.classList.toggle("on",l);if(b)b.classList.toggle("on",!l);}
 if(localStorage.getItem("tema")==="light"){document.body.classList.add("light");}thRefresh();
 if(localStorage.getItem("mcol")==="1"&&window.innerWidth>760){document.body.classList.add("mcol");}
-if(!TOKEN){location.href=(BASE||"")+"/";}else{loadDados();setTimeout(obCheck,1200);}
+if(!TOKEN){location.href=(BASE||"")+"/";}else{loadDados();}
 var _UNCARDS=[];
 function abrirPacote(){fetch(BASE+"/jogar/pacote/abrir",{method:"POST",headers:H()}).then(function(r){return r.json();}).then(function(d){if(!d||!d.ok){if(d&&d.jaAbriu){toast("Voce ja abriu seu pacote!");}else if(d&&d.semSaldo){toast("Saldo insuficiente: o pacote custa 300 tokens.");}else{toast("Erro ao abrir o pacote.");}return;}_UNCARDS=d.cartas||[];var ov=document.getElementById("unbox");var e=document.getElementById("uenv");e.src=BASE+"/fig/pack/inicial";e.style.display="";e.style.opacity="1";e.style.animation="upackfloat 3.4s ease-in-out infinite";var fl=document.getElementById("uflash");if(fl)fl.style.opacity="0";var ub=document.getElementById("uburst");if(ub){ub.style.display="";ub.style.opacity="1";}var sps=document.querySelectorAll("#unbox .usp");for(var i=0;i<sps.length;i++){sps[i].style.display="";}document.getElementById("utap").style.display="";document.getElementById("utap").style.opacity="0.9";document.getElementById("ucards").innerHTML="";var uh=document.getElementById("uhead");uh.textContent="TIME COMPLETO";uh.style.opacity="1";document.getElementById("ubtnfim").style.opacity="0";ov.classList.add("on");}).catch(function(){toast("Erro de conexao.");});}
 function rasgarPacote(){var env=document.getElementById("uenv"),tap=document.getElementById("utap"),box=document.getElementById("ucards"),head=document.getElementById("uhead"),fim=document.getElementById("ubtnfim"),fl=document.getElementById("uflash"),ub=document.getElementById("uburst");var h="";for(var i=0;i<_UNCARDS.length;i++){var c=_UNCARDS[i];h+='<div class="ucard"><img src="'+BASE+'/fig/'+c.figurinha+'" alt=""></div>';}env.style.animation="none";if(window.gsap){gsap.to(tap,{duration:0.2,opacity:0});if(fl){gsap.fromTo(fl,{opacity:0},{opacity:1,duration:0.16,yoyo:true,repeat:1});}gsap.to(env,{duration:0.5,scale:1.55,opacity:0,y:-30,rotation:8,ease:"power2.in"});if(ub){gsap.to(ub,{opacity:0,duration:0.45});}gsap.to("#unbox .usp",{opacity:0,duration:0.3});}setTimeout(function(){env.style.display="none";tap.style.display="none";if(ub)ub.style.display="none";var sps=document.querySelectorAll("#unbox .usp");for(var k=0;k<sps.length;k++)sps[k].style.display="none";box.innerHTML=h;head.textContent="SEU TIME CHEGOU!";var cs=box.querySelectorAll(".ucard");if(window.gsap){gsap.to(head,{opacity:1,duration:0.4});gsap.fromTo(cs,{opacity:0,scale:0.4,y:30,rotateY:90},{opacity:1,scale:1,y:0,rotateY:0,duration:0.5,stagger:0.06,ease:"back.out(1.6)"});gsap.to(fim,{opacity:1,duration:0.4,delay:1});}else{for(var k2=0;k2<cs.length;k2++)cs[k2].style.opacity=1;head.style.opacity=1;fim.style.opacity=1;}},520);}
