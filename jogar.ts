@@ -471,6 +471,24 @@ export async function rotasJogar(app: FastifyInstance) {
     try { await pool.query("UPDATE usuarios SET escalacao=$2 WHERE id=$1", [u.id, JSON.stringify(esc)]); } catch (e: any) { return { ok: false, erro: String(e?.message ?? e).slice(0, 120) }; }
     return { ok: true };
   });
+  app.get("/jogar/ticker", async (req, reply) => {
+    const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    const itens: any[] = []; const seen = new Set<string>();
+    try {
+      const rows = (await pool.query("SELECT selecao_casa, selecao_visitante, dados365 FROM jogos WHERE dados365 ? 'noticiasCasa' AND inicio >= now() - interval '3 days' ORDER BY inicio ASC LIMIT 16")).rows as any[];
+      const add = (selEn: string, arr: any) => {
+        if (!Array.isArray(arr)) return; const t = timePT(selEn);
+        for (const nw of arr.slice(0, 2)) {
+          const txt = String((nw && (nw.resumo || nw.titulo)) || "").trim().replace(/\s+/g, " ");
+          if (!txt || txt.length < 12) continue;
+          const key = t.pt + "|" + txt.slice(0, 40); if (seen.has(key)) continue; seen.add(key);
+          itens.push({ iso: t.iso, pt: t.pt, txt: txt.slice(0, 130) });
+        }
+      };
+      for (const j of rows) { const d: any = j.dados365 || {}; add(j.selecao_casa, d.noticiasCasa); add(j.selecao_visitante, d.noticiasVisitante); }
+    } catch {}
+    return { ok: true, itens: itens.slice(0, 24) };
+  });
   app.get("/jogar/news", async (req, reply) => {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
     const itens: any[] = [];
