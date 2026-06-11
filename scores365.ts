@@ -239,7 +239,10 @@ export async function atualizarDadosJogo(jogoId: number): Promise<any> {
 export async function coletarResultadoJogo(jogoId: number): Promise<any> {
   const j = (await pool.query("SELECT id, selecao_casa, selecao_visitante, odds->>'gid' AS gid, inicio FROM jogos WHERE id=$1", [jogoId])).rows[0] as any;
   if (!j?.gid) return { ok: false, erro: "sem gid" };
-  return await processarResultadoJogo(j);
+  const r: any = await processarResultadoJogo(j);
+  if (r?.estado === "final") return { ok: true, ...r };
+  if (r?.estado === "orientacao nao casou") return { ok: false, erro: r.estado };
+  return { retry: true, estado: r?.estado || "indefinido" };
 }
 export async function confirmarAgenda(): Promise<any> {
   const jogos = (await pool.query("SELECT id, inicio, odds->>'gid' AS gid FROM jogos WHERE odds->>'gid' IS NOT NULL AND inicio IS NOT NULL AND inicio > now() - interval '6 hours' AND inicio < now() + interval '3 days'")).rows as any[];

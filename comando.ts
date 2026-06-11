@@ -34,16 +34,20 @@ export async function tickTarefas(): Promise<void> {
   if (TICKANDO) return; TICKANDO = true;
   try {
     await setCfg("tarefas_last_tick", new Date().toISOString());
-    const due = (await pool.query("SELECT id, acao, parametros FROM tarefas_agendadas WHERE status='pendente' AND horario_gatilho <= now() ORDER BY horario_gatilho LIMIT 20")).rows as any[];
+    const due = (await pool.query("SELECT id, acao, parametros, tentativas FROM tarefas_agendadas WHERE status='pendente' AND horario_gatilho <= now() ORDER BY horario_gatilho LIMIT 20")).rows as any[];
     for (const t of due) {
       await pool.query("UPDATE tarefas_agendadas SET status='rodando', tentativas=tentativas+1, atualizado_em=now() WHERE id=$1", [t.id]);
       try {
         const fn = ACOES[t.acao];
         const res: any = fn ? await fn(t.parametros || {}) : { ok: false, erro: "acao desconhecida: " + t.acao };
-        const placeholder = res && res.placeholder === true;
-        const ok = res && res.ok !== false;
-        const novo = placeholder ? "ignorado" : (ok ? "concluido" : "erro");
-        await pool.query("UPDATE tarefas_agendadas SET status=$2, log=$3, atualizado_em=now() WHERE id=$1", [t.id, novo, JSON.stringify(res).slice(0, 600)]);
+        if (res && res.retry === true && Number(t.tentativas || 0) < 30) {
+          await pool.query("UPDATE tarefas_agendadas SET status='pendente', horario_gatilho=now() + interval '10 minutes', log=$2, atualizado_em=now() WHERE id=$1", [t.id, ("soneca: " + (res.estado || "aguardando") + " - nova tentativa em 10min").slice(0, 600)]);
+        } else {
+          const placeholder = res && res.placeholder === true;
+          const ok = res && res.ok !== false;
+          const novo = placeholder ? "ignorado" : (ok ? "concluido" : "erro");
+          await pool.query("UPDATE tarefas_agendadas SET status=$2, log=$3, atualizado_em=now() WHERE id=$1", [t.id, novo, JSON.stringify(res).slice(0, 600)]);
+        }
       } catch (e: any) {
         await pool.query("UPDATE tarefas_agendadas SET status='erro', log=$2, atualizado_em=now() WHERE id=$1", [t.id, ("EXC: " + String(e?.message ?? e)).slice(0, 600)]);
       }
