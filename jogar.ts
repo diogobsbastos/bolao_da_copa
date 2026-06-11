@@ -502,7 +502,7 @@ export async function rotasJogar(app: FastifyInstance) {
       const px = (await pool.query("SELECT selecao_casa, selecao_visitante, inicio FROM jogos WHERE inicio>=now() AND selecao_casa<>'A definir' ORDER BY inicio ASC LIMIT 3")).rows as any[];
       for (const j of px){ const c=timePT(j.selecao_casa), v=timePT(j.selecao_visitante); itens.push({tipo:"proximo",tit:"Proximo jogo",txt:c.pt+" x "+v.pt,iso:c.iso,ts:j.inicio,past:false}); }
     } catch {}
-    itens.sort((a:any,b:any)=> new Date(b.ts||0).getTime() - new Date(a.ts||0).getTime());
+    itens.sort((a:any,b:any)=>{ if(!!a.past!==!!b.past) return a.past?1:-1; const ta=new Date(a.ts||0).getTime(), tb=new Date(b.ts||0).getTime(); return a.past?(tb-ta):(ta-tb); });
     return { ok:true, itens: itens.slice(0,12) };
   });
   app.get("/jogar/regras", async (req, reply) => {
