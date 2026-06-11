@@ -377,7 +377,7 @@ body.mcol .side a .tag,body.mcol .side a .free,body.mcol .side a .dot,body.mcol 
 .hmcta-tx{font-size:13.5px;line-height:1}
 .hmcta-tag{display:inline-flex;align-items:center;gap:5px;background:#f5c451;color:#3a2a08;border-radius:6px;padding:4px 9px;font-weight:900;font-size:12px;line-height:1;box-shadow:inset 0 -1px 0 rgba(0,0,0,.08)}
 .hmcta-tag svg{display:none}
-.hmcta-tag::before{content:"\1F3C6"}
+.hmcta-tag::before{content:"\\1F3C6 "}
 @media(min-width:761px) and (max-width:1024px){body{zoom:.82}.layout{min-height:calc(100vh / 0.82 - 52px)}.side{min-height:calc(100vh / 0.82 - 52px)}}
 @media(min-width:1025px) and (max-width:1280px){body{zoom:.9}.layout{min-height:calc(100vh / 0.9 - 52px)}.side{min-height:calc(100vh / 0.9 - 52px)}}
 /* ===== Cards de pacotes de depósito ===== */
