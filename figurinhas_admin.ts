@@ -303,8 +303,8 @@ export async function rotasFigsAdmin(app: FastifyInstance) {
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
-      await client.query("UPDATE jogadores SET figurinha=NULL WHERE id IN (SELECT jogador_id FROM figurinhas WHERE tipo='jogador' AND origem=$1 AND jogador_id<>$2)", [file, jid]);
-      await client.query("DELETE FROM figurinhas WHERE tipo='jogador' AND origem=$1 AND jogador_id<>$2", [file, jid]);
+      await client.query("UPDATE jogadores SET figurinha=NULL WHERE id IN (SELECT jogador_id FROM figurinhas WHERE tipo='jogador' AND origem=$1 AND jogador_id<>$2 AND selecao=(SELECT selecao FROM jogadores WHERE id=$2))", [file, jid]);
+      await client.query("DELETE FROM figurinhas WHERE tipo='jogador' AND origem=$1 AND jogador_id<>$2 AND selecao=(SELECT selecao FROM jogadores WHERE id=$2)", [file, jid]);
       await client.query("UPDATE jogadores SET figurinha=$1 WHERE id=$2", [imagem, jid]);
       await client.query("DELETE FROM figurinhas WHERE jogador_id=$1 AND tipo='jogador'", [jid]);
       await client.query(`INSERT INTO figurinhas (tipo, selecao, nome, jogador_id, imagem, raridade, origem) SELECT 'jogador', selecao, nome, id, $1, 'comum', $2 FROM jogadores WHERE id=$3`, [imagem, file, jid]);
