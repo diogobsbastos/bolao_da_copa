@@ -55,11 +55,11 @@ export async function tickTarefas(): Promise<void> {
   } finally { TICKANDO = false; }
 }
 
-async function upsertTarefa(chave: string, categoria: string, acao: string, horario: Date, params: any): Promise<void> {
+async function upsertTarefa(chave: string, categoria: string, acao: string, horario: Date, params: any, diaRef: string): Promise<void> {
   try {
     await pool.query(
-      "INSERT INTO tarefas_agendadas (chave_unica, categoria, acao, horario_gatilho, parametros) VALUES ($1,$2,$3,$4,$5) ON CONFLICT (chave_unica) DO UPDATE SET horario_gatilho=EXCLUDED.horario_gatilho, atualizado_em=now() WHERE tarefas_agendadas.status='pendente'",
-      [chave, categoria, acao, horario.toISOString(), JSON.stringify(params || {})]
+      "INSERT INTO tarefas_agendadas (chave_unica, categoria, acao, horario_gatilho, parametros, dia_ref) VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT (chave_unica) DO UPDATE SET horario_gatilho=EXCLUDED.horario_gatilho, dia_ref=EXCLUDED.dia_ref, atualizado_em=now() WHERE tarefas_agendadas.status='pendente'",
+      [chave, categoria, acao, horario.toISOString(), JSON.stringify(params || {}), diaRef]
     );
   } catch {}
 }
@@ -68,18 +68,17 @@ export async function gerarTarefasDosJogos(): Promise<any> {
   const jogos = (await pool.query("SELECT id, inicio, rodada FROM jogos WHERE inicio IS NOT NULL AND selecao_casa<>'A definir' AND selecao_visitante<>'A definir' AND inicio > now() - interval '1 day' AND inicio < now() + interval '40 days'")).rows as any[];
   for (const j of jogos) {
     const ini = new Date(j.inicio);
-    const pre = new Date(ini.getTime() - 30 * 60000);
-    const res = new Date(ini.getTime() + 120 * 60000);
-    await upsertTarefa("jogo:" + j.id + ":dados", "Jogos", "atualizar_dados_jogo", pre, { jogo_id: j.id });
-    await upsertTarefa("jogo:" + j.id + ":auto", "Jogos", "auto_preencher", new Date(ini.getTime() - 20 * 60000), { jogo_id: j.id, rodada: j.rodada });
-    await upsertTarefa("jogo:" + j.id + ":res", "Pontuacao", "coletar_resultado", res, { jogo_id: j.id });
+    const diaJogo = ini.toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
+    await upsertTarefa("jogo:" + j.id + ":dados", "Jogos", "atualizar_dados_jogo", new Date(ini.getTime() - 30 * 60000), { jogo_id: j.id }, diaJogo);
+    await upsertTarefa("jogo:" + j.id + ":auto", "Jogos", "auto_preencher", new Date(ini.getTime() - 20 * 60000), { jogo_id: j.id, rodada: j.rodada }, diaJogo);
+    await upsertTarefa("jogo:" + j.id + ":res", "Pontuacao", "coletar_resultado", new Date(ini.getTime() + 120 * 60000), { jogo_id: j.id }, diaJogo);
   }
-  const hoje = new Date(); const ymd = hoje.toISOString().slice(0, 10);
+  const hoje = new Date(); const ymd = hoje.toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
   const at = (h: number, m = 0) => { const d = new Date(hoje); d.setHours(h, m, 0, 0); return d; };
-  for (const h of [0, 4, 8, 12, 16, 20]) await upsertTarefa("diario:odds:" + ymd + ":" + h, "Diario", "atualizar_odds", at(h), {});
-  await upsertTarefa("diario:noticias:" + ymd, "Diario", "gerar_noticias", at(3), {});
-  await upsertTarefa("diario:tokens:" + ymd, "Diario", "injetar_tokens", at(0, 1), {});
-  await upsertTarefa("diario:agenda:" + ymd, "Diario", "confirmar_agenda", at(5), {});
+  for (const h of [0, 4, 8, 12, 16, 20]) await upsertTarefa("diario:odds:" + ymd + ":" + h, "Diario", "atualizar_odds", at(h), {}, ymd);
+  await upsertTarefa("diario:noticias:" + ymd, "Diario", "gerar_noticias", at(3), {}, ymd);
+  await upsertTarefa("diario:tokens:" + ymd, "Diario", "injetar_tokens", at(0, 1), {}, ymd);
+  await upsertTarefa("diario:agenda:" + ymd, "Diario", "confirmar_agenda", at(5), {}, ymd);
   return { ok: true, jogos: jogos.length };
 }
 
@@ -98,10 +97,10 @@ export async function rotasComando(app: FastifyInstance) {
     const dia = /^\d{4}-\d{2}-\d{2}$/.test(q.dia || "") ? q.dia : null;
     const cat = q.cat && q.cat !== "Todos" ? String(q.cat) : null;
     const params: any[] = []; let where = "WHERE 1=1";
-    if (dia) { params.push(dia); const di = params.length; where += " AND horario_gatilho >= ($" + di + " || ' 00:00-03')::timestamptz AND horario_gatilho < ($" + di + " || ' 00:00-03')::timestamptz + interval '1 day'"; }
-    else { where += " AND horario_gatilho >= now() - interval '12 hours' AND horario_gatilho <= now() + interval '36 hours'"; }
+    if (dia) { params.push(dia); where += " AND dia_ref = $" + params.length + "::date"; }
+    else { where += " AND dia_ref = (now() AT TIME ZONE 'America/Sao_Paulo')::date"; }
     if (cat) { params.push(cat); where += " AND categoria = $" + params.length; }
-    const tarefas = (await pool.query("SELECT id, categoria, acao, horario_gatilho, status, tentativas, log FROM tarefas_agendadas " + where + " ORDER BY horario_gatilho", params)).rows.map((t: any) => ({ ...t, fonte: FONTE[t.acao] || "\u2014" }));
+    const tarefas = (await pool.query("SELECT id, categoria, acao, horario_gatilho, dia_ref, status, tentativas, log FROM tarefas_agendadas " + where + " ORDER BY horario_gatilho", params)).rows.map((t: any) => ({ ...t, fonte: FONTE[t.acao] || "\u2014" }));
     let lastTick = ""; try { lastTick = (await pool.query("SELECT valor FROM config WHERE chave='tarefas_last_tick'")).rows[0]?.valor || ""; } catch {}
     return { ok: true, tarefas, lastTick, agora: new Date().toISOString() };
   });
