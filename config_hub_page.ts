@@ -415,7 +415,7 @@ function formProv(papel,p){
   '<div><label>2. API Key</label><input id="'+papel+'_key" type="password" placeholder="'+(p.id?"(em branco mantem a salva)":"cole a chave")+'"></div></div>'+
   '<div class="row" id="'+papel+'_baserow" style="'+((p.provedor&&p.provedor!=="gemini")?"":"display:none")+'"><div><label>Base URL (local/openai-compativel)</label><input id="'+papel+'_base" value="'+esc(p.base_url||"")+'" placeholder="http://localhost:11434/v1"></div></div>'+
   '<button class="gh full" onclick="buscarModelos(\\''+papel+'\\')">&#128269; 3. Buscar modelos do provedor</button>'+
-  '<label style="margin-top:12px">4. Modelo</label><select id="'+papel+'_modelo">'+modOpt+'</select>'+
+  '<label style="margin-top:12px">4. Modelo <span id="'+papel+'_cnt" class="muted" style="font-weight:400;font-size:12px"></span></label><input id="'+papel+'_modelo" list="'+papel+'_dl" placeholder="busque (passo 3) e digite p/ filtrar..." autocomplete="off" value="'+(p.modelo?esc(p.modelo):'')+'" style="width:100%"><datalist id="'+papel+'_dl">'+(p.modelo?('<option value="'+esc(p.modelo)+'">'):'')+'</datalist>'+
   '<div class="save"><button class="gh sm" onclick="testarNovo(\\''+papel+'\\')">&#9889; Testar</button>'+
    '<button class="sm" onclick="salvarProv(\\''+papel+'\\')">'+(p.id?"Salvar alteracoes":"Salvar provedor")+'</button></div>';
 }
@@ -427,9 +427,10 @@ async function buscarModelos(papel){
  var r=await fetch(BASE+"/admin/llm/modelos",{method:"POST",headers:H(),body:JSON.stringify(corpo(papel))});
  var j=await r.json().catch(function(){return {};});
  if(!j.ok){toast("Falhou: "+(j.detalhe||"erro"),"err");return;}
- var sel=document.getElementById(papel+"_modelo");var atual=sel.value;
- sel.innerHTML='<option value="">-- escolha ('+j.modelos.length+') --</option>'+j.modelos.map(function(m){return '<option value="'+esc(m)+'"'+(m===atual?" selected":"")+'>'+esc(m)+'</option>';}).join("");
- toast(j.modelos.length+" modelos encontrados","ok");
+ var dl=document.getElementById(papel+"_dl");if(dl)dl.innerHTML=j.modelos.map(function(m){return '<option value="'+esc(m)+'">';}).join("");
+ var cnt=document.getElementById(papel+"_cnt");if(cnt)cnt.textContent='('+j.modelos.length+' carregados \u2014 digite p/ filtrar)';
+ var inp=document.getElementById(papel+"_modelo");if(inp)inp.focus();
+ toast(j.modelos.length+" modelos carregados","ok");
 }
 async function testarNovo(papel){
  var b=corpo(papel);if(!b.modelo){toast("Escolha um modelo primeiro","err");return;}
