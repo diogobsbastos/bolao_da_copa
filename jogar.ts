@@ -505,6 +505,15 @@ export async function rotasJogar(app: FastifyInstance) {
     itens.sort((a:any,b:any)=> new Date(b.ts||0).getTime() - new Date(a.ts||0).getTime());
     return { ok:true, itens: itens.slice(0,12) };
   });
+  app.get("/jogar/regras", async (req, reply) => {
+    const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    const gc = async (k: string, def: any) => { try { const v = (await pool.query("SELECT valor FROM config WHERE chave=$1", [k])).rows[0]?.valor; if (v == null) return def; return typeof v === "string" ? JSON.parse(v) : v; } catch { return def; } };
+    const pontos = await gc("pontos_regra", { exato:10, vencedor_saldo:7, vencedor:5, gol_time:1 });
+    const mata = await gc("mata_mult", { r32:1, oitavas:2, quartas:4, semi:8, terceiro:5, final:10 });
+    const longo = await gc("longo_prazo", { campeao:200, vice:150, terceiro:100, quarto:75, artilheiro:100 });
+    const arena = await gc("arena", { stake:50, rake:10, pts:[50,50,50], pts_derrota:10, max_rodada:3 });
+    return { ok:true, pontos, mata, longo, arena };
+  });
   app.get("/jogar/longo", async (req, reply) => {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
     let trava = "2026-06-23T23:59:00-03:00";
