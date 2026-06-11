@@ -44,7 +44,7 @@ ${CSS}
  <main class="main">
 
   <section class="sec on" id="s-dash">
-   <h1>Ol&aacute;, <span id="nome">jogador</span> &#128075;</h1>
+   <div class="pghead"><div class="pghl"><h1>Ol&aacute;, <span id="nome">jogador</span> &#128075;</h1></div></div>
    <div class="grid">
     <div class="card"><h3>Saldo total</h3><div class="stat" id="d-saldo">0</div><div class="muted">tokens disponiveis</div></div>
     <div class="card"><h3>Sua posi&ccedil;&atilde;o</h3><div class="stat" id="d-pos">-</div><div class="muted"><span id="d-pts">0</span> pts no bol&atilde;o</div></div>
@@ -80,8 +80,7 @@ ${CSS}
   </section>
 
   <section class="sec" id="s-copa">
-   <h1>Copa do Mundo 2026</h1>
-   <div class="muted" style="margin-bottom:10px">EUA &middot; Canad&aacute; &middot; M&eacute;xico &mdash; 11/jun a 19/jul</div>
+   <div class="pghead"><div class="pghl"><h1>Copa do Mundo 2026</h1></div><div class="muted" style="margin:0">EUA &middot; Canad&aacute; &middot; M&eacute;xico &mdash; 11/jun a 19/jul</div></div>
    <div class="tabs" id="copa-tabs"><span class="tab on" data-c="grupos" onclick="copaTab('grupos')">Grupos</span><span class="tab" data-c="calendario" onclick="copaTab('calendario')">Calend&aacute;rio</span><span class="tab" data-c="artilheiros" onclick="copaTab('artilheiros')">Artilheiros</span><span class="tab" data-c="elim" onclick="copaTab('elim')">Eliminat&oacute;rias</span></div>
    <div id="copa-box" class="muted">carregando...</div>
   </section>
@@ -103,7 +102,7 @@ ${CSS}
   </section>
 
   <section class="sec" id="s-rank">
-   <h1>Ranking</h1>
+   <div class="pghead"><div class="pghl"><h1>Ranking</h1></div></div>
    <div class="rktop"><div class="tabs" id="rank-tabs"><span class="tab on" data-t="geral" onclick="loadRank('geral')">Geral</span><span class="tab" data-t="bolao" onclick="loadRank('bolao')">Bol&atilde;o</span><span class="tab" data-t="arena" onclick="loadRank('arena')">Arena</span></div><button class="rkrules" id="rk-rules" onclick="regrasRank()"><span class="radar2"></span> Regras</button></div>
    <div id="rank-box" class="muted">carregando...</div>
   </section>
@@ -127,9 +126,8 @@ ${CSS}
   </section>
 
   <section class="sec" id="s-ia">
+   <div class="pghead"><div class="pghl"><h1>&#129302; Conectar minha IA</h1><p class="pgsub">Conecte sua pr&oacute;pria LLM (chave sua, custo seu). Ela palpita por voc&ecirc; usando o contexto de cada jogo: odds, probabilidade, escala&ccedil;&atilde;o, forma e not&iacute;cias.</p></div></div>
    <div class="tabs"><button class="tab on" onclick="nav('ia')">Conectar</button><button class="tab" onclick="nav('custo')">Custo</button></div>
-   <h1>&#129302; Conectar minha IA</h1>
-   <div class="muted" style="margin-bottom:10px">Conecte sua pr&oacute;pria LLM (chave sua, custo seu). Ela palpita por voc&ecirc; usando o contexto de cada jogo: odds, probabilidade, escala&ccedil;&atilde;o, forma e not&iacute;cias.</div>
    <div class="card">
      <h3>&#128268; Conex&atilde;o</h3>
      <div id="ia-resumo" class="iaresumo" style="display:none"></div>
