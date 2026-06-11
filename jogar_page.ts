@@ -316,7 +316,7 @@ function cardBolao(j,cor){
  function cn(tm){return '<div class="cn">'+fl2(tm.iso)+'<span class="nm">'+esc(tm.pt)+'</span></div>';}
  function cs(casa,val){var fld=casa?"pc":"pv";var en=casa?j.casa.en:j.visitante.en;var step=j.travado?"":'<span class="step"><button class="su" onclick="stp('+j.id+','+(casa?1:0)+',1)">&#9650;</button><button class="su" onclick="stp('+j.id+','+(casa?1:0)+',-1)">&#9660;</button></span>';return '<div class="cs"><button class="sbtn" title="Stats e notícias" onclick="info(&#39;'+esc(en)+'&#39;)">&#128202;</button><input class="pl" id="'+fld+'-'+j.id+'" type="number" min="0" max="99" value="'+val+'" '+dis+' onchange="salvar('+j.id+')">'+step+'</div>';}
  var ball=(j.odds&&/365/.test(j.odds.fonte||""))?('<span class="live365"><img class="o365sm" src="'+S365LOGO+'" title="ver odds (365scores)" onclick="odds('+j.id+')"></span>'):"";
- var au=(j.meu&&j.meu.auto)?'<span class="autob" title="preenchido automaticamente">auto</span>':"";
+ var au="";var orig=j.meu?(j.meu.ia?'<span class="origb origia">Feita por IA</span>':(j.meu.auto?'<span class="origb origlog">Feita por Lógica</span>':'<span class="origb origman">Aposta Manual</span>')):"";
  var tag=j.travado?'<span class="tag lk">&#128274; fechado</span>':'<span class="tag">&#128336; '+esc(fmtHora(j.inicio))+'</span>';
  var gt='<div class="gtab">GRUPO '+esc(j.grupo||"")+'</div>';
  var jb='<div class="jbody">'+cn(j.casa)+cs(1,pc)+'<div class="cm cmtop">'+au+tag+ball+'</div>'+cn(j.visitante)+cs(0,pv)+'<div class="cm cmbot">'+favOdds(j)+'</div></div>';

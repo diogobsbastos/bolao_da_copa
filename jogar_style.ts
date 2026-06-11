@@ -263,7 +263,7 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}\nbody.mcol .side .r
 .sw input:checked+.sl:before{transform:translateX(18px)}
 .swlbl{font-size:13px;font-weight:600;color:var(--mut)}
 .qmark{width:22px;height:22px;border-radius:50%;background:var(--surface2);border:1px solid var(--bd);color:var(--mut);font-weight:800;font-size:12px;cursor:pointer;flex:none}.qmark:hover{background:var(--pri);color:#fff}
-.autob{font-size:8px;font-weight:800;background:var(--surface2);color:var(--mut);padding:1px 5px;border-radius:6px;letter-spacing:.5px}
+.origb{position:absolute;right:8px;bottom:6px;font-size:8.5px;font-weight:800;padding:2px 7px;border-radius:7px;letter-spacing:.2px;opacity:.92;z-index:2}.origb.origia{background:rgba(47,111,237,.15);color:#2f6fed}.origb.origlog{background:rgba(245,196,81,.22);color:#cf8f12}.origb.origman{background:rgba(31,170,89,.15);color:var(--pri2)}.autob{font-size:8px;font-weight:800;background:var(--surface2);color:var(--mut);padding:1px 5px;border-radius:6px;letter-spacing:.5px}
 #s-ia input,#s-ia select{width:100%;background:var(--surface2);border:1px solid var(--bd);color:var(--tx);border-radius:9px;padding:10px;font-size:14px}
 .ialbl{font-size:12px;color:var(--mut);font-weight:700;margin:10px 0 4px;display:block}
 .iarow{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}

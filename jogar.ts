@@ -157,7 +157,7 @@ export async function rotasJogar(app: FastifyInstance) {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
     const rod = Number((req.query as any)?.rodada || 0);
     const args: any[] = [u.id];
-    let q = `SELECT j.id, j.selecao_casa, j.selecao_visitante, j.inicio, j.status, j.rodada, j.odds, pb.placar_casa pc, pb.placar_visitante pv, pb.auto pauto
+    let q = `SELECT j.id, j.selecao_casa, j.selecao_visitante, j.inicio, j.status, j.rodada, j.odds, pb.placar_casa pc, pb.placar_visitante pv, pb.auto pauto, pb.ia pia
       FROM jogos j LEFT JOIN palpites_bolao pb ON pb.jogo_id=j.id AND pb.usuario_id=$1
       WHERE j.selecao_casa<>'A definir' AND j.selecao_visitante<>'A definir' AND j.fase='grupos'`;
     if (rod) { args.push(rod); q += ` AND j.rodada=$${args.length}`; }
@@ -166,7 +166,7 @@ export async function rotasJogar(app: FastifyInstance) {
     const allg = (await pool.query("SELECT selecao_casa, selecao_visitante, inicio FROM jogos WHERE fase='grupos' AND selecao_casa<>'A definir' AND selecao_visitante<>'A definir'")).rows as any[];
     let gmap = new Map<string, string>(); try { gmap = mapaGrupos(allg); } catch {}
     const agora = Date.now();
-    const jogos = rows.map((j) => { const c = timePT(j.selecao_casa), v = timePT(j.selecao_visitante); const travado = j.inicio ? new Date(j.inicio).getTime() <= agora : false; const od = j.odds && j.odds.casa != null ? { casa: j.odds.casa, empate: j.odds.empate, fora: j.odds.fora, fonte: j.odds.fonte || "", gid: j.odds.gid || null, url: j.odds.url || null } : null; return { id: j.id, rodada: j.rodada, inicio: j.inicio, travado, grupo: gmap.get(j.selecao_casa) || "", casa: { pt: c.pt, iso: c.iso, en: j.selecao_casa }, visitante: { pt: v.pt, iso: v.iso, en: j.selecao_visitante }, odds: od, meu: (j.pc != null && j.pv != null) ? { pc: j.pc, pv: j.pv, auto: !!j.pauto } : null }; });
+    const jogos = rows.map((j) => { const c = timePT(j.selecao_casa), v = timePT(j.selecao_visitante); const travado = j.inicio ? new Date(j.inicio).getTime() <= agora : false; const od = j.odds && j.odds.casa != null ? { casa: j.odds.casa, empate: j.odds.empate, fora: j.odds.fora, fonte: j.odds.fonte || "", gid: j.odds.gid || null, url: j.odds.url || null } : null; return { id: j.id, rodada: j.rodada, inicio: j.inicio, travado, grupo: gmap.get(j.selecao_casa) || "", casa: { pt: c.pt, iso: c.iso, en: j.selecao_casa }, visitante: { pt: v.pt, iso: v.iso, en: j.selecao_visitante }, odds: od, meu: (j.pc != null && j.pv != null) ? { pc: j.pc, pv: j.pv, auto: !!j.pauto, ia: !!j.pia } : null }; });
     return { ok: true, jogos, rodada: rod || null };
   });
 
@@ -178,7 +178,7 @@ export async function rotasJogar(app: FastifyInstance) {
     if (!jg) return reply.code(404).send({ erro: "jogo nao existe" });
     if (jg.inicio && new Date(jg.inicio).getTime() <= Date.now()) return reply.code(403).send({ erro: "jogo ja comecou (palpite travado)" });
     await pool.query(`INSERT INTO palpites_bolao (usuario_id, jogo_id, placar_casa, placar_visitante) VALUES ($1,$2,$3,$4)
-      ON CONFLICT (usuario_id, jogo_id) DO UPDATE SET placar_casa=$3, placar_visitante=$4, atualizado_em=now()`, [u.id, id, pc, pv]);
+      ON CONFLICT (usuario_id, jogo_id) DO UPDATE SET placar_casa=$3, placar_visitante=$4, auto=false, ia=false, atualizado_em=now()`, [u.id, id, pc, pv]);
     return { ok: true };
   });
 
@@ -201,8 +201,7 @@ export async function rotasJogar(app: FastifyInstance) {
     for (const j of jogos) {
       if (j.inicio && new Date(j.inicio).getTime() <= Date.now()) continue;
       const pal = palpiteAuto1(j.odds, j.selecao_casa, j.selecao_visitante);
-      await pool.query(`INSERT INTO palpites_bolao (usuario_id, jogo_id, placar_casa, placar_visitante) VALUES ($1,$2,$3,$4)
-        ON CONFLICT (usuario_id, jogo_id) DO UPDATE SET placar_casa=$3, placar_visitante=$4, atualizado_em=now()`, [u.id, j.id, pal.pc, pal.pv]); n++;
+      await pool.query(`INSERT INTO palpites_bolao (usuario_id, jogo_id, placar_casa, placar_visitante, auto) VALUES ($1,$2,$3,$4,true) ON CONFLICT (usuario_id, jogo_id) DO UPDATE SET placar_casa=$3, placar_visitante=$4, auto=true, ia=false, atualizado_em=now()`, [u.id, j.id, pal.pc, pal.pv]); n++;
     }
     return { ok: true, preenchidos: n };
   });
