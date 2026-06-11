@@ -107,6 +107,7 @@ export async function rotasJogar(app: FastifyInstance) {
 
   app.get("/jogar/dados", async (req, reply) => {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    try { await pool.query("INSERT INTO ranking (usuario_id, pontos_bolao, pontos_arena) SELECT $1,0,0 WHERE NOT EXISTS (SELECT 1 FROM ranking WHERE usuario_id=$1)", [u.id]); } catch {}
     let cart = (await pool.query("SELECT saldo FROM usuarios_carteiras WHERE usuario_id=$1", [u.id])).rows[0] as any;
     if (!cart) { try { await pool.query("INSERT INTO usuarios_carteiras (usuario_id) VALUES ($1) ON CONFLICT DO NOTHING", [u.id]); } catch {} cart = { saldo: 500 }; }
     let pos: any = null, pontos = 0, total = 0;
