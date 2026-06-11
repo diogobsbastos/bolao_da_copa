@@ -14,7 +14,7 @@ ${CSS}
   <span class="w" title="Tokens">&#129689; <span id="w-saldo">0</span></span>
   <div class="newswrap"><span class="hmsino" id="hmsino" onclick="togNews(event)" title="Novidades">&#128276;<i class="hmsbadge" id="hmsbadge"></i></span><div class="newsdrop" id="newsdrop"><div class="newshd">Novidades</div><div id="newslist"><div class="muted" style="padding:10px 12px;font-size:12px">carregando...</div></div></div></div>
   <div class="pwrap">
-   <span class="av" id="av" onclick="togDrop(event)" title="Perfil">?</span><i class="pchev" onclick="togDrop(event)" title="Perfil">&#9662;</i>
+   <span class="av" id="av" onclick="togDrop(event)" title="Perfil">?</span><i class="pchev" onclick="togDrop(event)" title="Perfil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></i>
    <div class="pdrop" id="pdrop">
     <div class="pdhead"><span class="av" id="av2">?</span><div><b id="pd-nome">jogador</b><small id="pd-email"></small></div></div>
     <div class="pdperfis" id="pd-admin" style="display:none"><div class="pdperfil ativo"><span class="pdpav" id="pdp-av">J</span><div class="pdpinfo"><b id="pdp-nome">Jogador</b><small>Perfil de jogador</small></div><span class="pdpchk">&#10003;</span></div><div class="pdperfil" onclick="location.href=BASE+&#39;/admin&#39;"><span class="pdpav adm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V7z"/></svg></span><div class="pdpinfo"><b>Painel Admin</b><small>Entrar como administrador</small></div></div></div><div class="pdsep"></div>
