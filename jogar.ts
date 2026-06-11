@@ -434,7 +434,8 @@ export async function rotasJogar(app: FastifyInstance) {
   const grpDeSlot = (slot: string) => { if (slot === "GOL") return "GOL"; if (["LE","ZE","ZD","LD"].indexOf(slot) >= 0) return "DEF"; if (["ME","MC2","MC1","MD"].indexOf(slot) >= 0) return "MEI"; return "ATA"; };
   app.get("/jogar/time", async (req, reply) => {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
-    const inv = (await pool.query("SELECT j.id, j.nome, j.posicao, j.selecao, j.raridade, j.figurinha, g.overall FROM inventario_figurinhas i JOIN jogadores j ON j.id=i.jogador_id LEFT JOIN jogadores_365 g ON g.jogador_id=j.id WHERE i.usuario_id=$1 ORDER BY g.overall DESC NULLS LAST, i.criado_em DESC", [u.id])).rows as any[];
+    const inv = (await pool.query("SELECT j.id, j.nome, j.posicao, j.selecao, j.raridade, j.figurinha, g.overall, g.pace, g.shooting, g.passing, g.dribbling, g.defending, g.physical, g.fc_pos FROM inventario_figurinhas i JOIN jogadores j ON j.id=i.jogador_id LEFT JOIN jogadores_365 g ON g.jogador_id=j.id WHERE i.usuario_id=$1 ORDER BY g.overall DESC NULLS LAST, i.criado_em DESC", [u.id])).rows as any[];
+    for (const c of inv) { try { const t = timePT(c.selecao); c.iso = t.iso; c.selPt = t.pt; } catch {} }
     const byId = new Map<number, any>(); for (const c of inv) byId.set(Number(c.id), c);
     const grupos: any = { GOL: [], DEF: [], MEI: [], ATA: [] };
     for (const c of inv) grupos[grpDePos(c.posicao)].push(c);
