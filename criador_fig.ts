@@ -75,6 +75,35 @@ async function gerarImagemGemini(prov: any, prompt: string, refs: string[]): Pro
   return { b64: img.data, mime: img.mimeType || img.mime_type || "image/png", usage: { in: Number(u.promptTokenCount || 0), out: Number(u.candidatesTokenCount || 0), cache: Number(u.cachedContentTokenCount || 0) } };
 }
 
+async function gerarImagemNvidia(prov: any, prompt: string, refs: string[]): Promise<{ b64: string; mime: string; usage: any }> {
+  if (typeof fetch !== "function") throw new Error("fetch indisponivel");
+  const url = "https://ai.api.nvidia.com/v1/genai/" + prov.modelo;
+  const m = String(prov.modelo || "").toLowerCase();
+  const body: any = { prompt, cfg_scale: 3.5, width: 1024, height: 1024, seed: 0, steps: 50 };
+  if (m.includes("kontext") && refs && refs.length) body.image = "data:image/png;base64," + refs[0];
+  const r = await fetch(url, { method: "POST", headers: { authorization: "Bearer " + (prov.api_key || ""), accept: "application/json", "content-type": "application/json" }, body: JSON.stringify(body) });
+  const txt = await r.text();
+  let j: any = null; try { j = JSON.parse(txt); } catch {}
+  if (!r.ok) throw new Error("NVIDIA http " + r.status + ": " + txt.slice(0, 220));
+  let b64 = "";
+  if (j) {
+    if (Array.isArray(j.artifacts) && j.artifacts[0]) b64 = j.artifacts[0].base64 || j.artifacts[0].b64_json || "";
+    else if (Array.isArray(j.data) && j.data[0]) b64 = j.data[0].b64_json || j.data[0].b64 || "";
+    else if (typeof j.image === "string") b64 = j.image;
+    else if (typeof j.b64_json === "string") b64 = j.b64_json;
+  }
+  if (b64.indexOf("data:") === 0) b64 = b64.split(",").pop() as string;
+  if (!b64) throw new Error("NVIDIA: resposta sem imagem (" + txt.slice(0, 180) + ")");
+  return { b64, mime: "image/png", usage: { in: 0, out: 0, cache: 0 } };
+}
+
+async function gerarImagem(prov: any, prompt: string, refs: string[]): Promise<{ b64: string; mime: string; usage: any }> {
+  const b = String(prov.base_url || "").toLowerCase();
+  const m = String(prov.modelo || "").toLowerCase();
+  if (b.includes("nvidia") || m.indexOf("black-forest") === 0 || m.includes("flux")) return gerarImagemNvidia(prov, prompt, refs);
+  return gerarImagemGemini(prov, prompt, refs);
+}
+
 async function lerTiles(folder: string): Promise<{ arquivos: string[]; tipo: any; ocr: any }> {
   const base = join(DIR, folder);
   let tipo: any = {}, ocr: any = {};
@@ -150,13 +179,13 @@ export async function rotasCriadorFig(app: FastifyInstance) {
     const refPedido = body.ref ? String(body.ref) : undefined;
     if (!time || time.includes("/") || time.includes("..")) return reply.code(400).send({ erro: "time invalido" });
     const prov = await provImagem();
-    if (!prov) return reply.code(400).send({ erro: "configure o Motor de Imagem (Configuracoes - aba Motor de Imagem) com um modelo gemini de imagem, ex: gemini-2.5-flash-image" });
+    if (!prov) return reply.code(400).send({ erro: "configure o Motor de Imagem (Configuracoes - aba Motor de Imagem): Gemini (gemini-2.5-flash-image) ou NVIDIA (base com nvidia + modelo black-forest-labs/flux.1-dev)" });
     try {
       const ref = await refDoTime(time, refPedido);
       await setCfg("fig_ref:" + time, ref.file);
       const prompt = (await getCfg("prompt_fig_base")) || PROMPT_BASE_DEFAULT;
       const t0 = Date.now();
-      const out = await gerarImagemGemini(prov, prompt, [ref.b64]);
+      const out = await gerarImagem(prov, prompt, [ref.b64]);
       const buf = Buffer.from(out.b64, "base64");
       await writeFile(join(DIR, time, "_base_silhueta.png"), buf);
       await registrarGasto({ modelo: prov.modelo, imagens: 1, processo: "fig_base:" + time, origem: "criador-fig", tempo: (Date.now() - t0) / 1000 });
