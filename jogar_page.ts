@@ -312,7 +312,7 @@ function cardBolao(j,cor){
  var lim=(j.meu&&!j.travado)?'<button class="jlimpar" onclick="limparPalpite('+j.id+')" title="Limpar este palpite">&times;</button>':'';return '<div class="jogo" style="--rc:'+cor+'">'+gt+jb+lim+'</div>';
 }
 var IA_ON=false;
-function setMascote(){var m=document.getElementById("masc"),b=document.getElementById("masc-bubble");if(!m||!b)return;m.className="masc "+(IA_ON?"on":"off");if(IA_ON){b.innerHTML='T&ocirc; pronto pra palpitar! <button class="mbtn" onclick="startTour()">&#10024; Palpitar com IA</button>';}else{b.innerHTML='&#128164; <b>Conecte sua IA</b> e eu palpito por voc&ecirc;. <span class="mlink" onclick="mascClick()">CONECTAR &#8594;</span>';}}
+function setMascote(){var m=document.getElementById("masc"),b=document.getElementById("masc-bubble");if(!m||!b)return;m.className="masc "+(IA_ON?"on":"off");if(IA_ON){b.innerHTML='J&aacute; estou pronto para Palpitar! <button class="mbtn" onclick="startTour()">&#10024; Palpitar com IA</button>';}else{b.innerHTML='&#128164; <b>Conecte sua IA</b> e eu palpito por voc&ecirc;. <span class="mlink" onclick="mascClick()">CONECTAR &#8594;</span>';}}
 function mascClick(){if(!IA_ON)nav("ia");}
 
 async function loadBolao(rod){
