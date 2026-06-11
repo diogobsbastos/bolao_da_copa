@@ -119,12 +119,27 @@ async function gerarImagemGemini(prov: any, prompt: string, refB64: string): Pro
   throw new Error("o modelo nao retornou imagem");
 }
 
+async function nvAsset(apiKey: string, b64: string, mime = "image/png"): Promise<string> {
+  const c = await fetch("https://api.nvcf.nvidia.com/v2/nvcf/assets", { method: "POST", headers: { authorization: "Bearer " + apiKey, accept: "application/json", "content-type": "application/json" }, body: JSON.stringify({ contentType: mime, description: "ref-fig" }) });
+  const cj: any = await c.json().catch(() => ({}));
+  if (!c.ok) throw new Error("NVIDIA asset http " + c.status + ": " + JSON.stringify(cj).slice(0, 150));
+  const assetId = cj.assetId; const uploadUrl = cj.uploadUrl;
+  if (!assetId || !uploadUrl) throw new Error("NVIDIA asset sem id/url");
+  const u = await fetch(uploadUrl, { method: "PUT", headers: { "content-type": mime, "x-amz-meta-nvcf-asset-description": "ref-fig" }, body: Buffer.from(b64, "base64") });
+  if (!u.ok) throw new Error("NVIDIA asset upload http " + u.status);
+  return assetId;
+}
 async function gerarImagemNvidia(prov: any, prompt: string, refB64: string): Promise<{ b64: string }> {
   if (typeof fetch !== "function") throw new Error("fetch indisponivel");
   const url = "https://ai.api.nvidia.com/v1/genai/" + prov.modelo;
   const body: any = { prompt, cfg_scale: 3.5, width: 1024, height: 1024, seed: 0, steps: 50 };
-  if (refB64) body.image = "data:image/png;base64," + refB64;
-  const r = await fetch(url, { method: "POST", headers: { authorization: "Bearer " + (prov.api_key || ""), accept: "application/json", "content-type": "application/json" }, body: JSON.stringify(body) });
+  const headers: any = { authorization: "Bearer " + (prov.api_key || ""), accept: "application/json", "content-type": "application/json" };
+  if (refB64) {
+    const assetId = await nvAsset(prov.api_key, refB64);
+    body.image = "data:image/png;asset_id," + assetId;
+    headers["NVCF-INPUT-ASSET-REFERENCES"] = assetId;
+  }
+  const r = await fetch(url, { method: "POST", headers, body: JSON.stringify(body) });
   const txt = await r.text();
   let j: any = null; try { j = JSON.parse(txt); } catch {}
   if (!r.ok) throw new Error("NVIDIA http " + r.status + ": " + txt.slice(0, 200));
