@@ -370,4 +370,5 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
 .iarow.rgt{justify-content:flex-end}
 .side a .lbl{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;text-align:left}body.mcol .side a .lbl{display:none}
 @media(min-width:761px) and (max-width:1024px){body{zoom:.82}}
-@media(min-width:1025px) and (max-width:1280px){body{zoom:.9}}`;
+@media(min-width:1025px) and (max-width:1280px){body{zoom:.9}}
+@media(min-width:761px){.layout>.side{position:sticky;top:52px;height:calc(100vh - 52px);align-self:flex-start;overflow-y:auto}}`;
