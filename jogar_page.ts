@@ -164,7 +164,7 @@ ${CSS}
      </div>
    </div>
    <div id="ia-conectado" style="display:none">
-   <div style="margin-top:4px"><button class="btn" id="ia-fill" onclick="preencherIA()">&#10024; Preencher rodada com minha IA</button></div>
+   
    <div id="ia-result" class="muted" style="margin-top:10px"></div>
    </div>
   </section>
