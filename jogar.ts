@@ -474,20 +474,21 @@ export async function rotasJogar(app: FastifyInstance) {
   app.get("/jogar/ticker", async (req, reply) => {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
     const itens: any[] = []; const seen = new Set<string>();
+    const push = (iso: string, pt: string | null, txt: string, tipo: string) => {
+      txt = String(txt || "").trim().replace(/\s+/g, " "); if (!txt) return;
+      const k = tipo + "|" + (pt || "") + "|" + txt.slice(0, 40); if (seen.has(k)) return; seen.add(k);
+      itens.push({ iso, pt, txt, tipo });
+    };
     try {
-      const rows = (await pool.query("SELECT selecao_casa, selecao_visitante, dados365 FROM jogos WHERE dados365 ? 'noticiasCasa' AND inicio >= now() - interval '3 days' ORDER BY inicio ASC LIMIT 16")).rows as any[];
-      const add = (selEn: string, arr: any) => {
-        if (!Array.isArray(arr)) return; const t = timePT(selEn);
-        for (const nw of arr.slice(0, 2)) {
-          const txt = String((nw && (nw.resumo || nw.titulo)) || "").trim().replace(/\s+/g, " ");
-          if (!txt || txt.length < 12) continue;
-          const key = t.pt + "|" + txt.slice(0, 40); if (seen.has(key)) continue; seen.add(key);
-          itens.push({ iso: t.iso, pt: t.pt, txt: txt.slice(0, 130) });
-        }
-      };
-      for (const j of rows) { const d: any = j.dados365 || {}; add(j.selecao_casa, d.noticiasCasa); add(j.selecao_visitante, d.noticiasVisitante); }
+      const rows = (await pool.query("SELECT selecao_casa, selecao_visitante, status, resultado_casa, resultado_visitante, inicio, dados365, to_char(inicio AT TIME ZONE 'America/Sao_Paulo','HH24:MI') AS hhmm, (inicio > now()) AS futuro FROM jogos WHERE (inicio AT TIME ZONE 'America/Sao_Paulo')::date = (now() AT TIME ZONE 'America/Sao_Paulo')::date AND selecao_casa<>'A definir' ORDER BY inicio ASC")).rows as any[];
+      for (const j of rows) { if (j.resultado_casa != null && j.resultado_visitante != null) { const c = timePT(j.selecao_casa), v = timePT(j.selecao_visitante); push(c.iso, null, "FIM \u2014 " + c.pt + " " + j.resultado_casa + " x " + j.resultado_visitante + " " + v.pt, "resultado"); } }
+      for (const j of rows) { const d: any = j.dados365 || {}; const addn = (en: string, arr: any) => { if (!Array.isArray(arr)) return; const t = timePT(en); for (const nw of arr.slice(0, 2)) { const txt = String((nw && (nw.resumo || nw.titulo)) || "").trim(); if (txt && txt.length >= 12) push(t.iso, t.pt, txt.slice(0, 130), "noticia"); } }; addn(j.selecao_casa, d.noticiasCasa); addn(j.selecao_visitante, d.noticiasVisitante); }
+      for (const j of rows) { if (j.resultado_casa == null && j.futuro) { const c = timePT(j.selecao_casa), v = timePT(j.selecao_visitante); push(c.iso, null, "HOJE " + j.hhmm + " \u2014 " + c.pt + " x " + v.pt, "proximo"); } }
     } catch {}
-    return { ok: true, itens: itens.slice(0, 24) };
+    if (!itens.length) {
+      try { const px = (await pool.query("SELECT selecao_casa, selecao_visitante FROM jogos WHERE inicio>=now() AND selecao_casa<>'A definir' ORDER BY inicio ASC LIMIT 6")).rows as any[]; for (const j of px) { const c = timePT(j.selecao_casa), v = timePT(j.selecao_visitante); push(c.iso, null, c.pt + " x " + v.pt, "proximo"); } } catch {}
+    }
+    return { ok: true, itens: itens.slice(0, 30) };
   });
   app.get("/jogar/news", async (req, reply) => {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
