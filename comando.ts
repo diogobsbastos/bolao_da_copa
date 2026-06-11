@@ -51,7 +51,15 @@ export async function tickTarefas(): Promise<void> {
           await pool.query("UPDATE tarefas_agendadas SET status=$2, log=$3, atualizado_em=now() WHERE id=$1", [t.id, novo, JSON.stringify(res).slice(0, 600)]);
         }
       } catch (e: any) {
-        await pool.query("UPDATE tarefas_agendadas SET status='erro', log=$2, atualizado_em=now() WHERE id=$1", [t.id, ("EXC: " + String(e?.message ?? e)).slice(0, 600)]);
+        const msg = ("EXC: " + String(e?.message ?? e)).slice(0, 600);
+        // Retry automatico: ate 3 tentativas, re-agenda +10min em vez de marcar erro.
+        // Acima de 3 (ja contado o try atual), desiste e marca erro.
+        const tentAtual = Number(t.tentativas || 0) + 1; // tentativas no banco apos o increment
+        if (tentAtual < 3) {
+          await pool.query("UPDATE tarefas_agendadas SET status='pendente', horario_gatilho=now() + interval '10 minutes', log=$2, atualizado_em=now() WHERE id=$1", [t.id, (msg + " (retry " + tentAtual + "/3 em +10min)").slice(0, 600)]);
+        } else {
+          await pool.query("UPDATE tarefas_agendadas SET status='erro', log=$2, atualizado_em=now() WHERE id=$1", [t.id, msg]);
+        }
       }
     }
   } finally { TICKANDO = false; }
