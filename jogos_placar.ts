@@ -143,7 +143,7 @@ async function newsRaw(nomePT: string, en: string): Promise<{ status: string; to
     const hay = (a.headline + " " + a.desc).toLowerCase();
     if (!needles.some((x) => hay.includes(x))) continue;
     const k = a.headline.toLowerCase(); if (seen.has(k)) continue; seen.add(k);
-    items.push({ title: a.headline, link: a.link, fonte: a.source, data: a.published });
+    items.push({ title: a.headline, desc: a.desc, link: a.link, fonte: a.source, data: a.published } as any);
     if (items.length >= 5) break;
   }
   return { status: "ok", total: items.length, items, msg: items.length ? "" : ("nenhuma materia citou " + nomePT + " no feed da Copa (" + arts.length + " materias)") };
@@ -152,7 +152,7 @@ export async function noticiasTime(nomePT: string, en: string): Promise<string[]
   const c = CACHE_NEWS.get(en);
   if (c && Date.now() - c.t < 6 * 3600 * 1000) return c.linhas;
   const d = await newsRaw(nomePT, en);
-  const linhas = d.items.map((i) => i.title).slice(0, 4);
+  const linhas: any = d.items.slice(0, 5).map((i: any) => ({ titulo: i.title, resumo: i.desc || "", data: i.data || null }));
   if (linhas.length) CACHE_NEWS.set(en, { t: Date.now(), linhas });
   return linhas;
 }

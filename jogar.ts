@@ -65,6 +65,7 @@ export async function autoPreencherTick(): Promise<void> {
 
 
 function medias5(arr: any[]): any { if (!Array.isArray(arr) || !arr.length) return null; let gp = 0, gc = 0, pts = 0; for (const m of arr) { gp += Number(m.gp) || 0; gc += Number(m.gc) || 0; pts += (m.res === "V" ? 3 : (m.res === "E" ? 1 : 0)); } const n = arr.length; return { n, gpM: gp / n, gcM: gc / n, pts, aprov: pts / (n * 3) }; }
+const fetchandoCtx = new Set<number>();
 async function montarContexto(id: number): Promise<any | null> {
   const j = (await pool.query("SELECT id, selecao_casa, selecao_visitante, inicio, rodada, fase, odds, lineup_casa, lineup_visitante, dados365 FROM jogos WHERE id=$1", [id])).rows[0] as any;
   if (!j) return null;
@@ -76,11 +77,26 @@ async function montarContexto(id: number): Promise<any | null> {
     prob = { casa: Math.round(100 * ic / tot), empate: Math.round(100 * ie / tot), fora: Math.round(100 * iff / tot) };
   }
   const lineup = (l: any) => (l && Array.isArray(l.titulares)) ? { formacao: l.formacao, confirmada: !!l.confirmada, titulares: l.titulares.map((t: any) => ({ nome: t.nome, posicao: t.posicao })) } : null;
-  const [forCasa, forVisi, nCasa, nVisi, clas] = await Promise.all([
-    forma2022(j.selecao_casa).catch(() => []), forma2022(j.selecao_visitante).catch(() => []),
-    noticiasTime(c.pt, j.selecao_casa).catch(() => []), noticiasTime(v.pt, j.selecao_visitante).catch(() => []),
-    classifGrupoDe(j.selecao_casa).catch(() => null),
-  ]);
+  const clas = await classifGrupoDe(j.selecao_casa).catch(() => null);
+  const dc: any = j.dados365 || {};
+  const colhido = dc.colhidoEm ? new Date(dc.colhidoEm).getTime() : 0;
+  const fresco = (Date.now() - colhido) < 60 * 60 * 1000;
+  let forCasa: any = dc.forma2022Casa, forVisi: any = dc.forma2022Visi, nCasa: any = dc.noticiasCasa, nVisi: any = dc.noticiasVisitante;
+  if (!(fresco && nCasa !== undefined && forCasa !== undefined)) {
+    if (fetchandoCtx.has(j.id)) {
+      forCasa = forCasa || []; forVisi = forVisi || []; nCasa = nCasa || []; nVisi = nVisi || [];
+    } else {
+      fetchandoCtx.add(j.id);
+      try {
+        [forCasa, forVisi, nCasa, nVisi] = await Promise.all([
+          forma2022(j.selecao_casa).catch(() => []), forma2022(j.selecao_visitante).catch(() => []),
+          noticiasTime(c.pt, j.selecao_casa).catch(() => []), noticiasTime(v.pt, j.selecao_visitante).catch(() => []),
+        ]);
+        const novo = { ...dc, forma2022Casa: forCasa, forma2022Visi: forVisi, noticiasCasa: nCasa, noticiasVisitante: nVisi, colhidoEm: new Date().toISOString() };
+        await pool.query("UPDATE jogos SET dados365=$1 WHERE id=$2", [JSON.stringify(novo), j.id]);
+      } finally { fetchandoCtx.delete(j.id); }
+    }
+  }
   const f5 = (l: any) => { const m = medias5(l?.ultimas5); return m ? { jogos: m.n, golsPro: +m.gpM.toFixed(2), golsContra: +m.gcM.toFixed(2), aproveitamento: Math.round(m.aprov * 100) } : null; };
   return { ok: true, jogo: { id: j.id, rodada: j.rodada, fase: j.fase, inicio: j.inicio, casa: { pt: c.pt, en: j.selecao_casa, iso: c.iso, rankFifa: rankOf(j.selecao_casa) }, visitante: { pt: v.pt, en: j.selecao_visitante, iso: v.iso, rankFifa: rankOf(j.selecao_visitante) } }, odds, probabilidade: prob, escalacao: { casa: lineup(j.lineup_casa), visitante: lineup(j.lineup_visitante) }, forma2022: { casa: forCasa, visitante: forVisi }, classificacao: clas, noticias: { casa: nCasa, visitante: nVisi }, extra365: j.dados365 || null, forma5: { casa: f5(j.dados365?.casa), visitante: f5(j.dados365?.visitante) } };
 }

@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 import { pool } from "./db.js";
 import { usuarioDaReq } from "./auth.js";
 import { apurarJogo, apurarPendentes } from "./pontuacao.js";
-import { noticiasTime, timePT } from "./jogos_placar.js";
+import { noticiasTime, timePT, forma2022 } from "./jogos_placar.js";
 
 const S365 = "https://webws.365scores.com/web";
 const COMP = 5930; // FIFA World Cup 2026
@@ -223,6 +223,8 @@ export async function atualizarDadosJogo(jogoId: number): Promise<any> {
   try { base.visitante.ultimas5 = await ultimas5(acId, base.visitante.recentIds, cache); } catch {}
   try { base.noticiasCasa = await noticiasTime(timePT(j.selecao_casa).pt, j.selecao_casa); } catch {}
   try { base.noticiasVisitante = await noticiasTime(timePT(j.selecao_visitante).pt, j.selecao_visitante); } catch {}
+  try { base.forma2022Casa = await forma2022(j.selecao_casa); } catch {}
+  try { base.forma2022Visi = await forma2022(j.selecao_visitante); } catch {}
   try {
     const od = odds1x2(g);
     if (od) {
