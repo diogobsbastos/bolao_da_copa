@@ -236,6 +236,32 @@ function statusFinal365(g: any): boolean {
 // Coletor de RESULTADOS REAIS: por jogo com gid e sem resultado, busca o placar final no 365scores,
 // grava em jogos.resultado_casa/visitante (orientacao pelo nome) e dispara a apuracao (pontos+token).
 // Processa UM jogo: busca o placar final no 365, e se o jogo ja terminou grava resultado_* + status='final' e apura.
+async function coletarGolsDoJogo(g: any, jogoId: number): Promise<void> {
+  try {
+    const evs: any[] = Array.isArray(g?.events) ? g.events : (Array.isArray(g?.actualGameEvents) ? g.actualGameEvents : (Array.isArray(g?.gameEvents) ? g.gameEvents : []));
+    try { const ja = await cfg("eventos_probe"); if (!ja && evs.length) await setCfg("eventos_probe", JSON.stringify({ jogo: jogoId, em: new Date().toISOString(), sample: evs.slice(0, 6) }).slice(0, 7000)); } catch {}
+    const goalRe = /goal/i, badRe = /own|miss|saved|cancel|disallow|var/i;
+    const resolve = async (pid: any, nome: string): Promise<number | null> => {
+      if (pid != null) { try { const r = (await pool.query("SELECT jogador_id FROM jogadores_365 WHERE athlete_id=$1", [pid])).rows[0] as any; if (r?.jogador_id) return r.jogador_id; } catch {} }
+      if (nome) { try { const r = (await pool.query("SELECT id FROM jogadores WHERE lower(nome)=lower($1) LIMIT 1", [nome])).rows[0] as any; if (r?.id) return r.id; } catch {} }
+      return null;
+    };
+    const out: any[] = [];
+    for (const e of evs) {
+      const tn = String(e?.type?.name ?? e?.eventType ?? e?.typeName ?? e?.name ?? "");
+      const sub = String(e?.subType ?? e?.type?.subTypeName ?? "");
+      if (!goalRe.test(tn) || badRe.test(sub) || badRe.test(tn)) continue;
+      const pid = e?.playerId ?? e?.athleteId ?? e?.player?.id ?? e?.scorerId ?? null;
+      const nome = String(e?.playerName ?? e?.player?.name ?? e?.scorerName ?? "");
+      out.push({ tipo: "gol", athlete_id: pid, nome, jogador_id: await resolve(pid, nome) });
+      const apid = e?.assistPlayerId ?? e?.assistId ?? e?.assist?.id ?? null;
+      const anome = String(e?.assistPlayerName ?? e?.assist?.name ?? "");
+      if (apid != null || anome) out.push({ tipo: "assist", athlete_id: apid, nome: anome, jogador_id: await resolve(apid, anome) });
+    }
+    await pool.query("UPDATE jogos SET gols_evt=$1 WHERE id=$2", [JSON.stringify(out), jogoId]);
+  } catch {}
+}
+
 async function processarResultadoJogo(j: { id: number; selecao_casa: string; selecao_visitante: string; gid: string; inicio: any }): Promise<{ jogo: number; estado: string; placar?: string; tokens?: number }> {
   const gj = await s365(`/game?appTypeId=5&langId=1&userCountryId=21&timezoneName=America/Sao_Paulo&gameId=${j.gid}`);
   const g = gj?.game; if (!g) return { jogo: j.id, estado: "sem game" };
@@ -249,6 +275,7 @@ async function processarResultadoJogo(j: { id: number; selecao_casa: string; sel
   else if (casaLado(al(j.selecao_visitante), homeNome)) { rc = ascore; rv = hs; }
   else return { jogo: j.id, estado: "orientacao nao casou" };
   await pool.query("UPDATE jogos SET resultado_casa=$2, resultado_visitante=$3, resultado_em=now(), status='final' WHERE id=$1 AND resultado_casa IS NULL", [j.id, rc, rv]);
+  await coletarGolsDoJogo(g, j.id).catch(() => {});
   const ap = await apurarJogo(j.id);
   return { jogo: j.id, estado: "final", placar: rc + "-" + rv, tokens: ap.tokens };
 }

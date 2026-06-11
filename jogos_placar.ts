@@ -315,8 +315,9 @@ export async function rotasJogosPlacar(app: FastifyInstance) {
     try {
       const rows = (await pool.query(
         `SELECT id, fase, rodada, selecao_casa, selecao_visitante, inicio, status,
-                placar_casa, placar_visitante, resultado_casa, resultado_visitante, apurado, resultado_em
+                placar_casa, placar_visitante, resultado_casa, resultado_visitante, apurado, resultado_em, dados365->>'rodada' AS round365
            FROM jogos ORDER BY inicio NULLS LAST, id`)).rows as any[];
+      const mapRound = (rn: string): string | null => { const s = String(rn || "").toLowerCase(); if (!s) return null; if (/semi/.test(s)) return "semi"; if (/3rd|third|terceiro|place/.test(s)) return "ter"; if (/final/.test(s)) return "final"; if (/quarter|quartas/.test(s)) return "quartas"; if (/round of 16|last 16|oitavas/.test(s)) return "oitavas"; if (/round of 32|last 32|playoff|32/.test(s)) return "r32"; return null; };
       const mm = rows.filter((r) => r.fase !== "grupos").slice().sort((a, b) => (new Date(a.inicio).getTime() || 0) - (new Date(b.inicio).getTime() || 0));
       const buckets: Array<[string, number]> = [["r32", 16], ["oitavas", 8], ["quartas", 4], ["semi", 2], ["ter", 1], ["final", 1]];
       const rmm = new Map<number, string>();
@@ -327,7 +328,7 @@ export async function rotasJogosPlacar(app: FastifyInstance) {
       const jogos = rows.map((j) => {
         const c = nome(j.selecao_casa), v = nome(j.selecao_visitante);
         return {
-          id: j.id, fase: j.fase, rodada: j.rodada, rodada_mm: j.fase === "grupos" ? null : (rmm.get(j.id) || null),
+          id: j.id, fase: j.fase, rodada: j.rodada, rodada_mm: j.fase === "grupos" ? null : (mapRound(j.round365) || rmm.get(j.id) || null),
           inicio: j.inicio, status: j.status,
           casa_pt: c.pt, casa_iso: c.iso, visit_pt: v.pt, visit_iso: v.iso,
           palpite_c: j.placar_casa, palpite_v: j.placar_visitante,
@@ -342,13 +343,17 @@ export async function rotasJogosPlacar(app: FastifyInstance) {
     if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
     try {
       const rows = (await pool.query(
-        `SELECT j.nome, j.selecao, s.gols, s.assistencias, s.jogos, s.nota_fantasy
-           FROM jogadores_stats s JOIN jogadores j ON j.id=s.jogador_id
-          WHERE s.gols>0 OR s.assistencias>0
-          ORDER BY s.gols DESC, s.assistencias DESC, s.nota_fantasy DESC NULLS LAST LIMIT 50`)).rows as any[];
+        `SELECT jg.nome, jg.selecao,
+                count(*) FILTER (WHERE e->>'tipo'='gol') AS gols,
+                count(*) FILTER (WHERE e->>'tipo'='assist') AS ass
+           FROM jogos j
+           CROSS JOIN LATERAL jsonb_array_elements(COALESCE(j.gols_evt,'[]'::jsonb)) e
+           JOIN jogadores jg ON jg.id = NULLIF(e->>'jogador_id','')::int
+          GROUP BY jg.nome, jg.selecao
+          ORDER BY gols DESC, ass DESC LIMIT 50`)).rows as any[];
       const artilheiros = rows.map((r) => {
         const t = timePT(r.selecao);
-        return { nome: r.nome, sel_pt: t.pt, iso: t.iso, gols: r.gols, ass: r.assistencias, jogos: r.jogos, nota: r.nota_fantasy };
+        return { nome: r.nome, sel_pt: t.pt, iso: t.iso, gols: Number(r.gols), ass: Number(r.ass), jogos: null, nota: null };
       });
       return { ok: true, artilheiros };
     } catch (e: any) { return reply.code(500).send({ erro: String(e?.message ?? e).slice(0, 160) }); }
