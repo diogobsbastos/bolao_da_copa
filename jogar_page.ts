@@ -41,7 +41,7 @@ ${CSS}
   <div class="sdiv"></div>
   <a data-s="ia" onclick="nav('ia')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/><path d="M9 3v2M15 3v2M9 19v2M15 19v2M3 9h2M3 15h2M19 9h2M19 15h2"/></svg></span><span class="lbl">Conectar IA</span><span class="free">Gr&aacute;tis</span></a>
   <a class="soon"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1.1"/><circle cx="15" cy="15" r="1.1"/><circle cx="12" cy="12" r="1.1"/></svg></span><span class="lbl">Bet</span><span class="tag">Em breve</span></a>
-  <a data-s="regras" onclick="nav('regras')" class="rnav"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4a2 2 0 0 1 2-2h11v18H7a2 2 0 0 0-2 2z"/><path d="M9 7h6M9 11h5"/></svg></span> Regras <span class="dot"></span></a>
+  <a data-s="regras" onclick="nav('regras')" class="rnav"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4a2 2 0 0 1 2-2h11v18H7a2 2 0 0 0-2 2z"/><path d="M9 7h6M9 11h5"/></svg></span> Regras <span class="dot dotr"></span></a>
  </nav>
  <div class="scrim" id="scrim" onclick="drawer()"></div>
  <main class="main">
@@ -84,7 +84,7 @@ ${CSS}
     </div>
     <div class="tmgrid">
      <div class="tmpit-wrap"><div class="card" style="padding:10px"><div class="pitch tmbig" id="tm-pitch"></div></div></div>
-     <div class="tmbench card"><h3>Escala&ccedil;&atilde;o &middot; stats</h3><div id="tm-xi"></div><h3 style="margin-top:18px">Reservas</h3><div id="tm-banco"></div></div>
+     <div class="tmbench card"><div class="tmprev"><span class="tmprevlab">&#9888; Em breve</span><span class="tmprevopt">Forma&ccedil;&atilde;o 4-4-2</span><span class="tmprevopt">Titulares</span><span class="tmprevopt">Reservas</span><span class="tmprevopt">Por posi&ccedil;&atilde;o</span></div><h3>Escala&ccedil;&atilde;o &middot; stats</h3><div id="tm-xi"></div><div id="tm-banco" style="display:none"></div></div>
     </div>
    </div>
   </section>
