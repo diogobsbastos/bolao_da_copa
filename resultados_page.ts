@@ -21,8 +21,8 @@ export const PAGINA_RESULTADOS = `<!doctype html><html lang="pt-br"><head><meta 
 .tab.on{background:var(--card);color:var(--pri);box-shadow:0 -2px 0 var(--pri) inset}
 .tcont{padding-top:16px}.hide{display:none}
 .phases{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
-.ch{border:1px solid var(--bd);background:#fff;color:var(--mut);border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:700;cursor:pointer}
-.ch.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+.ch{border:1.5px solid var(--c,#9aa3b2);background:#fff;color:var(--c,#5a6275);border-radius:10px;padding:7px 13px;font-size:12.5px;font-weight:700;cursor:pointer}
+.ch.on{background:var(--c,#4361ee);color:#fff;border-color:var(--c,#4361ee)}
 .dayh{font-weight:800;font-size:14px;margin:18px 0 8px;text-transform:capitalize}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .jg{background:var(--card);border:1px solid var(--bd);border-radius:11px;padding:10px 12px}
@@ -79,13 +79,13 @@ ${NAV_CSS}
    <div id="t-jogos" class="tcont">
     <div class="muted" style="margin-bottom:10px">Resultado REAL (status <b>final</b>) coletado no horario do jogo. Esta lista por data/horario tambem e o <b>mapa do coletor</b>. Clique <b>Editar</b> para lancar/corrigir na mao.</div>
     <div class="phases">
-     <button class="ch on" data-f="grupos" onclick="setFase('grupos')">Fase de grupos</button>
-     <button class="ch" data-f="r32" onclick="setFase('r32')">Rodada de 32</button>
-     <button class="ch" data-f="oitavas" onclick="setFase('oitavas')">Oitavas</button>
-     <button class="ch" data-f="quartas" onclick="setFase('quartas')">Quartas</button>
-     <button class="ch" data-f="semi" onclick="setFase('semi')">Semi</button>
-     <button class="ch" data-f="ter" onclick="setFase('ter')">3&ordm; e 4&ordm;</button>
-     <button class="ch" data-f="final" onclick="setFase('final')">Final</button>
+     <button class="ch on" data-f="grupos" style="--c:#14a06a" onclick="setFase('grupos')">Fase de grupos</button>
+     <button class="ch" data-f="r32" style="--c:#2f6fed" onclick="setFase('r32')">Rodada de 32</button>
+     <button class="ch" data-f="oitavas" style="--c:#7a5cff" onclick="setFase('oitavas')">Oitavas</button>
+     <button class="ch" data-f="quartas" style="--c:#d4537e" onclick="setFase('quartas')">Quartas</button>
+     <button class="ch" data-f="semi" style="--c:#1d9e75" onclick="setFase('semi')">Semi</button>
+     <button class="ch" data-f="ter" style="--c:#b87333" onclick="setFase('ter')">3&ordm; e 4&ordm;</button>
+     <button class="ch" data-f="final" style="--c:#caa63a" onclick="setFase('final')">Final</button>
     </div>
     <div id="lista"><div class="muted">carregando...</div></div>
    </div>
