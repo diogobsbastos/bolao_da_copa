@@ -114,6 +114,17 @@ export async function rotasLLM(app: FastifyInstance) {
     await pool.query("INSERT INTO config (chave, valor) VALUES ('llm_noticias_id',$1) ON CONFLICT (chave) DO UPDATE SET valor=$1, atualizado_em=now()", [id]);
     return { ok: true };
   });
+  app.get("/admin/llm/noticias-horarios", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    let horarios: string[] = ["04:00"]; try { const v = (await pool.query("SELECT valor FROM config WHERE chave='noticias_horarios'")).rows[0]?.valor; if (v) { const a = JSON.parse(v); if (Array.isArray(a)) horarios = a; } } catch {}
+    return { ok: true, horarios };
+  });
+  app.post("/admin/llm/noticias-horarios", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    const arr = (((req.body as any)?.horarios) || []).filter((h: any) => /^([01]\d|2[0-3]):[0-5]\d$/.test(String(h))).slice(0, 12);
+    await pool.query("INSERT INTO config (chave, valor) VALUES ('noticias_horarios',$1) ON CONFLICT (chave) DO UPDATE SET valor=$1, atualizado_em=now()", [JSON.stringify(arr)]);
+    return { ok: true, horarios: arr };
+  });
 
   // busca a chave salva de um provedor (pra reusar ao buscar modelos/testar sem redigitar)
   async function keyDe(id: any, fornecida: string): Promise<string> {

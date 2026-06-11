@@ -112,7 +112,10 @@ ${NAV_CSS}
     <div id="wrap-texto" class="card hide"><div class="cardhead"><h3 id="ti-texto">Adicionar provedor</h3><button class="sm gh" onclick="fecharForm('texto')">fechar</button></div><div id="form-texto"></div></div>
     <div class="card" style="margin-top:14px"><div class="cardhead"><div><h3>&#128240; Leitor de Not&iacute;cias &mdash; LLM dedicada</h3>
      <div class="sub">Escolha qual LLM (das cadastradas acima) resume as not&iacute;cias na madrugada. Um modelo leve 7B basta &mdash; pode ser free tier (Groq, Gemini) ou local.</div></div></div>
-     <div style="margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><select id="sel-noticias" onchange="salvarNoticiasLLM()" style="min-width:300px;padding:9px;border:1px solid var(--bd);border-radius:9px"><option value="">&mdash; nenhuma (usa o motor de texto em uso) &mdash;</option></select><span id="msg-noticias" class="muted"></span></div></div>
+     <div style="margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><select id="sel-noticias" onchange="salvarNoticiasLLM()" style="min-width:300px;padding:9px;border:1px solid var(--bd);border-radius:9px"><option value="">&mdash; nenhuma (usa o motor de texto em uso) &mdash;</option></select><span id="msg-noticias" class="muted"></span></div>
+     <div style="margin-top:12px;border-top:1px solid var(--bd);padding-top:10px"><label class="muted">Hor&aacute;rios da rotina de resumo (empilha os resumos dos jogos que v&ecirc;m):</label>
+      <div id="hor-noticias" style="display:flex;gap:6px;flex-wrap:wrap;margin:7px 0"></div>
+      <div style="display:flex;gap:6px;align-items:center"><input type="time" id="hor-novo" value="04:00" style="padding:7px;border:1px solid var(--bd);border-radius:8px"><button class="sm" onclick="addHorNoticias()">&#10133; Adicionar hor&aacute;rio</button></div></div></div>
    </section>
 
    <section id="pg-custos" class="hide">
@@ -195,7 +198,7 @@ function N(v){return v==null||v===""?0:Number(v);}
 function num(v,c){c=c==null?4:c;return N(v).toLocaleString("pt-BR",{minimumFractionDigits:c,maximumFractionDigits:c});}
 var DOLAR=5.2;
 function ehImg(m){return (m.papel==="imagem")||/image|imagen|nano[- ]?banana/i.test(m.modelo);}
-function aba(t){document.querySelectorAll("section").forEach(function(s){s.classList.add("hide");});document.getElementById("pg-"+t).classList.remove("hide");document.querySelectorAll(".tab").forEach(function(a){a.classList.toggle("on",a.getAttribute("data-t")===t);});if(t==="banco"){loadBanco();loadJ365();}if(t==="llms"){loadLLM("texto");loadNoticiasLLM();}if(t==="img")loadLLM("imagem");if(t==="custos")loadCustos();if(t==="pay")loadPay();}
+function aba(t){document.querySelectorAll("section").forEach(function(s){s.classList.add("hide");});document.getElementById("pg-"+t).classList.remove("hide");document.querySelectorAll(".tab").forEach(function(a){a.classList.toggle("on",a.getAttribute("data-t")===t);});if(t==="banco"){loadBanco();loadJ365();}if(t==="llms"){loadLLM("texto");loadNoticiasLLM();loadHorNoticias();}if(t==="img")loadLLM("imagem");if(t==="custos")loadCustos();if(t==="pay")loadPay();}
 function togManual(){var b=document.getElementById("man-body");var oculto=b.classList.toggle("hide");document.getElementById("man-tog").textContent=oculto?"abrir":"fechar";}
 async function init(){
  var r=await fetch(BASE+"/admin/config",{headers:H()});
@@ -363,6 +366,12 @@ async function atualizarDolar(){
 
 /* ---------- LLM pool ---------- */
 function provLabel(p){return p.provedor==="gemini"?"cloud":(p.base_url?"local":"cloud");}
+var HORN=[];
+async function loadHorNoticias(){var r=await fetch(BASE+"/admin/llm/noticias-horarios",{headers:H()});if(!r.ok)return;var d=await r.json();HORN=d.horarios||["04:00"];renderHorN();}
+function renderHorN(){var box=document.getElementById("hor-noticias");if(!box)return;box.innerHTML=HORN.length?HORN.map(function(h){return '<span style="display:inline-flex;align-items:center;gap:5px;background:#eef1f6;border-radius:999px;padding:4px 5px 4px 11px;font-weight:700;font-size:12.5px">'+h+'<button onclick="delHorNoticias(&#39;'+h+'&#39;)" style="border:0;background:#dde2ec;width:18px;height:18px;border-radius:50%;cursor:pointer;line-height:1">&times;</button></span>';}).join(""):'<span class="muted">nenhum hor&aacute;rio</span>';}
+function addHorNoticias(){var v=document.getElementById("hor-novo").value;if(v&&HORN.indexOf(v)<0){HORN.push(v);HORN.sort();saveHorNoticias();}}
+function delHorNoticias(h){HORN=HORN.filter(function(x){return x!==h;});saveHorNoticias();}
+async function saveHorNoticias(){renderHorN();var m=document.getElementById("msg-noticias");if(m)m.textContent="hor\u00e1rios salvos";await fetch(BASE+"/admin/llm/noticias-horarios",{method:"POST",headers:H(),body:JSON.stringify({horarios:HORN})});}
 async function loadNoticiasLLM(){var s=document.getElementById("sel-noticias");if(!s)return;var r=await fetch(BASE+"/admin/llm/noticias",{headers:H()});if(!r.ok)return;var d=await r.json();var opts='+"'"+'<option value="">&mdash; nenhuma (usa o motor de texto em uso) &mdash;</option>'+"'"+';(d.lista||[]).forEach(function(p){opts+='+"'"+'<option value="'+"'"+'+p.id+'+"'"+'">'+"'"+'+p.provedor+'+"'"+' / '+"'"+'+p.modelo+'+"'"+' ('+"'"+'+p.papel+'+"'"+')</option>'+"'"+';});s.innerHTML=opts;s.value=d.selecionado||"";}
 async function salvarNoticiasLLM(){var s=document.getElementById("sel-noticias");var m=document.getElementById("msg-noticias");if(m)m.textContent="salvando...";var r=await fetch(BASE+"/admin/llm/noticias",{method:"POST",headers:H(),body:JSON.stringify({id:s.value})});if(m)m.textContent=r.ok?"salvo \u2713":"erro";}
 async function loadLLM(papel){

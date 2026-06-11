@@ -78,7 +78,9 @@ export async function gerarTarefasDosJogos(): Promise<any> {
   const hoje = new Date(); const ymd = hoje.toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
   const at = (h: number, m = 0) => { const d = new Date(hoje); d.setHours(h, m, 0, 0); return d; };
   for (const h of [0, 4, 8, 12, 16, 20]) await upsertTarefa("diario:odds:" + ymd + ":" + h, "Diario", "atualizar_odds", at(h), {}, ymd);
-  await upsertTarefa("diario:noticias:" + ymd, "Diario", "gerar_noticias", at(3), {}, ymd);
+  let horN: string[] = ["04:00"];
+  try { const v = (await pool.query("SELECT valor FROM config WHERE chave='noticias_horarios'")).rows[0]?.valor; if (v) { const a = JSON.parse(v); if (Array.isArray(a) && a.length) horN = a; } } catch {}
+  for (const hm of horN) { const pr = String(hm).split(":"); const hh = Number(pr[0]), mm = Number(pr[1] || 0); if (!isNaN(hh)) await upsertTarefa("diario:noticias:" + ymd + ":" + String(hm).replace(":", ""), "Diario", "gerar_noticias", at(hh, mm), {}, ymd); }
   await upsertTarefa("diario:tokens:" + ymd, "Diario", "injetar_tokens", at(0, 1), {}, ymd);
   await upsertTarefa("diario:agenda:" + ymd, "Diario", "confirmar_agenda", at(5), {}, ymd);
   return { ok: true, jogos: jogos.length };
