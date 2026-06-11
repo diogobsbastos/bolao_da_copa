@@ -94,7 +94,7 @@ th,td{padding:8px 8px;border-bottom:1px solid var(--bd);text-align:left}th{color
 .rkcol small{font-size:9px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.3px}
 .rkcol.tot span{color:var(--rkc,#1faa59);font-size:18px}
 @media(max-width:560px){.rkcols{gap:9px}.rkcol{min-width:0}}
-.gcols{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;align-items:start}\n.gcols td,.gcols b,.rkname b,.jgrid .nm{color:var(--tx)}
+.gcols{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;align-items:start}\n.nm,.gcols td,.gcols b,.rkname b{color:var(--tx)}
 @media(max-width:760px){.gcols{grid-template-columns:1fr}#bolao-tabs,.actpanel{grid-template-columns:1fr}.tabR,.act-logic{border-left:0;padding-left:0}}
 .cbody{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;padding:9px 12px;justify-content:center}
 .crow{display:flex;align-items:center;gap:8px;min-width:0}
