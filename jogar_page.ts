@@ -340,6 +340,7 @@ function togAutobar(open){var bar=document.getElementById("autobar"),fab=documen
  d.jogos.forEach(function(j){var dd=fmtDia(j.inicio);if(dd!==dia){if(dia)html+="</div>";dia=dd;html+='<div class="diah">Fase de grupos &middot; '+esc(dd)+'</div><div class="jgrid">';}html+=cardBolao(j,cor);});
  if(dia)html+="</div>";
  box.innerHTML=html;
+ var _pend=0;d.jogos.forEach(function(j){if(!j.meu&&!j.travado)_pend++;});if(_pend===0){var _ab2=document.getElementById("autobar"),_af2=document.getElementById("autofab");if(_ab2)_ab2.style.display="none";if(_af2)_af2.style.display="flex";}
 }
 function stp(id,casa,dd){var e=document.getElementById((casa?"pc-":"pv-")+id);if(!e||e.disabled)return;var v=(parseInt(e.value)||0)+dd;if(v<0)v=0;if(v>99)v=99;e.value=v;salvar(id);}
 async function salvar(id){
