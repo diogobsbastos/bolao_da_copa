@@ -136,7 +136,7 @@ async function gerarImagemNvidia(prov: any, prompt: string, refB64: string): Pro
   const headers: any = { authorization: "Bearer " + (prov.api_key || ""), accept: "application/json", "content-type": "application/json" };
   if (refB64) {
     const assetId = await nvAsset(prov.api_key, refB64);
-    body.image = "data:image/png;asset_id," + assetId;
+    body.image = "data:image/png;" + assetId;
     headers["NVCF-INPUT-ASSET-REFERENCES"] = assetId;
   }
   const r = await fetch(url, { method: "POST", headers, body: JSON.stringify(body) });
