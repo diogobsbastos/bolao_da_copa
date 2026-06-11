@@ -104,15 +104,15 @@ export async function rotasLLM(app: FastifyInstance) {
 
   app.get("/admin/llm/noticias", async (req, reply) => {
     if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
-    let sel = ""; try { sel = (await pool.query("SELECT valor FROM config WHERE chave='llm_noticias_id'")).rows[0]?.valor || ""; } catch {}
+    let ids: any[] = []; try { const v = (await pool.query("SELECT valor FROM config WHERE chave='llm_noticias_ids'")).rows[0]?.valor; if (v) { const a = JSON.parse(v); if (Array.isArray(a)) ids = a; } } catch {}
     const { rows } = await pool.query("SELECT id, provedor, modelo, papel FROM llm_provedores ORDER BY papel, id");
-    return { ok: true, selecionado: sel, lista: rows };
+    return { ok: true, ids, lista: rows };
   });
   app.post("/admin/llm/noticias", async (req, reply) => {
     if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
-    const id = String((req.body as any)?.id ?? "");
-    await pool.query("INSERT INTO config (chave, valor) VALUES ('llm_noticias_id',$1) ON CONFLICT (chave) DO UPDATE SET valor=$1, atualizado_em=now()", [id]);
-    return { ok: true };
+    const arr = (Array.isArray((req.body as any)?.ids) ? (req.body as any).ids : []).slice(0, 3).map((x: any) => String(x || ""));
+    await pool.query("INSERT INTO config (chave, valor) VALUES ('llm_noticias_ids',$1) ON CONFLICT (chave) DO UPDATE SET valor=$1, atualizado_em=now()", [JSON.stringify(arr)]);
+    return { ok: true, ids: arr };
   });
   app.get("/admin/llm/noticias-horarios", async (req, reply) => {
     if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });

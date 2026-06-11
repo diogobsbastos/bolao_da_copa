@@ -89,9 +89,10 @@ export async function gerarTarefasDosJogos(): Promise<any> {
 async function resumirNoticiasDoDia(): Promise<any> {
   const jogos = (await pool.query("SELECT DISTINCT selecao_casa, selecao_visitante FROM jogos WHERE inicio > now() AND inicio < now() + interval '36 hours' AND selecao_casa<>'A definir' AND selecao_visitante<>'A definir'")).rows as any[];
   const times = new Set<string>(); for (const j of jogos) { times.add(j.selecao_casa); times.add(j.selecao_visitante); }
-  let provN: any = null;
-  try { const sid = (await pool.query("SELECT valor FROM config WHERE chave='llm_noticias_id'")).rows[0]?.valor; if (sid) provN = (await pool.query("SELECT provedor, modelo, api_key, base_url FROM llm_provedores WHERE id=$1", [Number(sid)])).rows[0] || null; } catch {}
-  const inv = provN ? ((p: string) => invocarTexto(provN, p).then((r: any) => String(r.texto || ""))) : ((p: string) => chamarLLM(p, "texto", { origem: "cron", processo: "resumo_noticias" }));
+  const provN: any[] = [];
+  try { const v = (await pool.query("SELECT valor FROM config WHERE chave='llm_noticias_ids'")).rows[0]?.valor; const ids = v ? JSON.parse(v) : []; if (Array.isArray(ids)) for (const id of ids) { if (id) { const pr = (await pool.query("SELECT provedor, modelo, api_key, base_url FROM llm_provedores WHERE id=$1", [Number(id)])).rows[0]; if (pr) provN.push(pr); } } } catch {}
+  const espera = (ms: number) => new Promise((res) => setTimeout(res, ms));
+  const inv = provN.length ? (async (p: string) => { const ordem = [...provN, ...provN]; for (let i = 0; i < ordem.length; i++) { try { const r: any = await invocarTexto(ordem[i], p); const t = String(r.texto || ""); if (t) return t; } catch {} await espera(1500); } return ""; }) : ((p: string) => chamarLLM(p, "texto", { origem: "cron", processo: "resumo_noticias" }));
   let n = 0;
   for (const en of Array.from(times)) { try { const news = await noticiasTime(timePT(en).pt, en); const r = await resumirNoticias(news, inv, null); n += (r || []).filter((x: any) => x.resumo_ia).length; } catch {} }
   return { ok: true, times: times.size, noticias_resumidas: n };
