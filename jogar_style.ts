@@ -12,7 +12,7 @@ a{color:inherit;text-decoration:none}
 .w small{color:var(--mut);font-weight:600}
 .av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--pri),var(--pri2));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;cursor:pointer;flex:none}
 .layout{display:flex;min-height:calc(100vh - 52px)}
-.side{width:210px;flex:none;align-self:flex-start;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;background:var(--panel);backdrop-filter:blur(8px);border-right:1px solid var(--bd);padding:10px 7px;display:flex;flex-direction:column;gap:2px}
+.side{width:210px;flex:none;align-self:flex-start;position:sticky;top:52px;min-height:calc(100vh - 52px);background:var(--panel);backdrop-filter:blur(8px);border-right:1px solid var(--bd);padding:10px 7px;display:flex;flex-direction:column;gap:2px}
 .side a{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:9px;font-weight:600;font-size:13.5px;color:var(--mut);cursor:pointer;white-space:nowrap}.side a .tag,.side a .free{margin-left:auto}
 .side a .ic{width:20px;text-align:center}
 .side a:hover{background:var(--card)}
@@ -369,5 +369,5 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}
 .reco{position:absolute;top:0;right:0;background:linear-gradient(135deg,var(--gold),#e0a008);color:#1a1200;font-size:8px;font-weight:800;padding:3px 8px;border-bottom-left-radius:9px;letter-spacing:.3px}
 .iarow.rgt{justify-content:flex-end}
 .side a .lbl{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;text-align:left}body.mcol .side a .lbl{display:none}
-@media(min-width:761px) and (max-width:1024px){body{zoom:.82}}
-@media(min-width:1025px) and (max-width:1280px){body{zoom:.9}}`;
+@media(min-width:761px) and (max-width:1024px){body{zoom:.82}.layout{min-height:calc(100vh / 0.82 - 52px)}.side{min-height:calc(100vh / 0.82 - 52px)}}
+@media(min-width:1025px) and (max-width:1280px){body{zoom:.9}.layout{min-height:calc(100vh / 0.9 - 52px)}.side{min-height:calc(100vh / 0.9 - 52px)}}`;
