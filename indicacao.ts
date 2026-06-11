@@ -73,11 +73,13 @@ export async function rotasIndicacao(app: FastifyInstance) {
     const me = (await pool.query("SELECT codigo_referral, full_code, full_usado, pagou, acesso_full FROM usuarios WHERE id=$1", [u.id])).rows[0] as any;
     const base = await baseUrl();
     const ind = (await pool.query("SELECT count(*) tot, count(*) FILTER (WHERE status='pago') pagos FROM indicacoes WHERE referrer_id=$1 AND tipo='normal'", [u.id])).rows[0] as any;
+    let fullUsadoPor = ""; let fullUsadoEm: any = null;
+    if (me?.full_usado) { const w = (await pool.query("SELECT u2.nome, i.criado_em FROM indicacoes i JOIN usuarios u2 ON u2.id=i.indicado_id WHERE i.referrer_id=$1 AND i.tipo='full' ORDER BY i.id DESC LIMIT 1", [u.id])).rows[0] as any; fullUsadoPor = w?.nome || "alguém"; fullUsadoEm = w?.criado_em || null; }
     return {
       ok: true, pagou: !!me?.pagou, acessoFull: !!me?.acesso_full,
       refLink: base + "/?ref=" + (me?.codigo_referral || ""),
       fullLink: (me?.pagou && me?.full_code && !me?.full_usado) ? (base + "/?full=" + me.full_code) : null,
-      fullUsado: !!me?.full_usado,
+      fullUsado: !!me?.full_usado, fullUsadoPor, fullUsadoEm,
       indicados: Number(ind?.tot || 0), convertidos: Number(ind?.pagos || 0), tokensGanhos: Number(ind?.pagos || 0) * 50,
     };
   });

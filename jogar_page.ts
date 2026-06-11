@@ -559,11 +559,12 @@ async function loadConvidar(){
    +'<a class="cbtn mail" href="mailto:?subject='+encodeURIComponent("Convite full — Bolão Copa 26")+'&body='+encodeURIComponent(msg)+'">&#9993;&#65039; Email</a>'
    +'<button class="cbtn cp" onclick="convCopiar()">&#128279; Copiar</button></div></div>';
  } else if(d.fullUsado){
-  html='<div class="card"><h3>&#127873; Convite full</h3><div class="muted">Voc&ecirc; j&aacute; usou seu convite full &mdash; cada pagante tem 1.</div></div>';
+  html='<div class="card"><h3>&#127873; Convite full</h3><div class="muted">Seu convite full foi usado por <b>'+esc(d.fullUsadoPor||"algu&eacute;m")+'</b> &#127881; &mdash; cada pagante tem 1, ent&atilde;o ele agora est&aacute; <b>desativado</b>.</div></div>';
  } else {
   html='<div class="card"><h3>&#127873; Convite full</h3><div class="muted">O convite full &eacute; pra quem paga os R$10. Pague pra ganhar o seu e presentear algu&eacute;m.</div><div style="margin-top:12px"><button class="btn" onclick="nav(&#39;deposito&#39;)">&#128179; Pagar e ganhar meu convite</button></div></div>';
  }
  if(d.convertidos!=null&&(d.indicados||d.convertidos)){html+='<div class="muted" style="margin-top:12px;font-size:12px;text-align:center">Pessoas que entraram por voc&ecirc;: <b>'+d.indicados+'</b> &middot; que viraram full: <b>'+d.convertidos+'</b></div>';}
+ html+='<div class="card" style="margin-top:12px;opacity:.78"><h3>&#128101; Indique amigos <span style="font-size:10.5px;font-weight:800;color:#9094c0;background:rgba(99,102,241,.12);padding:2px 7px;border-radius:6px;vertical-align:middle">EM BREVE</span></h3><div class="muted">O programa de indica&ccedil;&atilde;o por link est&aacute; <b>temporariamente inativo</b>. Quando ativarmos, voc&ecirc; ser&aacute; avisado e poder&aacute; convidar amigos e ganhar recompensas. &#128640;</div></div>';
  b.innerHTML=html;
 }
 function convCopiar(){var i=document.getElementById("conv-link");if(!i)return;try{if(navigator.clipboard)navigator.clipboard.writeText(i.value);else{i.select();document.execCommand("copy");}}catch(e){i.select();}toast("Link copiado ✅");}
