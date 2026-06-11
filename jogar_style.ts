@@ -19,7 +19,7 @@ a{color:inherit;text-decoration:none}
 .side a.on{background:var(--pri);color:#fff}
 .side a.soon{opacity:.5;cursor:not-allowed;color:var(--mut)}
 .side a .tag{margin-left:auto;display:inline-flex;align-items:center;font-size:8px;background:var(--bd);color:var(--mut);padding:2px 6px;border-radius:6px;line-height:1}
-.main{flex:1;min-width:0;padding:16px;max-width:1180px}
+.main{flex:1;min-width:0;padding:16px;max-width:840px}
 .sec{display:none}.sec.on{display:block;animation:fade .25s ease}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 h1{font-size:18px;margin:0 0 12px}
