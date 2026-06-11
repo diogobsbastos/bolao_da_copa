@@ -23,7 +23,7 @@ export const PAGINA_COMANDO = `<!doctype html><html lang="pt-br"><head><meta cha
 .fb.on{background:var(--pri);color:#fff;border-color:var(--pri)}
 .tl{display:flex;flex-direction:column;gap:7px}
 .tk{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;border-left:4px solid var(--bd)}
-.tk.pendente{border-left-color:#b6bdca}.tk.rodando{border-left-color:var(--pri)}.tk.concluido{border-left-color:var(--ok)}.tk.erro{border-left-color:var(--no)}
+.tk.pendente{border-left-color:#b6bdca}.tk.rodando{border-left-color:var(--pri)}.tk.concluido{border-left-color:var(--ok)}.tk.erro{border-left-color:var(--no)}.tk.ignorado{border-left-color:var(--am)}
 .tk .hr{font-weight:800;font-size:14px;min-width:54px}
 .tk .ico{font-size:18px;width:24px;text-align:center}
 .tk .body{flex:1;min-width:0}
@@ -31,7 +31,8 @@ export const PAGINA_COMANDO = `<!doctype html><html lang="pt-br"><head><meta cha
 .tk .meta{font-size:11.5px;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cat{display:inline-block;font-size:10px;font-weight:800;padding:2px 7px;border-radius:6px;background:#eef1f6;color:#5a6275;margin-right:6px}
 .st{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;white-space:nowrap}
-.st.pendente{background:#eef1f6;color:#5a6275}.st.rodando{background:#e6ecff;color:#2a44b8}.st.concluido{background:#e6f7ee;color:#0f7a45}.st.erro{background:#fdeaec;color:#b4232f}
+.st.pendente{background:#eef1f6;color:#5a6275}.st.rodando{background:#e6ecff;color:#2a44b8}.st.concluido{background:#e6f7ee;color:#0f7a45}.st.erro{background:#fdeaec;color:#b4232f}.st.ignorado{background:#fdf3e0;color:#9a6a00}
+.fonte{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;background:#eef6ff;color:#2a44b8;margin-right:6px}
 .act{border:1px solid var(--bd);background:#fff;border-radius:7px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer;color:var(--pri)}
 .spin{display:inline-block;width:9px;height:9px;border:2px solid #2a44b8;border-top-color:transparent;border-radius:50%;animation:sp 1s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
@@ -63,6 +64,7 @@ ${NAV_CSS}
 <script>
 ${NAV_JS}
 var CAT="Todos";
+var STLAB={pendente:"pendente",rodando:"rodando",concluido:"concluido",erro:"erro",ignorado:"a construir"};
 function H(){var h={"content-type":"application/json"};var s=localStorage.getItem("sessao");if(s){h["authorization"]="Bearer "+s;}return h;}
 function esc(v){return String(v==null?"":v).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function hhmm(s){var d=new Date(s);if(isNaN(d))return "--:--";return d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});}
@@ -87,11 +89,11 @@ async function load(){
  if(!ts.length){T.innerHTML='<div class="muted" style="padding:8px 2px">nenhuma tarefa nessa janela. Clique &laquo;Gerar tarefas dos jogos&raquo;.</div>';return;}
  T.innerHTML=ts.map(function(t){
   var st=t.status;
-  var stHtml=(st==="rodando")?'<span class="st rodando"><span class="spin"></span>rodando</span>':'<span class="st '+st+'">'+st+'</span>';
+  var stHtml=(st==="rodando")?'<span class="st rodando"><span class="spin"></span>rodando</span>':'<span class="st '+st+'">'+(STLAB[st]||st)+'</span>';
   var acts="";
   if(st==="erro")acts='<button class="act" onclick="retry('+t.id+')">tentar de novo</button>';
   else if(st==="pendente")acts='<button class="act" onclick="rodar('+t.id+')">rodar agora</button>';
-  var meta='<span class="cat">'+esc(t.categoria)+'</span>'+(t.tentativas?("tent. "+t.tentativas+" · "):"")+(t.log?esc(String(t.log).slice(0,90)):"agendada");
+  var meta='<span class="cat">'+esc(t.categoria)+'</span><span class="fonte">'+esc(t.fonte||"\u2014")+'</span>'+(t.tentativas?("tent. "+t.tentativas+" · "):"")+(t.log?esc(String(t.log).slice(0,80)):"agendada");
   return '<div class="tk '+st+'"><span class="hr">'+hhmm(t.horario_gatilho)+'</span>'
    +'<span class="ico">'+(ICO[t.acao]||"⚙")+'</span>'
    +'<div class="body"><div class="ac">'+esc(ROT[t.acao]||t.acao)+'</div><div class="meta">'+meta+'</div></div>'

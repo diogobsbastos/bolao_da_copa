@@ -12,6 +12,10 @@ async function admOk(req: FastifyRequest): Promise<boolean> {
 async function setCfg(k: string, v: string): Promise<void> { try { await pool.query("INSERT INTO config (chave,valor) VALUES ($1,$2) ON CONFLICT (chave) DO UPDATE SET valor=$2, atualizado_em=now()", [k, v]); } catch {} }
 
 // Mapa de acoes do robo. Fase 1: dados do jogo, auto-preencher, resultado(+gols+apuracao) e odds = REAIS.
+const FONTE: Record<string, string> = {
+  atualizar_dados_jogo: "365scores", coletar_resultado: "365scores", atualizar_odds: "365scores", regua_figurinhas: "365scores",
+  auto_preencher: "interno", injetar_tokens: "interno", liquidar_bets: "interno", arena_resolver: "interno", gerar_noticias: "IA (LLM)",
+};
 const ACOES: Record<string, (p: any) => Promise<any>> = {
   atualizar_dados_jogo: (p) => atualizarDadosJogo(Number(p?.jogo_id)),
   auto_preencher: async () => { await autoPreencherTick(); return { ok: true, msg: "auto-preencher rodado" }; },
@@ -34,9 +38,11 @@ export async function tickTarefas(): Promise<void> {
       await pool.query("UPDATE tarefas_agendadas SET status='rodando', tentativas=tentativas+1, atualizado_em=now() WHERE id=$1", [t.id]);
       try {
         const fn = ACOES[t.acao];
-        const res = fn ? await fn(t.parametros || {}) : { ok: false, erro: "acao desconhecida: " + t.acao };
+        const res: any = fn ? await fn(t.parametros || {}) : { ok: false, erro: "acao desconhecida: " + t.acao };
+        const placeholder = res && res.placeholder === true;
         const ok = res && res.ok !== false;
-        await pool.query("UPDATE tarefas_agendadas SET status=$2, log=$3, atualizado_em=now() WHERE id=$1", [t.id, ok ? "concluido" : "erro", JSON.stringify(res).slice(0, 600)]);
+        const novo = placeholder ? "ignorado" : (ok ? "concluido" : "erro");
+        await pool.query("UPDATE tarefas_agendadas SET status=$2, log=$3, atualizado_em=now() WHERE id=$1", [t.id, novo, JSON.stringify(res).slice(0, 600)]);
       } catch (e: any) {
         await pool.query("UPDATE tarefas_agendadas SET status='erro', log=$2, atualizado_em=now() WHERE id=$1", [t.id, ("EXC: " + String(e?.message ?? e)).slice(0, 600)]);
       }
@@ -89,7 +95,7 @@ export async function rotasComando(app: FastifyInstance) {
     if (dia) { params.push(dia); where += " AND horario_gatilho::date = $" + params.length + "::date"; }
     else { where += " AND horario_gatilho >= now() - interval '12 hours' AND horario_gatilho <= now() + interval '36 hours'"; }
     if (cat) { params.push(cat); where += " AND categoria = $" + params.length; }
-    const tarefas = (await pool.query("SELECT id, categoria, acao, horario_gatilho, status, tentativas, log FROM tarefas_agendadas " + where + " ORDER BY horario_gatilho", params)).rows;
+    const tarefas = (await pool.query("SELECT id, categoria, acao, horario_gatilho, status, tentativas, log FROM tarefas_agendadas " + where + " ORDER BY horario_gatilho", params)).rows.map((t: any) => ({ ...t, fonte: FONTE[t.acao] || "\u2014" }));
     let lastTick = ""; try { lastTick = (await pool.query("SELECT valor FROM config WHERE chave='tarefas_last_tick'")).rows[0]?.valor || ""; } catch {}
     return { ok: true, tarefas, lastTick, agora: new Date().toISOString() };
   });
