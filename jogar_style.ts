@@ -413,7 +413,17 @@ body.mcol .side a .tag,body.mcol .side a .free,body.mcol .side a .dot,body.mcol 
 .ob-go{background:linear-gradient(180deg,#1faa59 0%,#0f8a4d 100%);color:#fff;width:100%;font-size:15px;padding:13px;font-weight:800;box-shadow:0 4px 14px rgba(31,170,89,.35);justify-content:center}
 .ob-go:hover{filter:brightness(1.05)}
 .ob-skip{width:100%;background:transparent;color:#5b6472;font-weight:700;font-size:13px;padding:9px}
-.ob-foot{font-size:11px;color:#9aa1b0;margin-top:4px}
+.ob-orsep{position:relative;text-align:center;font-size:11px;color:#9aa1b0;text-transform:uppercase;letter-spacing:.3em;margin:8px 0 6px}
+.ob-orsep::before,.ob-orsep::after{content:"";position:absolute;top:50%;width:38%;height:1px;background:#e2e6ee}
+.ob-orsep::before{left:0}
+.ob-orsep::after{right:0}
+.ob-invite{display:flex;gap:8px;align-items:center}
+.ob-invite input{flex:1;min-width:0;background:#f4f6f9;border:1px solid #e2e6ee;color:#1a2233;border-radius:9px;padding:11px;font-size:13px;font-weight:600;outline:none}
+.ob-invite input:focus{border-color:#1faa59;background:#fff}
+.ob-resgate{padding:11px 18px;font-size:13px;font-weight:800;background:#1a2233;color:#fff;border:0;border-radius:9px;cursor:pointer}
+.ob-resgate:hover{background:#0f1825}
+.ob-msg{min-height:18px;font-size:12px;font-weight:700;text-align:center;margin:6px 0 2px;color:#5b6472}
+.ob-foot{font-size:11px;color:#9aa1b0;margin-top:8px}
 body.light .ob-box{background:linear-gradient(180deg,#fff 0%,#fafcff 100%);color:#1a2233}
 .ob-confetti{position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle at 20% 20%,#f5c45122 0,#f5c45100 9%),radial-gradient(circle at 80% 25%,#1faa5922 0,#1faa5900 9%),radial-gradient(circle at 30% 80%,#009ee322 0,#009ee300 9%),radial-gradient(circle at 75% 75%,#e23f4422 0,#e23f4400 9%)}
 @media(max-width:540px){.ob-box{padding:24px 18px 18px;border-radius:18px}.ob-h1{font-size:19px}.ob-emoji{font-size:46px}}
