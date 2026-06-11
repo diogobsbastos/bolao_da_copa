@@ -228,7 +228,7 @@ function renderTabs(){var bar=document.getElementById('bolao-tabs');if(!bar)retu
  var rod=CURROD;bar.querySelectorAll('.tab').forEach(function(t){if(!t.hasAttribute('data-r'))return;var rr=+t.getAttribute('data-r');var cc=COR_ROD[rr]||'#14794a';var on=rr===rod;t.classList.toggle('on',on);t.style.background=on?cc:'transparent';t.style.borderColor=on?cc:'var(--bd)';t.style.color=on?'#fff':cc;});bar.querySelectorAll('.lpwide,.lpmini').forEach(function(e){e.style.background=COR_ROD[rod]||'#14a06a';e.style.color='#fff';});}
 
 function H(){return {"content-type":"application/json","authorization":"Bearer "+TOKEN};}
-function brl(v){var x=Number(v||0).toFixed(2).split(".");return "R$ "+x[0]+"<small class=\"brlcc\">,"+x[1]+"</small>";}
+function brl(v){var x=Number(v||0).toFixed(2).split('.');return 'R$ '+x[0]+'<small class="brlcc">,'+x[1]+'</small>';}
 function esc(v){return String(v==null?"":v).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
 function fl(iso){return iso?('<img class="flag" src="https://flagcdn.com/32x24/'+iso+'.png" onerror="this.style.visibility=\\'hidden\\'">'):'<span class="flag"></span>';}
 function toast(msg,err){var t=document.createElement("div");t.className="toast"+(err?" err":"");t.innerHTML=msg;document.body.appendChild(t);setTimeout(function(){t.remove();},3200);}
