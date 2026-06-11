@@ -183,8 +183,8 @@ async function loadArtil(){
  var r=await fetch(_b()+"/admin/resultados/artilharia",{headers:H()});
  if(!r.ok){B.innerHTML='<div class="muted">faca login no /admin.</div>';return;}
  var a=(await r.json()).artilheiros||[];
- if(!a.length){B.innerHTML='<div class="muted">Sem dados de artilharia ainda &mdash; popula conforme os gols forem registrados (depende do feed de gols por jogo). Tabela pronta pra consultar quanto cada jogador pontuou.</div>';return;}
- B.innerHTML='<table class="at"><thead><tr><th>#</th><th style="text-align:left">Jogador</th><th>Selecao</th><th>Gols</th><th>Assist.</th><th>Nota</th><th>Jogos</th></tr></thead><tbody>'+a.map(function(p,i){return '<tr><td class="pos">'+(i+1)+'</td><td class="nm">'+esc(p.nome)+'</td><td class="nm">'+fl(p.iso)+esc(p.sel_pt)+'</td><td><b>'+p.gols+'</b></td><td>'+(p.ass||0)+'</td><td>'+(p.nota!=null?p.nota:"-")+'</td><td>'+(p.jogos||0)+'</td></tr>';}).join("")+'</tbody></table>';
+ var body=a.length?a.map(function(p,i){return '<tr><td class="pos">'+(i+1)+'</td><td class="nm">'+esc(p.nome)+'</td><td class="nm">'+fl(p.iso)+esc(p.sel_pt)+'</td><td><b>'+p.gols+'</b></td><td>'+(p.ass||0)+'</td><td>'+(p.nota!=null?p.nota:"-")+'</td><td>'+(p.jogos||0)+'</td></tr>';}).join(""):'<tr><td colspan="7" class="muted" style="padding:16px;text-align:center">Sem gols registrados ainda &mdash; popula sozinho conforme os jogos terminam.</td></tr>';
+ B.innerHTML='<div class="muted" style="margin-bottom:8px">Quanto cada jogador pontuou (gols / assist. / nota). Popula automaticamente conforme os jogos terminam.</div><table class="at"><thead><tr><th>#</th><th style="text-align:left">Jogador</th><th>Selecao</th><th>Gols</th><th>Assist.</th><th>Nota</th><th>Jogos</th></tr></thead><tbody>'+body+'</tbody></table>';
 }
 async function salvar(id){
  var rc=parseInt(document.getElementById("rc-"+id).value,10),rv=parseInt(document.getElementById("rv-"+id).value,10);
