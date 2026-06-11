@@ -409,7 +409,7 @@ export async function rotasJogar(app: FastifyInstance) {
     let gcal = new Map<string, string>(); try { gcal = mapaGrupos(rows); } catch {}
     const calendario = rows.map((j) => { const c = timePT(j.selecao_casa), v = timePT(j.selecao_visitante); return { casa: { pt: c.pt, iso: c.iso }, visitante: { pt: v.pt, iso: v.iso }, inicio: j.inicio, rodada: j.rodada, grupo: gcal.get(j.selecao_casa) || "", rc: j.placar_casa, rv: j.placar_visitante }; });
     const proxRows = (await pool.query("SELECT selecao_casa, selecao_visitante, inicio, rodada FROM jogos WHERE inicio>=now() AND selecao_casa<>'A definir' AND selecao_visitante<>'A definir' ORDER BY inicio ASC LIMIT 8")).rows as any[];
-    const proximos = proxRows.map((j) => { const c = timePT(j.selecao_casa), v = timePT(j.selecao_visitante); return { casa: { pt: c.pt, iso: c.iso }, visitante: { pt: v.pt, iso: v.iso }, inicio: j.inicio, rodada: j.rodada }; });
+    const proximos = proxRows.map((j) => { const c = timePT(j.selecao_casa), v = timePT(j.selecao_visitante); return { casa: { pt: c.pt, iso: c.iso }, visitante: { pt: v.pt, iso: v.iso }, inicio: j.inicio, rodada: j.rodada, grupo: gcal.get(j.selecao_casa) || "" }; });
     return { ok: true, grupos, proximos, calendario };
   });
   app.post("/jogar/pacote/abrir", async (req, reply) => {
