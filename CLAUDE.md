@@ -47,10 +47,10 @@ Confronto só abre quando a fase anterior acaba → palpite **por fase**, trava 
 - `config.mata_mult = {"r32":1,"oitavas":2,"quartas":4,"semi":8,"terceiro":5,"final":10}`.
 
 ### Palpites de longo prazo (uma vez; trava no FIM da Rodada 2 = 23/jun)
-- Campeão **200** · Vice **150** · 3º **100** · 4º **75** · Artilheiro **100 / 60 / 40** (top 3).
+- Campeão **200** · Vice **150** · 3º **100** · 4º **75** · Artilheiro **100** (só o campeão de gols; top-3 descontinuado em 11/jun).
 - Não preencheu até a trava → **robô preenche** pela lógica (ranking FIFA/odds/stats).
 - Liquidação no fim do torneio (**Cron 04**).
-- `config.longo_prazo = {"campeao":200,"vice":150,"terceiro":100,"quarto":75,"artilheiro":[100,60,40]}`.
+- `config.longo_prazo = {"campeao":200,"vice":150,"terceiro":100,"quarto":75,"artilheiro":100}`.
 
 ### Arena (PvP por soma das notas do XI)
 - Aposta fixa **50** cada → pote **100** → vencedor leva **90** (rake **10** = ralo anti-inflação).
@@ -79,7 +79,7 @@ Confronto só abre quando a fase anterior acaba → palpite **por fase**, trava 
 - [ ] **Marketplace** + saquinhos (Normal/Especial/Lendário) + abrir/fechar por fase. *(próximo — passo 3)*
 - [ ] **Arena**: stake/rake, arena garantida, pontos 25/15/8, teto de XI, matchmaking.
 - [~] **Mata-mata**: abas previstas no front (Oitavas→Final, travadas). FALTA palpite por fase + multiplicador (Cron por fase).
-- [~] **Longo prazo**: **tela/popup de palpite FEITA 10/jun** (botão "Cravar Campeões & Artilheiro", tabela `palpites_longo`, `/jogar/longo`, trava `config.longo_trava`=fim R2). FALTA **Cron 04** de liquidação (200/150/100/75 + 100/60/40).
+- [~] **Longo prazo**: **tela/popup de palpite FEITA 10/jun** (botão "Cravar Campeões & Artilheiro", tabela `palpites_longo`, `/jogar/longo`, trava `config.longo_trava`=fim R2). FALTA **Cron 04** de liquidação (200/150/100/75 + 100).
 - [ ] **Pote**: cálculo do Geral final + split 50/30/20.
 
 ---

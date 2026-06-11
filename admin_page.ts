@@ -177,7 +177,7 @@ ${NAV_CSS}
     <div class="card" style="margin-top:14px">
      <h3>&#127881; Palpites de longo prazo <code>longo_prazo</code></h3>
      <div style="margin-top:8px"><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">Campe&atilde;o <input type="number" id="lp-campeao" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">Vice <input type="number" id="lp-vice" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">3&ordm; <input type="number" id="lp-terceiro" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">4&ordm; <input type="number" id="lp-quarto" style="width:62px"></label></div>
-     <div style="margin-top:4px"><span class="muted" style="font-size:12px">Artilheiro (top 3): </span><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">1&ordm; <input type="number" id="lp-art0" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">2&ordm; <input type="number" id="lp-art1" style="width:62px"></label><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">3&ordm; <input type="number" id="lp-art2" style="width:62px"></label></div>
+     <div style="margin-top:4px"><span class="muted" style="font-size:12px">Artilheiro (campe&atilde;o de gols): </span><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0"><input type="number" id="lp-art0" style="width:62px"></label></div>
      <div class="save"><button class="sm" onclick="salvarRegra(&#39;longo_prazo&#39;)">Salvar pontos</button><span id="s-longo_prazo" class="muted"></span></div>
      <div style="margin-top:10px;border-top:1px solid var(--bd);padding-top:10px"><label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:0 14px 8px 0">Trava do palpite (ISO) <input type="text" id="lp-trava" style="width:230px"></label>
      <button class="sm ghost" onclick="salvarRegra(&#39;longo_trava&#39;)">Salvar trava</button><span id="s-longo_trava" class="muted"></span></div>
@@ -300,7 +300,7 @@ async function loadRegras(){
  function S(id,v){var e=document.getElementById(id);if(e!=null&&v!=null)e.value=v;}
  var p=d.pontos_regra||{};S("r-exato",p.exato);S("r-vsaldo",p.vencedor_saldo);S("r-venc",p.vencedor);S("r-gol",p.gol_time);
  var m=d.mata_mult||{};S("m-r32",m.r32);S("m-oitavas",m.oitavas);S("m-quartas",m.quartas);S("m-semi",m.semi);S("m-terceiro",m.terceiro);S("m-final",m.final);
- var l=d.longo_prazo||{};S("lp-campeao",l.campeao);S("lp-vice",l.vice);S("lp-terceiro",l.terceiro);S("lp-quarto",l.quarto);var a=l.artilheiro||[];S("lp-art0",a[0]);S("lp-art1",a[1]);S("lp-art2",a[2]);
+ var l=d.longo_prazo||{};S("lp-campeao",l.campeao);S("lp-vice",l.vice);S("lp-terceiro",l.terceiro);S("lp-quarto",l.quarto);var a=l.artilheiro;S("lp-art0",Array.isArray(a)?a[0]:a);
  S("lp-trava",d.longo_trava);
  var ar=d.arena||{};S("ar-stake",ar.stake);S("ar-rake",ar.rake);var ap=ar.pts||[];S("ar-pts1",ap[0]);S("ar-pts2",ap[1]);S("ar-pts3",ap[2]);S("ar-derrota",ar.pts_derrota);S("ar-max",ar.max_rodada);S("ar-teto",ar.teto_xi);
  var pk=d.pacotes||{};var pn=pk.normal||{},pe=pk.especial||{},pl=pk.lendario||{};S("pk-n-preco",pn.preco);S("pk-n-cartas",pn.cartas);S("pk-e-preco",pe.preco);S("pk-e-cartas",pe.cartas);S("pk-l-preco",pl.preco);S("pk-l-cartas",pl.cartas);var lt=document.getElementById("pk-l-top");if(lt)lt.checked=!!pl.garante_top;
@@ -311,7 +311,7 @@ async function salvarRegra(chave){
  var valor;
  if(chave==="pontos_regra")valor={exato:rNumv("r-exato"),vencedor_saldo:rNumv("r-vsaldo"),vencedor:rNumv("r-venc"),gol_time:rNumv("r-gol")};
  else if(chave==="mata_mult")valor={r32:rNumv("m-r32"),oitavas:rNumv("m-oitavas"),quartas:rNumv("m-quartas"),semi:rNumv("m-semi"),terceiro:rNumv("m-terceiro"),final:rNumv("m-final")};
- else if(chave==="longo_prazo")valor={campeao:rNumv("lp-campeao"),vice:rNumv("lp-vice"),terceiro:rNumv("lp-terceiro"),quarto:rNumv("lp-quarto"),artilheiro:[rNumv("lp-art0"),rNumv("lp-art1"),rNumv("lp-art2")]};
+ else if(chave==="longo_prazo")valor={campeao:rNumv("lp-campeao"),vice:rNumv("lp-vice"),terceiro:rNumv("lp-terceiro"),quarto:rNumv("lp-quarto"),artilheiro:rNumv("lp-art0")};
  else if(chave==="longo_trava")valor=(document.getElementById("lp-trava").value||"").trim();
  else if(chave==="arena"){var t=document.getElementById("ar-teto").value;valor={stake:rNumv("ar-stake"),rake:rNumv("ar-rake"),pts:[rNumv("ar-pts1"),rNumv("ar-pts2"),rNumv("ar-pts3")],pts_derrota:rNumv("ar-derrota"),max_rodada:rNumv("ar-max"),teto_xi:(t===""||t==null?null:parseInt(t,10))};}
  else if(chave==="pacotes")valor={normal:{preco:rNumv("pk-n-preco"),cartas:rNumv("pk-n-cartas")},especial:{preco:rNumv("pk-e-preco"),cartas:rNumv("pk-e-cartas")},lendario:{preco:rNumv("pk-l-preco"),cartas:rNumv("pk-l-cartas"),garante_top:!!document.getElementById("pk-l-top").checked}};
