@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 import { pool } from "./db.js";
 import { usuarioDaReq } from "./auth.js";
 import { PAGINA_COMANDO } from "./comando_page.js";
-import { atualizarDadosJogo, coletarResultadoJogo, syncOdds } from "./scores365.js";
+import { atualizarDadosJogo, coletarResultadoJogo, syncOdds, confirmarAgenda } from "./scores365.js";
 import { autoPreencherTick } from "./jogar.js";
 
 async function admOk(req: FastifyRequest): Promise<boolean> {
@@ -13,14 +13,15 @@ async function setCfg(k: string, v: string): Promise<void> { try { await pool.qu
 
 // Mapa de acoes do robo. Fase 1: dados do jogo, auto-preencher, resultado(+gols+apuracao) e odds = REAIS.
 const FONTE: Record<string, string> = {
-  atualizar_dados_jogo: "365scores", coletar_resultado: "365scores", atualizar_odds: "365scores", regua_figurinhas: "365scores",
-  auto_preencher: "interno", injetar_tokens: "interno", liquidar_bets: "interno", arena_resolver: "interno", gerar_noticias: "IA (LLM)",
+  atualizar_dados_jogo: "365scores", coletar_resultado: "365scores", atualizar_odds: "365scores", confirmar_agenda: "365scores", regua_figurinhas: "365scores",
+  auto_preencher: "interno", injetar_tokens: "interno", liquidar_bets: "interno", arena_resolver: "interno", gerar_noticias: "ESPN + IA",
 };
 const ACOES: Record<string, (p: any) => Promise<any>> = {
   atualizar_dados_jogo: (p) => atualizarDadosJogo(Number(p?.jogo_id)),
   auto_preencher: async () => { await autoPreencherTick(); return { ok: true, msg: "auto-preencher rodado" }; },
   coletar_resultado: (p) => coletarResultadoJogo(Number(p?.jogo_id)),
   atualizar_odds: () => syncOdds(),
+  confirmar_agenda: async () => { const r = await confirmarAgenda(); await gerarTarefasDosJogos(); return { ok: true, agenda: r }; },
   gerar_noticias: async () => ({ ok: true, placeholder: true, msg: "Noticias IA (Cron 01): modulo a construir" }),
   injetar_tokens: async () => ({ ok: true, placeholder: true, msg: "Drip de tokens diario: modulo a construir" }),
   liquidar_bets: async () => ({ ok: true, placeholder: true, msg: "Bet: fora do Beta 1.0" }),
@@ -66,7 +67,7 @@ export async function gerarTarefasDosJogos(): Promise<any> {
     const pre = new Date(ini.getTime() - 30 * 60000);
     const res = new Date(ini.getTime() + 120 * 60000);
     await upsertTarefa("jogo:" + j.id + ":dados", "Jogos", "atualizar_dados_jogo", pre, { jogo_id: j.id });
-    await upsertTarefa("jogo:" + j.id + ":auto", "Jogos", "auto_preencher", pre, { jogo_id: j.id, rodada: j.rodada });
+    await upsertTarefa("jogo:" + j.id + ":auto", "Jogos", "auto_preencher", new Date(ini.getTime() - 20 * 60000), { jogo_id: j.id, rodada: j.rodada });
     await upsertTarefa("jogo:" + j.id + ":res", "Pontuacao", "coletar_resultado", res, { jogo_id: j.id });
   }
   const hoje = new Date(); const ymd = hoje.toISOString().slice(0, 10);
@@ -74,6 +75,7 @@ export async function gerarTarefasDosJogos(): Promise<any> {
   for (const h of [0, 4, 8, 12, 16, 20]) await upsertTarefa("diario:odds:" + ymd + ":" + h, "Diario", "atualizar_odds", at(h), {});
   await upsertTarefa("diario:noticias:" + ymd, "Diario", "gerar_noticias", at(3), {});
   await upsertTarefa("diario:tokens:" + ymd, "Diario", "injetar_tokens", at(0, 1), {});
+  await upsertTarefa("diario:agenda:" + ymd, "Diario", "confirmar_agenda", at(5), {});
   return { ok: true, jogos: jogos.length };
 }
 
@@ -92,7 +94,7 @@ export async function rotasComando(app: FastifyInstance) {
     const dia = /^\d{4}-\d{2}-\d{2}$/.test(q.dia || "") ? q.dia : null;
     const cat = q.cat && q.cat !== "Todos" ? String(q.cat) : null;
     const params: any[] = []; let where = "WHERE 1=1";
-    if (dia) { params.push(dia); where += " AND horario_gatilho::date = $" + params.length + "::date"; }
+    if (dia) { params.push(dia); const di = params.length; where += " AND horario_gatilho >= ($" + di + " || ' 00:00-03')::timestamptz AND horario_gatilho < ($" + di + " || ' 00:00-03')::timestamptz + interval '1 day'"; }
     else { where += " AND horario_gatilho >= now() - interval '12 hours' AND horario_gatilho <= now() + interval '36 hours'"; }
     if (cat) { params.push(cat); where += " AND categoria = $" + params.length; }
     const tarefas = (await pool.query("SELECT id, categoria, acao, horario_gatilho, status, tentativas, log FROM tarefas_agendadas " + where + " ORDER BY horario_gatilho", params)).rows.map((t: any) => ({ ...t, fonte: FONTE[t.acao] || "\u2014" }));

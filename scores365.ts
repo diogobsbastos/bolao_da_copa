@@ -220,6 +220,15 @@ export async function atualizarDadosJogo(jogoId: number): Promise<any> {
   const cache = new Map<number, any>();
   try { base.casa.ultimas5 = await ultimas5(hcId, base.casa.recentIds, cache); } catch {}
   try { base.visitante.ultimas5 = await ultimas5(acId, base.visitante.recentIds, cache); } catch {}
+  try {
+    const od = odds1x2(g);
+    if (od) {
+      const ourCasa = (await pool.query("SELECT selecao_casa FROM jogos WHERE id=$1", [jogoId])).rows[0]?.selecao_casa as string;
+      const invert = ourCasa ? !casaLado(al(ourCasa), String(g.homeCompetitor?.name || "")) : false;
+      const odd = invert ? { ...od, casa: od.fora, fora: od.casa } : od;
+      await pool.query("UPDATE jogos SET odds = COALESCE(odds,'{}'::jsonb) || $1::jsonb WHERE id=$2", [JSON.stringify(odd), jogoId]);
+    }
+  } catch {}
   await pool.query("UPDATE jogos SET dados365=$1 WHERE id=$2", [JSON.stringify(base), jogoId]);
   try { const lu = await lineupsDoJogo(j.gid); if (lu) await pool.query("UPDATE jogos SET lineup_casa=$1, lineup_visitante=$2, lineup_em=now() WHERE id=$3", [JSON.stringify(lu.home?.lineup ?? null), JSON.stringify(lu.away?.lineup ?? null), jogoId]); } catch {}
   return { ok: true, jogo: jogoId, gid: j.gid };
@@ -228,6 +237,22 @@ export async function coletarResultadoJogo(jogoId: number): Promise<any> {
   const j = (await pool.query("SELECT id, selecao_casa, selecao_visitante, odds->>'gid' AS gid, inicio FROM jogos WHERE id=$1", [jogoId])).rows[0] as any;
   if (!j?.gid) return { ok: false, erro: "sem gid" };
   return await processarResultadoJogo(j);
+}
+export async function confirmarAgenda(): Promise<any> {
+  const jogos = (await pool.query("SELECT id, inicio, odds->>'gid' AS gid FROM jogos WHERE odds->>'gid' IS NOT NULL AND inicio IS NOT NULL AND inicio > now() - interval '6 hours' AND inicio < now() + interval '3 days'")).rows as any[];
+  let ajustados = 0;
+  for (const j of jogos) {
+    try {
+      const gj = await s365(`/game?appTypeId=5&langId=1&userCountryId=21&timezoneName=America/Sao_Paulo&gameId=${j.gid}`);
+      const g = gj?.game; if (!g) continue;
+      const st = g.startTime || g.gameTime || g.statusTime || null; if (!st) continue;
+      const novo = new Date(st); if (isNaN(novo.getTime())) continue;
+      if (Math.abs(novo.getTime() - new Date(j.inicio).getTime()) > 60000) { await pool.query("UPDATE jogos SET inicio=$1 WHERE id=$2", [novo.toISOString(), j.id]); ajustados++; }
+    } catch {}
+    await sleep(120);
+  }
+  await setCfg("agenda_conferida_em", JSON.stringify({ em: new Date().toISOString(), conferidos: jogos.length, ajustados }));
+  return { ok: true, conferidos: jogos.length, ajustados };
 }
 export async function coletarSeFlag(): Promise<void> { try { if ((await cfg("coletar365")) !== "go") return; await setCfg("coletar365", ""); await coletarDados365(); } catch {} }
 

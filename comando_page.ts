@@ -50,6 +50,12 @@ ${NAV_CSS}
     <button class="btn ghost" onclick="gerar()">Gerar tarefas dos jogos</button>
     <button class="btn" onclick="load()">Atualizar</button>
    </div>
+   <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+    <button class="btn ghost" onclick="shiftDia(-1)">&#9664;</button>
+    <b id="diaLabel" style="font-size:15px;min-width:150px;text-align:center;text-transform:capitalize">hoje</b>
+    <button class="btn ghost" onclick="shiftDia(1)">&#9654;</button>
+    <button class="btn ghost" onclick="hojeDia()">Hoje</button>
+   </div>
    <div class="filtros" id="filtros">
     <button class="fb on" data-c="Todos" onclick="setCat('Todos')">Todos</button>
     <button class="fb" data-c="Jogos" onclick="setCat('Jogos')">Jogos</button>
@@ -65,11 +71,16 @@ ${NAV_CSS}
 ${NAV_JS}
 var CAT="Todos";
 var STLAB={pendente:"pendente",rodando:"rodando",concluido:"concluido",erro:"erro",ignorado:"a construir"};
+var diaDate=new Date();
+function ymdBRT(d){return d.toLocaleDateString("sv-SE",{timeZone:"America/Sao_Paulo"});}
+function labelBRT(d){return d.toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"2-digit",timeZone:"America/Sao_Paulo"});}
+function shiftDia(n){diaDate.setDate(diaDate.getDate()+n);load();}
+function hojeDia(){diaDate=new Date();load();}
 function H(){var h={"content-type":"application/json"};var s=localStorage.getItem("sessao");if(s){h["authorization"]="Bearer "+s;}return h;}
 function esc(v){return String(v==null?"":v).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function hhmm(s){var d=new Date(s);if(isNaN(d))return "--:--";return d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});}
-var ICO={atualizar_dados_jogo:"\u{1F504}",auto_preencher:"\u{1F916}",coletar_resultado:"\u{1F3C1}",atualizar_odds:"\u{1F4B9}",gerar_noticias:"\u{1F4F0}",injetar_tokens:"\u{1FA99}",liquidar_bets:"\u{1F3B0}",arena_resolver:"\u{2694}",regua_figurinhas:"\u{1F0CF}"};
-var ROT={atualizar_dados_jogo:"Atualizar dados do jogo",auto_preencher:"Auto-preencher palpites",coletar_resultado:"Coletar resultado + apurar",atualizar_odds:"Atualizar odds",gerar_noticias:"Gerar noticias (IA)",injetar_tokens:"Injetar tokens diarios",liquidar_bets:"Liquidar Bets",arena_resolver:"Resolver Arenas",regua_figurinhas:"Regua de notas"};
+var ICO={atualizar_dados_jogo:"\u{1F504}",auto_preencher:"\u{1F916}",coletar_resultado:"\u{1F3C1}",atualizar_odds:"\u{1F4B9}",gerar_noticias:"\u{1F4F0}",injetar_tokens:"\u{1FA99}",liquidar_bets:"\u{1F3B0}",arena_resolver:"\u{2694}",regua_figurinhas:"\u{1F0CF}",confirmar_agenda:"\u{1F4C5}"};
+var ROT={atualizar_dados_jogo:"Atualizar dados do jogo",auto_preencher:"Auto-preencher palpites",coletar_resultado:"Coletar resultado + apurar",atualizar_odds:"Atualizar odds",gerar_noticias:"Gerar noticias (IA)",injetar_tokens:"Injetar tokens diarios",liquidar_bets:"Liquidar Bets",arena_resolver:"Resolver Arenas",regua_figurinhas:"Regua de notas",confirmar_agenda:"Confirmar agenda (horarios reais)"};
 function setCat(c){CAT=c;[].forEach.call(document.querySelectorAll(".fb"),function(b){b.classList.toggle("on",b.getAttribute("data-c")===c);});load();}
 function saude(lastTick,agora){
  var d=document.getElementById("rdot"),s=document.getElementById("rstat"),sub=document.getElementById("rsub");
@@ -81,12 +92,13 @@ function saude(lastTick,agora){
 }
 async function load(){
  var c=document.getElementById("conn");
- var r=await fetch(_b()+"/admin/comando/tarefas?cat="+encodeURIComponent(CAT),{headers:H()});
+ var dia=ymdBRT(diaDate);var dl=document.getElementById("diaLabel");if(dl)dl.textContent=labelBRT(diaDate);
+ var r=await fetch(_b()+"/admin/comando/tarefas?dia="+dia+"&cat="+encodeURIComponent(CAT),{headers:H()});
  if(!r.ok){c.textContent="faca login no /admin";c.style.color="#e23744";return;}
  c.textContent="conectado";c.style.color="#1faa59";
  var d=await r.json();saude(d.lastTick,d.agora);
  var ts=d.tarefas||[];var T=document.getElementById("tl");
- if(!ts.length){T.innerHTML='<div class="muted" style="padding:8px 2px">nenhuma tarefa nessa janela. Clique &laquo;Gerar tarefas dos jogos&raquo;.</div>';return;}
+ if(!ts.length){T.innerHTML='<div class="muted" style="padding:8px 2px">nenhuma tarefa nesse dia.</div>';return;}
  T.innerHTML=ts.map(function(t){
   var st=t.status;
   var stHtml=(st==="rodando")?'<span class="st rodando"><span class="spin"></span>rodando</span>':'<span class="st '+st+'">'+(STLAB[st]||st)+'</span>';
