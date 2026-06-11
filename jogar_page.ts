@@ -358,13 +358,13 @@ async function salvar(id){
  if(d&&d.ok){toast("Palpite salvo");loadDados();}else{toast((d&&d.erro)||"erro",1);}
 }
 async function limparPalpite(id){var r=await fetch(BASE+"/jogar/palpite-limpar",{method:"POST",headers:H(),body:JSON.stringify({jogo_id:id})});var d=await r.json().catch(function(){return{};});if(d&&d.ok){toast("Palpite limpo");loadBolao(CURROD);loadDados();}else toast((d&&d.erro)||"erro",1);}
-function confirmPreencher(){modal('<div class="lphd"><span class="lphdic">&#127919;</span><b>Preencher pela lógica?</b></div><p class="lpsub" style="margin:0">Isto vai <b>substituir</b> seus palpites desta rodada pelo placar sugerido (odds/ranking). Jogos que <b>já começaram</b> não mudam (o palpite fecha no apito).</p>','<button class="btn ghost" onclick="fecha()">Cancelar</button> <button class="btn" onclick="fecha();preencherAuto()">Preencher</button>');}
-async function preencherAuto(){
+function confirmPreencher(){if(reqFull())return;modal('<div class="lphd"><span class="lphdic">&#127919;</span><b>Preencher pela lógica?</b></div><p class="lpsub" style="margin:0">Isto vai <b>substituir</b> seus palpites desta rodada pelo placar sugerido (odds/ranking). Jogos que <b>já começaram</b> não mudam (o palpite fecha no apito).</p>','<button class="btn ghost" onclick="fecha()">Cancelar</button> <button class="btn" onclick="fecha();preencherAuto()">Preencher</button>');}
+async function preencherAuto(){if(reqFull())return;
  var r=await fetch(BASE+"/jogar/palpite-auto",{method:"POST",headers:H(),body:JSON.stringify({rodada:CURROD})});
  var d=await r.json();
  if(d&&d.ok){toast("Preenchido pela l&oacute;gica: "+d.preenchidos+" jogos");loadBolao(CURROD);loadDados();}else{toast("erro",1);}
 }
-async function setAuto(on){var r=await fetch(BASE+"/jogar/auto",{method:"POST",headers:H(),body:JSON.stringify({on:on})});var d=await r.json().catch(function(){return{};});if(d&&d.ok){toast(on?"Auto-preencher ligado":"Auto-preencher desligado");}else{toast("erro",1);var a=document.getElementById("autochk");if(a)a.checked=!on;}}
+async function setAuto(on){if(reqFull()){var a=document.getElementById("autochk");if(a)a.checked=!on;return;}var r=await fetch(BASE+"/jogar/auto",{method:"POST",headers:H(),body:JSON.stringify({on:on})});var d=await r.json().catch(function(){return{};});if(d&&d.ok){toast(on?"Auto-preencher ligado":"Auto-preencher desligado");}else{toast("erro",1);var a=document.getElementById("autochk");if(a)a.checked=!on;}}
 function ajudaAuto(){modal('<h3>&#129302; Auto-preencher</h3><div class="muted" style="line-height:1.6">Quando <b>ligado</b>, at&eacute; <b>1 hora antes</b> de cada jogo que voc&ecirc; ainda n&atilde;o palpitou, o sistema preenche por voc&ecirc; <b>pela l&oacute;gica das odds mais atualizadas</b> &mdash; com varia&ccedil;&atilde;o inteligente (favorito costuma vencer, mas <b>zebra acontece</b>), ent&atilde;o seu placar n&atilde;o fica igual ao dos outros.<br><br><br><br><div style="background:var(--surface2);border-radius:10px;padding:10px 12px"><b>&#129302; Com sua IA conectada:</b> usamos <b>a sua IA</b> pra palpitar. Se a <b>cota gr&aacute;tis acabar</b> no meio da rodada, terminamos de preencher os jogos restantes com o <b>palpite padr&atilde;o da l&oacute;gica das odds</b> &mdash; voc&ecirc; nunca fica sem palpite.</div><br>Voc&ecirc; pode <b>editar at&eacute; o apito</b>. Palpites que voc&ecirc; j&aacute; fez <b>nunca</b> s&atilde;o sobrescritos.</div>');}
 function iaProvCh(){if(reqFull())return;var p=document.getElementById("ia-prov").value;var need=(p==="openai"||p==="ollama");document.getElementById("ia-base-wrap").style.display=need?"block":"none";var bi=document.getElementById("ia-base");if(p==="ollama"&&bi&&!bi.value)bi.placeholder="http://SEU-HOST:11434/v1";var gh=document.getElementById("btn-gemini-help");if(gh)gh.style.display=(p==="gemini")?"":"none";}
 var PNOME={gemini:"Google Gemini",anthropic:"Anthropic (Claude)",openai:"OpenAI",ollama:"Ollama"};
@@ -609,10 +609,10 @@ function lpNorm(x){return String(x||"").toLowerCase().normalize("NFD").replace(/
 function lpFlag(iso){return iso?('<img class="acimg" src="https://flagcdn.com/32x24/'+iso+'.png">'):SILFLAG;}
 function lpFig(fig){return fig?('<img class="acimg fig" src="'+BASE+'/fig/'+fig+'">'):SILJOG;}
 function lpSelDe(en){for(var i=0;i<LP_SEL.length;i++){if(LP_SEL[i].en===en)return LP_SEL[i];}return null;}
-function lpGo(t){if(t==='ca'){abrirLongo();return;}var r={r1:1,r2:2,r3:3}[t];if(r){nav('bolao');loadBolao(r);}}
+function lpGo(t){if(reqFull())return;if(t==='ca'){abrirLongo();return;}var r={r1:1,r2:2,r3:3}[t];if(r){nav('bolao');loadBolao(r);}}
 function lpStepActive(){var k="r"+CURROD;var els=document.querySelectorAll("#lp-steps .stepb");for(var i=0;i<els.length;i++){els[i].classList.toggle("active",els[i].getAttribute("data-k")===k);}}
 function lpClear(slot){if(slot==='art'){LP_PICK.art=null;var ai=document.getElementById('ac-art');if(ai){ai.value='';var f=ai.closest('.acf');if(f)f.classList.remove('has');}var ic=document.getElementById('ico-art');if(ic)ic.innerHTML=SILJOG;}else{LP_PICK[slot]='';var inp=document.getElementById('ac-'+slot);if(inp){inp.value='';var f2=inp.closest('.acf');if(f2)f2.classList.remove('has');}var ico=document.getElementById('ico-'+slot);if(ico)ico.innerHTML=SILFLAG;}}
-async function abrirLongo(){
+async function abrirLongo(){if(reqFull())return;
  var r=await fetch(BASE+"/jogar/longo",{headers:H()});var d=await r.json().catch(function(){return{};});
  if(!d||!d.ok){toast("erro ao abrir",1);return;}
  LP_JOG=d.jogadores||[];LP_SEL=d.selecoes||[];LP_LOCK=!!d.locked;
@@ -651,7 +651,7 @@ async function lpAuto(modo){
  if(d.artilheiro_id){LP_PICK.art=d.artilheiro_id;var ai=document.getElementById("ac-art");if(ai)ai.value=d.artilheiro_nome||"";var ic2=document.getElementById("ico-art");if(ic2)ic2.innerHTML=lpFig(d.artilheiro_fig||"");var _af=ai&&ai.closest(".acf");if(_af)_af.classList.add("has");}
  toast("Preenchido ✅ revise e salve");
 }
-async function salvarLongo(){
+async function salvarLongo(){if(reqFull())return;
  var ps=[LP_PICK.campeao,LP_PICK.vice,LP_PICK.terceiro,LP_PICK.quarto].filter(function(x){return x;});if(new Set(ps).size!==ps.length){toast("Não repita seleções no pódio",1);return;}
  var body={campeao:LP_PICK.campeao,vice:LP_PICK.vice,terceiro:LP_PICK.terceiro,quarto:LP_PICK.quarto,artilheiro_id:LP_PICK.art};
  var r=await fetch(BASE+"/jogar/longo",{method:"POST",headers:H(),body:JSON.stringify(body)});var d=await r.json().catch(function(){return{};});
