@@ -200,6 +200,7 @@ export async function rotasCriadorFig(app: FastifyInstance) {
     if (!time || time.includes("/") || time.includes("..")) return reply.code(400).send({ erro: "time invalido" });
     const prov = await provImagemPara("molde");
     if (!prov) return reply.code(400).send({ erro: "configure o Motor de Imagem (Configuracoes - aba Motor de Imagem): Gemini (gemini-2.5-flash-image) ou NVIDIA (base com nvidia + modelo black-forest-labs/flux.1-dev)" });
+    req.log.info("MOLDE_MOTOR id=" + (prov as any).id + " modelo=" + prov.modelo + " base=" + prov.base_url + " key=" + (prov.api_key ? ("..." + String(prov.api_key).slice(-4)) : "VAZIA"));
     try {
       const ref = await refDoTime(time, refPedido);
       await setCfg("fig_ref:" + time, ref.file);
@@ -211,7 +212,7 @@ export async function rotasCriadorFig(app: FastifyInstance) {
       await registrarGasto({ modelo: prov.modelo, imagens: 1, processo: "fig_base:" + time, origem: "criador-fig", tempo: (Date.now() - t0) / 1000 });
       return { ok: true, url: "/fig/base/" + encodeURIComponent(time) + ".png?v=" + Date.now(), ref: ref.file, bytes: buf.length };
     } catch (e: any) {
-      return reply.code(502).send({ ok: false, erro: String(e?.message ?? e).slice(0, 220) });
+      return reply.code(502).send({ ok: false, erro: "[motor: " + prov.modelo + " | chave:" + (prov.api_key ? "sim" : "NAO") + "] " + String(e?.message ?? e).slice(0, 190) });
     }
   });
 
