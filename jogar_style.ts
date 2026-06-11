@@ -277,7 +277,7 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}\nbody.mcol .side .r
 .side a .ic svg{width:19px;height:19px}
 .side a.on{background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;box-shadow:0 3px 10px rgba(31,170,89,.28)}
 .sdiv{height:1px;background:var(--bd);margin:8px 8px}
-.pwrap{position:relative}
+.pwrap{position:relative;display:inline-flex;align-items:center;gap:4px}.pchev{font-size:11px;color:var(--tx);opacity:.65;cursor:pointer}.pchev:hover{opacity:1}
 .av{overflow:hidden}
 .av img{width:100%;height:100%;object-fit:cover;display:block}
 .pdrop{position:absolute;top:46px;right:0;width:236px;background:var(--panel);border:1px solid var(--bd);border-radius:14px;box-shadow:0 18px 44px rgba(8,16,38,.32);padding:8px;display:none;flex-direction:column;gap:1px;z-index:60;backdrop-filter:blur(10px)}
