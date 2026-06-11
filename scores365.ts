@@ -380,13 +380,14 @@ export async function mapearGameIds(): Promise<any> {
   const meus = (await pool.query("SELECT id, selecao_casa, selecao_visitante FROM jogos WHERE selecao_casa<>'A definir' AND selecao_visitante<>'A definir'")).rows as any[];
   const byKey = new Map<string, any>();
   for (const m of meus) byKey.set(norm(m.selecao_casa) + "|" + norm(m.selecao_visitante), m);
-  let casados = 0;
+  let casados = 0; const naoCasados: string[] = [];
   for (const g of games.values()) {
     const h = al(g?.homeCompetitor?.name || ""), a = al(g?.awayCompetitor?.name || "");
     let m = byKey.get(h + "|" + a); if (!m) m = byKey.get(a + "|" + h);
     if (m && g?.id) { await pool.query("UPDATE jogos SET odds = COALESCE(odds,'{}'::jsonb) || jsonb_build_object('gid', $1::bigint) WHERE id=$2", [g.id, m.id]); casados++; }
+    else { naoCasados.push((g?.homeCompetitor?.name || "?") + " x " + (g?.awayCompetitor?.name || "?")); }
   }
-  await setCfg("gids_map_em", JSON.stringify({ em: new Date().toISOString(), jogos365: games.size, casados }));
+  await setCfg("gids_map_em", JSON.stringify({ em: new Date().toISOString(), jogos365: games.size, casados, naoCasados: naoCasados.slice(0, 40) }));
   console.log("[mapear-gids]", games.size, "jogos do 365,", casados, "casados/gravados");
   return { ok: true, jogos365: games.size, casados };
 }
