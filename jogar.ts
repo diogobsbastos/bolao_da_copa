@@ -414,13 +414,20 @@ export async function rotasJogar(app: FastifyInstance) {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
     const tem = (await pool.query("SELECT count(*) n FROM inventario_figurinhas WHERE usuario_id=$1", [u.id])).rows[0] as any;
     if (Number(tem.n) > 0) return { ok: false, jaAbriu: true };
+    const CUSTO = 300;
+    const sr = (await pool.query("SELECT saldo FROM usuarios_carteiras WHERE usuario_id=$1", [u.id])).rows[0] as any;
+    const saldoAtual = Number(sr?.saldo || 0);
+    if (saldoAtual < CUSTO) return { ok: false, semSaldo: true, saldo: saldoAtual, custo: CUSTO };
+    const novoSaldo = saldoAtual - CUSTO;
+    await pool.query("UPDATE usuarios_carteiras SET saldo=$1 WHERE usuario_id=$2", [novoSaldo, u.id]);
+    try { await pool.query("INSERT INTO transacoes_tokens (usuario_id, carteira, valor, saldo_apos, tipo, referencia) VALUES ($1,'token',$2,$3,'gasto_pacote','clube')", [u.id, -CUSTO, novoSaldo]); } catch {}
     const plano: [string, number][] = [["Goalkeeper", 1], ["Defence", 4], ["Midfield", 4], ["Offence", 2]];
     const cartas: any[] = [];
     for (const [pos, n] of plano) {
       const cards = (await pool.query("SELECT id, nome, posicao, selecao, raridade, figurinha FROM jogadores WHERE posicao=$1 AND figurinha IS NOT NULL ORDER BY random() LIMIT $2", [pos, n])).rows as any[];
-      for (const c of cards) { await pool.query("INSERT INTO inventario_figurinhas (usuario_id, jogador_id, origem) VALUES ($1,$2,'pacote_gratis') ON CONFLICT DO NOTHING", [u.id, c.id]); cartas.push(c); }
+      for (const c of cards) { await pool.query("INSERT INTO inventario_figurinhas (usuario_id, jogador_id, origem) VALUES ($1,$2,'clube') ON CONFLICT DO NOTHING", [u.id, c.id]); cartas.push(c); }
     }
-    return { ok: true, cartas };
+    return { ok: true, cartas, saldo: novoSaldo };
   });
   app.get("/jogar/news", async (req, reply) => {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
