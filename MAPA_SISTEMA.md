@@ -282,3 +282,7 @@ Pendências Copa: aba **Artilheiros** (usar stats/FC26 até ter gols reais) e **
 - **Palpites de longo prazo**: botão dourado **"Cravar Campeões & Artilheiro"** no fim da barra de abas do Bolão → popup (`modal()`) com Campeão/Vice/3º/4º (selects de seleção) + Artilheiro (input com `datalist` dos jogadores). Tabela **`palpites_longo`** (usuario_id PK, campeao/vice/terceiro/quarto [EN], artilheiro_id/nome). Endpoints **`GET/POST /jogar/longo`**. Trava em `config.longo_trava` (default `2026-06-23T23:59:00-03:00` = fim R2); depois fica só-leitura. **FALTA Cron 04** de liquidação dos pontos (Campeão 200/Vice 150/3º 100/4º 75 + Artilheiro 100/60/40).
 
 **Pendências de UX pedidas:** **Página de Regras** no front (aba Início + botão no menu do topo) — a fazer. Cache: a tela `/jogar` é `no-store`; se UI antiga aparecer, é cache do navegador (Ctrl+F5).
+
+
+## SESSÃO 11/jun/2026 (tarde)
+Ver **HANDOFF_SESSAO_2026-06-11.md**: carrossel Próximos Jogos (5/pg, altura travada, auto 6s); FIX crítico Meu Perfil (#d-prox removido quebrava loadDados→setProfile, fix `||{}`); Regras DINÂMICAS do config (`/jogar/regras` + builders rg*, menu+Ranking lêem do Admin); R32 ×1 no Mata-mata; banco terceiro=5/artilheiro=100; Beta 1.0 no logo (preto); ordem do Sino. PRÓXIMO: Pagamento real (MP PIX) + onboarding/Primeiros Passos + propaganda + notificações.
