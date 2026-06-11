@@ -10,7 +10,7 @@ const HDRS = { "accept": "application/json", "user-agent": "Mozilla/5.0", "accep
 const norm = (s: string) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z]/g, "");
 // mapeia o nome do 365scores (normalizado) -> forma normalizada do NOSSO nome em ingles
 const ALIAS: Record<string, string> = {
-  usa: "unitedstates", drcongo: "congodr", capeverde: "capeverdeislands", turkiye: "turkey",
+  usa: "unitedstates", drcongo: "congodr", capeverde: "capeverdeislands", caboverde: "capeverdeislands", capverde: "capeverdeislands", turkiye: "turkey",
   cotedivoire: "ivorycoast", korearepublic: "southkorea", czechrepublic: "czechia",
 };
 const al = (n: string) => ALIAS[norm(n)] || norm(n);
@@ -492,6 +492,7 @@ export async function rotasScores365(app: FastifyInstance) {
   app.post("/admin/scores365/refresh", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); return await refreshDiario(true); });
   app.post("/admin/bolao/coletar", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); return await coletarResultados(true); });
   app.post("/admin/bolao/apurar", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); return await apurarPendentes(); });
+  app.post("/admin/resultados/mapear-gids", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); return await mapearGameIds(); });
   app.get("/admin/bolao/status", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); let st: any = {}; try { st = JSON.parse((await cfg("resultados_status")) || "{}"); } catch {} const pend = Number(((await pool.query("SELECT count(*) n FROM jogos WHERE resultado_casa IS NOT NULL AND apurado=false")).rows[0] as any)?.n || 0); const apur = Number(((await pool.query("SELECT count(*) n FROM jogos WHERE apurado=true")).rows[0] as any)?.n || 0); return { ok: true, status: st, jogosApurados: apur, aguardandoApuracao: pend }; });
   app.post("/admin/bolao/resultado", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); const b = (req.body ?? {}) as any; const id = Number(b.jogo_id), rc = Number(b.rc), rv = Number(b.rv); if (!Number.isInteger(id) || !Number.isInteger(rc) || !Number.isInteger(rv) || rc < 0 || rv < 0) return reply.code(400).send({ erro: "dados invalidos" }); await pool.query("UPDATE jogos SET resultado_casa=$2, resultado_visitante=$3, resultado_em=now(), status='final', apurado=false WHERE id=$1", [id, rc, rv]); const ap = await apurarJogo(id); return { ok: true, apuracao: ap }; });
   // Sonda de boot (verificação): se config.lineup_probe tiver gids (csv), loga a estrutura crua.

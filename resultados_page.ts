@@ -67,6 +67,7 @@ ${NAV_CSS}
     <span style="flex:1"></span>
     <button class="btn g" onclick="coletar()">&#9889; Coletar agora</button>
     <button class="btn ghost" onclick="apurar()">Re-apurar pendentes</button>
+    <button class="btn ghost" onclick="mapearGids()">&#128279; Mapear gids 365</button>
     <span id="bar-msg" class="muted"></span>
    </div>
 
@@ -192,6 +193,13 @@ async function salvar(id){
  var r=await fetch(_b()+"/admin/bolao/resultado",{method:"POST",headers:H(),body:JSON.stringify({jogo_id:id,rc:rc,rv:rv})});
  var j=await r.json().catch(function(){return{};});
  m.textContent=r.ok?("jogo "+id+" salvo e apurado."):("erro: "+(j.erro||r.status));load();
+}
+async function mapearGids(){
+ var m=document.getElementById("bar-msg");m.textContent="mapeando gids no 365 (alguns segundos)...";
+ var r=await fetch(_b()+"/admin/resultados/mapear-gids",{method:"POST",headers:H()});
+ var j=await r.json().catch(function(){return{};});
+ if(r.ok){var nc=(j.naoCasados&&j.naoCasados.length)?(" | nao casaram: "+j.naoCasados.join(", ")):"";m.textContent="365 devolveu "+(j.jogos365||0)+" jogos, "+(j.casados||0)+" casados/gravados."+nc;}else{m.textContent="erro: "+(j.erro||r.status);}
+ load();
 }
 async function coletar(){
  var m=document.getElementById("bar-msg");m.textContent="coletando resultados agora...";
