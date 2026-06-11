@@ -17,7 +17,7 @@ ${CSS}
    <span class="av" id="av" onclick="togDrop(event)" title="Perfil">?</span><i class="pchev" onclick="togDrop(event)" title="Perfil">&#9662;</i>
    <div class="pdrop" id="pdrop">
     <div class="pdhead"><span class="av" id="av2">?</span><div><b id="pd-nome">jogador</b><small id="pd-email"></small></div></div>
-    <a id="pd-admin" style="display:none;color:var(--pri2)" onclick="location.href=BASE+&#39;/admin&#39;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg> Painel Admin</a>
+    <div class="pdperfis" id="pd-admin" style="display:none"><div class="pdperfil ativo"><span class="pdpav" id="pdp-av">J</span><div class="pdpinfo"><b id="pdp-nome">Jogador</b><small>Perfil de jogador</small></div><span class="pdpchk">&#10003;</span></div><div class="pdperfil" onclick="location.href=BASE+&#39;/admin&#39;"><span class="pdpav adm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V7z"/></svg></span><div class="pdpinfo"><b>Painel Admin</b><small>Entrar como administrador</small></div></div></div><div class="pdsep"></div>
     <a onclick="nav('perfil')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg> Meu Perfil</a>
     <a onclick="nav('deposito')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg> Dep&oacute;sito</a>
     <a onclick="nav('convidar')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="1"/><path d="M2 9h20v3H2zM12 9v11M9 9a2.5 2.5 0 1 1 3-3.5A2.5 2.5 0 1 1 15 9"/></svg> Convidar <span class="free">FULL</span></a>
@@ -280,7 +280,7 @@ async function loadDados(){
  var _ini=(nome.trim()[0]||"?").toUpperCase();
  setAv("av",me.avatar,_ini);setAv("av2",me.avatar,_ini);
  var _pn=document.getElementById("pd-nome");if(_pn)_pn.textContent=nome;
- var _pe=document.getElementById("pd-email");if(_pe)_pe.textContent=me.email||"";var _pa=document.getElementById("pd-admin");if(_pa)_pa.style.display=(me&&me.papel=="admin")?"flex":"none";
+ var _pe=document.getElementById("pd-email");if(_pe)_pe.textContent=me.email||"";var _pa=document.getElementById("pd-admin");if(_pa)_pa.style.display=(me&&me.papel=="admin")?"block":"none";var _ppn=document.getElementById("pdp-nome");if(_ppn)_ppn.textContent=nome;var _ppa=document.getElementById("pdp-av");if(_ppa)_ppa.textContent=(nome||"J").charAt(0).toUpperCase();
  document.getElementById("d-saldo").textContent=Number(c.saldo||0);
  document.getElementById("d-pos").textContent=d.ranking&&d.ranking.pos?("#"+d.ranking.pos):"-";
  document.getElementById("d-pts").textContent=(d.ranking&&d.ranking.pontos)||0;

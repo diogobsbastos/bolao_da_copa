@@ -290,7 +290,7 @@ body.mcol .side a .tag,body.mcol .side a .free{display:none}\nbody.mcol .side .r
 .pdrop a:hover{background:var(--card)}
 .pdrop a svg{width:18px;height:18px;color:var(--mut)}
 .pdrop a.dang{color:#e23744}.pdrop a.dang svg{color:#e23744}
-.pdsep{height:1px;background:var(--bd);margin:6px 4px}
+.pdsep{height:1px;background:var(--bd);margin:6px 4px}.pdperfis{padding:2px 0}.pdperfil{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:9px;cursor:pointer}.pdperfil:hover{background:var(--card)}.pdperfil.ativo{background:var(--card2)}.pdpav{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--pri),var(--pri2));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;flex:none}.pdpav.adm{background:linear-gradient(135deg,#e0a008,#f6c83a);color:#3a2a00}.pdpav svg{width:16px;height:16px}.pdpinfo{flex:1;min-width:0}.pdpinfo b{font-size:13px;display:block;color:var(--tx)}.pdpinfo small{font-size:11px;color:var(--mut)}.pdpchk{color:var(--pri2);font-weight:800}
 .pdfoot{display:flex;align-items:center;gap:8px}
 .pdfoot a{flex:1}
 .thsw{display:inline-flex;gap:1px;background:var(--card2);border:0;border-radius:999px;padding:2px;flex:none}
