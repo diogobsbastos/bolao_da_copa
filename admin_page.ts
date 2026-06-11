@@ -31,7 +31,7 @@ th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--bd)}th{colo
 .hide{display:none}.sec h2{font-size:18px;margin:0 0 14px}
 .soon{padding:40px;text-align:center;color:var(--mut)}
 .save{margin-top:12px;display:flex;align-items:center;gap:10px}
-${NAV_CSS}
+.advwrap{position:relative;display:inline-flex;margin-left:8px}.adav{position:relative;width:32px;height:32px;border-radius:50%;background:#1faa59;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;cursor:pointer}.adchev{position:absolute;bottom:-1px;right:-1px;width:14px;height:14px;border-radius:50%;background:#fff;border:1px solid #d9dee8;color:#444;display:flex;align-items:center;justify-content:center;z-index:3}.adchev svg{width:8px;height:8px}.advdrop{position:absolute;top:42px;right:0;width:240px;background:#fff;border:1px solid #e2e6f0;border-radius:14px;box-shadow:0 18px 44px rgba(20,30,60,.18);padding:8px;display:none;z-index:100}.advdrop.open{display:block}.advhd{font-size:11px;font-weight:800;color:#6b7280;text-transform:uppercase;padding:6px 8px}.advp{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:9px;cursor:pointer}.advp:hover{background:#f4f6f9}.advp.ativo{background:#eef1f8}.advpav{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#14794a,#1faa59);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex:none}.advpav.adm{background:linear-gradient(135deg,#e0a008,#f6c83a);color:#3a2a00}.advpi{flex:1}.advpi b{font-size:13px;display:block;color:#1a2233}.advpi small{font-size:11px;color:#6b7280}.advchk{color:#1faa59;font-weight:800}${NAV_CSS}
 </style></head><body>
 <div class="app">
  ${sideHtml("dash")}
@@ -41,7 +41,7 @@ ${NAV_CSS}
    <div class="tokrow">
     <input id="tok" type="password" placeholder="token de admin (ou faca login)" style="width:200px">
     <button class="sm" onclick="conectar()">Conectar</button>
-    <span id="conn" class="pill no">offline</span>
+    <span id="conn" class="pill no">offline</span><div class="advwrap"><span class="adav" onclick="var d=document.getElementById(&#39;advdrop&#39;);d.classList.toggle(&#39;open&#39;);event.stopPropagation()" title="Perfil">A<i class="adchev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></i></span><div class="advdrop" id="advdrop"><div class="advhd">Trocar de perfil</div><div class="advp ativo"><span class="advpav adm">A</span><div class="advpi"><b>Painel Admin</b><small>Voc&ecirc; est&aacute; aqui</small></div><span class="advchk">&#10003;</span></div><div class="advp" onclick="location.href=location.pathname.replace(&#39;/admin&#39;,&#39;/jogar&#39;)"><span class="advpav">J</span><div class="advpi"><b>App do Jogador</b><small>Voltar pro jogo</small></div></div></div></div>
    </div>
   </div>
   <div class="content">
