@@ -117,8 +117,8 @@ th,td{padding:8px 8px;border-bottom:1px solid var(--bd);text-align:left}th{color
 .mpbody{padding:11px 16px;background:#fff}
 .mpprod{text-align:center;margin-bottom:10px}
 .mpprice{font-size:23px;font-weight:800;color:#1a2233}
-.mpseals{display:flex;flex-wrap:nowrap;gap:5px;justify-content:center;margin-top:9px;overflow:hidden}
-.mpseals span{font-size:9.5px;font-weight:700;color:#5b6472;background:#f4f6f9;border:1px solid #e7eaf0;border-radius:999px;padding:3px 7px;display:inline-flex;align-items:center;gap:3px;white-space:nowrap;flex:none}
+.mpseals{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:9px}
+.mpseals span{font-size:8.5px;font-weight:700;color:#5b6472;background:#f4f6f9;border:1px solid #e7eaf0;border-radius:999px;padding:2px 6px;display:inline-flex;align-items:center;gap:2px;white-space:nowrap}
 .mpfoot{background:#fff;border-top:1px solid #eef0f4;padding:6px 14px;display:flex;justify-content:flex-end}
 .mpblind{height:28px;opacity:.95}
 .mppay{width:100%;background:#009ee3;justify-content:center;font-size:15px;padding:13px;box-shadow:0 4px 12px rgba(0,158,227,.3)}
