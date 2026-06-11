@@ -146,11 +146,34 @@ ${NAV_CSS}
    </section>
 
    <section id="pg-img" class="hide">
-    <div class="card"><div class="cardhead"><div><h3>&#127912; Motor de Imagem</h3>
-     <div class="sub">Separado do cerebro &mdash; gera os moldes das figurinhas personalizadas e artes.</div></div>
-     <button class="add" onclick="abrirForm('imagem')">&#10133; Adicionar motor</button></div>
-     <div id="lista-imagem"></div></div>
-    <div id="wrap-imagem" class="card hide"><div class="cardhead"><h3 id="ti-imagem">Adicionar motor de imagem</h3><button class="sm gh" onclick="fecharForm('imagem')">fechar</button></div><div id="form-imagem"></div></div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+     <button id="imgtab-llm" class="sm" onclick="imgTab('llm')">&#129504; LLM (Gemini/outros)</button>
+     <button id="imgtab-nv" class="sm gh" onclick="imgTab('nv')">&#127918; NVIDIA FLUX</button></div>
+    <div id="img-llm">
+     <div class="card"><div class="cardhead"><div><h3>&#127912; Motor de Imagem</h3>
+      <div class="sub">Separado do cerebro &mdash; gera os moldes das figurinhas personalizadas e artes. Configure quantos motores quiser; o marcado <b>EM USO</b> e o que gera.</div></div>
+      <button class="add" onclick="abrirForm('imagem')">&#10133; Adicionar motor</button></div>
+      <div id="lista-imagem"></div></div>
+     <div id="wrap-imagem" class="card hide"><div class="cardhead"><h3 id="ti-imagem">Adicionar motor de imagem</h3><button class="sm gh" onclick="fecharForm('imagem')">fechar</button></div><div id="form-imagem"></div></div>
+    </div>
+    <div id="img-nvidia" class="hide">
+     <div class="card" style="border-left:4px solid #76b900">
+      <div class="cardhead"><div><h3>&#127918; NVIDIA FLUX &mdash; geracao de imagem</h3>
+       <div class="sub">Config self-contained (migravel p/ outros projetos). Endpoint fixo: <code>https://ai.api.nvidia.com/v1/genai/&lt;modelo&gt;</code> &middot; chave <code>nvapi-</code>.</div></div></div>
+      <div class="row"><div><label>API Key (nvapi-) <span id="nv-keyset" class="muted" style="font-weight:400"></span></label><input id="nv-key" type="password" placeholder="cole a chave nvapi- (em branco mantem a salva)"></div></div>
+      <label style="margin-top:10px">Modelo FLUX</label>
+      <input id="nv-modelo" list="nv-dl" placeholder="black-forest-labs/flux.1-dev" autocomplete="off" style="width:100%">
+      <datalist id="nv-dl"><option value="black-forest-labs/flux.1-dev"><option value="black-forest-labs/flux.1-schnell"><option value="black-forest-labs/flux.1-kontext-dev"><option value="black-forest-labs/flux.1-canny-dev"><option value="black-forest-labs/flux.1-depth-dev"></datalist>
+      <div class="sub" style="margin-top:6px"><b>flux.1-dev</b>: texto&rarr;imagem (teste rapido). <b>flux.1-kontext-dev</b>: edita a partir de uma foto (p/ figurinha por pessoa).</div>
+      <div class="save" style="margin-top:12px">
+       <button class="sm" onclick="salvarNvidia()">Salvar config</button>
+       <button class="sm gr" onclick="usarNvidia()">Usar este motor</button>
+       <button class="sm gh" onclick="testarImgNvidia()">&#9889; Testar geracao</button>
+       <span id="nv-msg" class="muted"></span></div>
+      <div style="margin-top:10px"><input id="nv-prompt" placeholder="prompt de teste (opcional)" style="width:100%"></div>
+      <div id="nv-result" style="margin-top:12px"></div>
+     </div>
+    </div>
    </section>
 
    <section id="pg-cortes" class="hide">
@@ -453,5 +476,10 @@ async function salvarProv(papel){
 async function usar(id){var r=await fetch(BASE+"/admin/llm/usar",{method:"POST",headers:H(),body:JSON.stringify({id:id})});toast(r.ok?"Definido como EM USO":"erro",r.ok?"ok":"err");loadLLM("texto");loadLLM("imagem");}
 async function del(id,papel){if(!confirm("Remover este provedor?"))return;var r=await fetch(BASE+"/admin/llm/del",{method:"POST",headers:H(),body:JSON.stringify({id:id})});toast(r.ok?"Removido":"erro",r.ok?"ok":"err");loadLLM(papel);}
 async function testar(id){toast("Testando...","ok");var r=await fetch(BASE+"/admin/llm/testar",{method:"POST",headers:H(),body:JSON.stringify({id:id})});var j=await r.json().catch(function(){return{};});toast(j.ok?("OK: "+(j.resposta||"")):("FALHOU: "+(j.detalhe||"")),j.ok?"ok":"err");loadLLM("texto");loadLLM("imagem");}
+function imgTab(w){var llm=w==="llm";document.getElementById("img-llm").classList.toggle("hide",!llm);document.getElementById("img-nvidia").classList.toggle("hide",llm);document.getElementById("imgtab-llm").className=llm?"sm":"sm gh";document.getElementById("imgtab-nv").className=llm?"sm gh":"sm";if(!llm)loadNvidiaCfg();}
+async function loadNvidiaCfg(){var r=await fetch(BASE+"/admin/llm?papel=imagem",{headers:H()});if(!r.ok)return;var lista=await r.json();var nv=null;for(var i=0;i<lista.length;i++){if(String(lista[i].base_url||"").toLowerCase().indexOf("nvidia")>=0){nv=lista[i];break;}}var mod=document.getElementById("nv-modelo");var ks=document.getElementById("nv-keyset");if(nv){if(mod&&!mod.value)mod.value=nv.modelo||"";if(ks)ks.textContent=nv.api_key_set?(nv.em_uso?"\u2014 chave salva \u2713, EM USO":"\u2014 chave salva \u2713"):"\u2014 sem chave";window._nvId=nv.id;}else{if(ks)ks.textContent="\u2014 novo";window._nvId=null;}}
+async function salvarNvidia(){var modelo=val("nv-modelo").trim()||"black-forest-labs/flux.1-dev";var key=val("nv-key");var msg=document.getElementById("nv-msg");if(msg)msg.textContent="salvando...";var body={id:window._nvId||null,papel:"imagem",provedor:"openai",base_url:"https://ai.api.nvidia.com/v1/genai",modelo:modelo,api_key:key};var r=await fetch(BASE+"/admin/llm",{method:"POST",headers:H(),body:JSON.stringify(body)});var j=await r.json().catch(function(){return{};});if(!j.id){if(msg)msg.textContent="erro ao salvar";return null;}window._nvId=j.id;var k=document.getElementById("nv-key");if(k)k.value="";if(msg)msg.textContent="config salva \u2713";loadLLM("imagem");loadNvidiaCfg();return j.id;}
+async function usarNvidia(){var id=await salvarNvidia();if(!id)return;await fetch(BASE+"/admin/llm/usar",{method:"POST",headers:H(),body:JSON.stringify({id:id})});var msg=document.getElementById("nv-msg");if(msg)msg.textContent="NVIDIA agora e o motor EM USO \u2713";loadLLM("imagem");loadNvidiaCfg();}
+async function testarImgNvidia(){var id=await salvarNvidia();var res=document.getElementById("nv-result");var msg=document.getElementById("nv-msg");if(msg)msg.textContent="gerando imagem... (cold start pode levar ~1 min)";if(res)res.innerHTML="";var r=await fetch(BASE+"/admin/criador-fig/testar-imagem",{method:"POST",headers:H(),body:JSON.stringify({id:id,prompt:val("nv-prompt")})});var j=await r.json().catch(function(){return{};});if(!j.ok){if(msg)msg.textContent="";if(res)res.innerHTML='<div style="color:#e23744;font-weight:600">FALHOU: '+esc(j.erro||"erro")+'</div>';return;}if(msg)msg.textContent="ok \u2713";if(res)res.innerHTML='<img src="'+j.img+'" style="max-width:340px;border-radius:10px;border:1px solid var(--bd)"><div class="sub" style="margin-top:4px">motor: '+esc((j.motor&&j.motor.modelo)||"")+'</div>';}
 init();
 </script></body></html>`;

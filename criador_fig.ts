@@ -195,6 +195,24 @@ export async function rotasCriadorFig(app: FastifyInstance) {
     }
   });
 
+  app.post("/admin/criador-fig/testar-imagem", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    const bid = (req.body as any)?.id;
+    let prov: any = null;
+    if (bid) prov = (await pool.query("SELECT * FROM llm_provedores WHERE id=$1", [Number(bid)])).rows[0] || null;
+    if (!prov) prov = await provImagem();
+    if (!prov) return reply.code(400).send({ ok: false, erro: "configure o Motor de Imagem primeiro (salve um motor)" });
+    const prompt = String((req.body as any)?.prompt ?? "").trim() || "a shiny golden football world cup trophy on a green pitch, vivid colors, centered, high detail";
+    try {
+      const t0 = Date.now();
+      const out = await gerarImagem(prov, prompt, []);
+      await registrarGasto({ modelo: prov.modelo, imagens: 1, processo: "teste_imagem", origem: "motor-imagem", tempo: (Date.now() - t0) / 1000 });
+      return { ok: true, img: "data:" + out.mime + ";base64," + out.b64, motor: { provedor: prov.provedor, modelo: prov.modelo, base_url: prov.base_url } };
+    } catch (e: any) {
+      return reply.code(502).send({ ok: false, erro: String(e?.message ?? e).slice(0, 300) });
+    }
+  });
+
   app.post("/admin/criador-fig/local", async (req, reply) => {
     if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
     const body = (req.body ?? {}) as any;
