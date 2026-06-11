@@ -41,7 +41,7 @@ async function creditarDeposito(depId: number): Promise<boolean> {
   const saldoApos = Number((r.rows[0] as any)?.saldo || 0);
   await pool.query("INSERT INTO transacoes_tokens (usuario_id, carteira, valor, saldo_apos, tipo, referencia) VALUES ($1,'token',$2,$3,'deposito_pix',$4)", [uid, tokens, saldoApos, "dep:" + depId]);
   await pool.query("UPDATE depositos SET tokens_creditados=$2 WHERE id=$1", [depId, tokens]);
-  try { await pool.query("UPDATE usuarios SET pagou=true WHERE id=$1 AND pagou IS DISTINCT FROM true", [uid]); } catch {}
+  try { await pool.query("UPDATE usuarios SET pagou=true, acesso_full=true, tipo_entrada=COALESCE(tipo_entrada,'pago') WHERE id=$1", [uid]); } catch {}
   try { await aoPagar(uid); } catch {}
   console.log("[pagamento] +", tokens, "tokens p/ usuario", uid, "deposito", depId, "saldo", saldoApos);
   return true;
@@ -60,6 +60,9 @@ export async function rotasPagamento(app: FastifyInstance) {
   app.post("/jogar/deposito/criar", async (req, reply) => {
     const u = await usuarioDaReq(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
     const tok = await cfg("mp_access_token"); if (!tok) return { ok: false, erro: "pagamento ainda nao configurado pelo admin" };
+    // Bloqueio: entrada paga uma vez. Quem ja eh FULL nao deposita de novo.
+    const usr = (await pool.query("SELECT pagou, acesso_full FROM usuarios WHERE id=$1", [u.id])).rows[0] as any;
+    if (usr && (usr.acesso_full || usr.pagou)) return { ok: false, erro: "voce ja tem acesso FULL", jaFull: true };
     const b = (req.body ?? {}) as any;
     const ps = await lerPacotes();
     let valor = Number(b?.brl);
@@ -116,8 +119,8 @@ export async function rotasPagamento(app: FastifyInstance) {
   // Onboarding popup (translúcido, pós-login)
   app.get("/jogar/onboarding/popup", async (req, reply) => {
     const u = await usuarioDaReq(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
-    const r = (await pool.query("SELECT onboarding_popup_visto, pagou FROM usuarios WHERE id=$1", [u.id])).rows[0] as any;
-    return { ok: true, visto: !!r?.onboarding_popup_visto, pagou: !!r?.pagou };
+    const r = (await pool.query("SELECT onboarding_popup_visto, pagou, acesso_full FROM usuarios WHERE id=$1", [u.id])).rows[0] as any;
+    return { ok: true, visto: !!r?.onboarding_popup_visto, pagou: !!r?.pagou, full: !!r?.acesso_full };
   });
   app.post("/jogar/onboarding/popup/visto", async (req, reply) => {
     const u = await usuarioDaReq(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
