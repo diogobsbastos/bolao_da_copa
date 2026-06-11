@@ -366,7 +366,7 @@ async function atualizarDolar(){
 
 /* ---------- LLM pool ---------- */
 function provLabel(p){return p.provedor==="gemini"?"cloud":(p.base_url?"local":"cloud");}
-function svcName(base,prov){if(prov==="gemini"||prov==="google")return "Gemini";if(prov==="anthropic")return "Anthropic";var b=(base||"").toLowerCase();if(b.indexOf("groq")>=0)return "Groq";if(b.indexOf("nvidia")>=0)return "NVIDIA";if(b.indexOf("openrouter")>=0)return "OpenRouter";if(b.indexOf("cerebras")>=0)return "Cerebras";if(b.indexOf("mistral")>=0)return "Mistral";if(b.indexOf("googleapis")>=0)return "Gemini";if(b.indexOf("api.openai.com")>=0)return "OpenAI";if(b.indexOf("localhost")>=0||b.indexOf("127.0.0.1")>=0||b.indexOf("11434")>=0)return "Local (Ollama)";if(!b)return prov||"?";return b.split("://").pop().split("/")[0];}
+function svcName(base,prov){if(prov==="gemini"||prov==="google")return "Gemini";if(prov==="anthropic")return "Anthropic";var b=(base||"").toLowerCase();if(b.indexOf("groq")>=0)return "Groq";if(b.indexOf("nvidia")>=0)return "NVIDIA";if(b.indexOf("openrouter")>=0)return "OpenRouter";if(b.indexOf("cerebras")>=0)return "Cerebras";if(b.indexOf("mistral")>=0)return "Mistral";if(b.indexOf("googleapis")>=0)return "Gemini";if(b.indexOf("api.openai.com")>=0)return "OpenAI";if(b.indexOf("localhost")>=0||b.indexOf("127.0.0.1")>=0||b.indexOf("11434")>=0)return "Local (Ollama)";if(b.indexOf("duckdns")>=0||b.indexOf("/llm")>=0||b.indexOf("vllm")>=0||b.indexOf("lmstudio")>=0)return "Local";if(!b)return prov||"?";return b.split("://").pop().split("/")[0];}
 var HORN=[];
 async function loadHorNoticias(){var r=await fetch(BASE+"/admin/llm/noticias-horarios",{headers:H()});if(!r.ok)return;var d=await r.json();HORN=d.horarios||["04:00"];renderHorN();}
 function renderHorN(){var box=document.getElementById("hor-noticias");if(!box)return;box.innerHTML=HORN.length?HORN.map(function(h){return '<span style="display:inline-flex;align-items:center;gap:5px;background:#eef1f6;border-radius:999px;padding:4px 5px 4px 11px;font-weight:700;font-size:12.5px">'+h+'<button onclick="delHorNoticias(&#39;'+h+'&#39;)" style="border:0;background:#dde2ec;width:18px;height:18px;border-radius:50%;cursor:pointer;line-height:1">&times;</button></span>';}).join(""):'<span class="muted">nenhum hor&aacute;rio</span>';}
@@ -376,7 +376,7 @@ async function saveHorNoticias(){renderHorN();var m=document.getElementById("msg
 var _noticiasLista=[];
 async function loadNoticiasLLM(){var r=await fetch(BASE+"/admin/llm/noticias",{headers:H()});if(!r.ok)return;var d=await r.json();_noticiasLista=d.lista||[];var ids=d.ids||[];renderNoticiasSelects([ids[0]?String(ids[0]):"",ids[1]?String(ids[1]):"",ids[2]?String(ids[2]):""]);}
 function svcColor(nm){var m={"NVIDIA":"#76b900","Groq":"#f55036","OpenRouter":"#6566f1","Cerebras":"#f76b15","Gemini":"#1a73e8","OpenAI":"#10a37f","Mistral":"#fa5111","Anthropic":"#d97757"};return m[nm]||"#64748b";}
-function svcBadge(p){var nm=svcName(p.base_url,p.provedor);return '<span style="display:inline-block;font-size:10px;font-weight:800;letter-spacing:.5px;color:var(--tx,#334155);background:var(--bg,#f1f5f9);border:1px solid var(--bd,#e2e8f0);padding:3px 9px;border-radius:6px;white-space:nowrap;align-self:center;margin-right:6px">'+esc(nm).toUpperCase()+'</span>';}
+function svcBadge(p){var nm=svcName(p.base_url,p.provedor);return '<span style="display:inline-block;font-size:10px;font-weight:800;letter-spacing:.5px;color:#6366f1;background:rgba(99,102,241,.13);padding:3px 9px;border-radius:6px;white-space:nowrap;align-self:center;margin:0 8px 0 4px">'+esc(nm).toUpperCase()+'</span>';}
 function renderNoticiasSelects(desired){var raw=desired||[1,2,3].map(function(n){var s=document.getElementById("sel-noticias-"+n);return s?s.value:"";});var seen={};var cur=raw.map(function(v){if(v&&seen[v])return "";if(v)seen[v]=1;return v;});[1,2,3].forEach(function(n){var s=document.getElementById("sel-noticias-"+n);if(!s)return;var mine=cur[n-1];var taken=cur.filter(function(v,i){return i!==(n-1)&&v;});var opts='<option value="">&mdash; nenhuma &mdash;</option>';_noticiasLista.forEach(function(p){var id=String(p.id);if(taken.indexOf(id)>=0)return;opts+='<option value="'+id+'"'+(id===mine?" selected":"")+'>'+svcName(p.base_url,p.provedor).toUpperCase()+'  \u2014  '+p.modelo+'</option>';});s.innerHTML=opts;s.value=mine;});}
 async function salvarNoticiasLLM(){renderNoticiasSelects();var ids=[1,2,3].map(function(n){var s=document.getElementById("sel-noticias-"+n);return s?s.value:"";});var m=document.getElementById("msg-noticias");if(m)m.textContent="salvando...";var r=await fetch(BASE+"/admin/llm/noticias",{method:"POST",headers:H(),body:JSON.stringify({ids:ids})});if(m)m.textContent=r.ok?"salvo \u2713":"erro";}
 async function loadLLM(papel){
@@ -391,10 +391,10 @@ async function loadLLM(papel){
   var uso=p.em_uso?'<span class="pill uso">EM USO</span>':'';
   var tipo='<span class="pill '+loc+'">'+(loc==="local"?"LOCAL":"CLOUD")+'</span>';
   var teste=p.ultimo_teste?('<div class="m">'+esc(p.ultimo_teste)+'</div>'):'';
-  return '<div class="prov'+(p.em_uso?" uso":"")+'">'+tipo+
+  return '<div class="prov'+(p.em_uso?" uso":"")+'">'+tipo+svcBadge(p)+
    '<div class="pinfo"><b>'+esc(p.modelo)+'</b> '+uso+
    (p.base_url?('<div class="m">'+esc(p.base_url)+'</div>'):'')+teste+'</div>'+
-   '<div class="pacts">'+svcBadge(p)+
+   '<div class="pacts">'+
     (p.em_uso?'':'<button class="sm gr" onclick="usar('+p.id+')">usar</button>')+
     '<button class="sm gh" onclick="testar('+p.id+')">testar</button>'+
     '<button class="sm gh" onclick=\\'editar('+JSON.stringify(JSON.stringify(p))+',"'+papel+'")\\'>editar</button>'+
