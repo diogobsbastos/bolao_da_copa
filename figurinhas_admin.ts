@@ -190,6 +190,25 @@ export async function rotasFigsAdmin(app: FastifyInstance) {
     return out;
   });
 
+  app.get("/admin/figs/faltantes", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    const { rows } = await pool.query(
+      `SELECT j.selecao, j.nome, COALESCE(j.posicao,'') AS posicao, j.figurinha,
+              COALESCE(f.raridade,'') AS raridade, COALESCE(f.origem,'') AS origem
+         FROM jogadores j LEFT JOIN figurinhas f ON f.jogador_id = j.id AND f.tipo='jogador'
+        WHERE NOT (j.figurinha IS NOT NULL AND j.figurinha <> '' AND f.raridade IS NOT NULL AND f.raridade <> '' AND f.raridade <> 'gerada')
+        ORDER BY j.selecao, j.nome`
+    );
+    const out = (rows as any[]).map((j) => {
+      let motivo = "indefinido";
+      if (!j.figurinha || j.figurinha === "") motivo = "sem corte atribuido (nenhum tile casado pelo nome)";
+      else if (!j.raridade || j.raridade === "gerada") motivo = "so base/placeholder, falta a figurinha real";
+      const gk = /goleir|goalkeeper|^gk$/i.test(String(j.posicao));
+      return { selecao_en: j.selecao, selecao: selPt(j.selecao), nome: j.nome, posicao: posPt(j.posicao), goleiro: gk, figurinha: j.figurinha || null, raridade: j.raridade || null, motivo };
+    });
+    return { ok: true, total: out.length, faltantes: out };
+  });
+
   app.get("/admin/figs/dados", async (req, reply) => {
     if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
     const sel = String((req.query as any)?.selecao ?? "");
