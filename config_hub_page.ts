@@ -146,6 +146,10 @@ ${NAV_CSS}
    </section>
 
    <section id="pg-img" class="hide">
+    <div class="card" style="margin-bottom:14px"><div class="cardhead"><div><h3>&#127919; Finalidades &mdash; qual motor cada uso</h3>
+     <div class="sub">Cadastre v&aacute;rios motores (abaixo) e aponte qual atende cada finalidade. Vazio = usa o motor EM USO geral. (passe o mouse no <b>?</b>)</div></div>
+     <button class="sm" onclick="salvarFinalidades()">Salvar finalidades</button></div>
+     <div id="fin-rows"><div class="muted">carregando...</div></div></div>
     <div style="display:flex;gap:8px;margin-bottom:12px">
      <button id="imgtab-llm" class="sm" onclick="imgTab('llm')">&#129504; LLM (Gemini/outros)</button>
      <button id="imgtab-nv" class="sm gh" onclick="imgTab('nv')">&#127918; NVIDIA FLUX</button></div>
@@ -221,7 +225,7 @@ function N(v){return v==null||v===""?0:Number(v);}
 function num(v,c){c=c==null?4:c;return N(v).toLocaleString("pt-BR",{minimumFractionDigits:c,maximumFractionDigits:c});}
 var DOLAR=5.2;
 function ehImg(m){return (m.papel==="imagem")||/image|imagen|nano[- ]?banana/i.test(m.modelo);}
-function aba(t){document.querySelectorAll("section").forEach(function(s){s.classList.add("hide");});document.getElementById("pg-"+t).classList.remove("hide");document.querySelectorAll(".tab").forEach(function(a){a.classList.toggle("on",a.getAttribute("data-t")===t);});if(t==="banco"){loadBanco();loadJ365();}if(t==="llms"){loadLLM("texto");loadNoticiasLLM();loadHorNoticias();}if(t==="img")loadLLM("imagem");if(t==="custos")loadCustos();if(t==="pay")loadPay();}
+function aba(t){document.querySelectorAll("section").forEach(function(s){s.classList.add("hide");});document.getElementById("pg-"+t).classList.remove("hide");document.querySelectorAll(".tab").forEach(function(a){a.classList.toggle("on",a.getAttribute("data-t")===t);});if(t==="banco"){loadBanco();loadJ365();}if(t==="llms"){loadLLM("texto");loadNoticiasLLM();loadHorNoticias();}if(t==="img"){loadLLM("imagem");loadFinalidades();}if(t==="custos")loadCustos();if(t==="pay")loadPay();}
 function togManual(){var b=document.getElementById("man-body");var oculto=b.classList.toggle("hide");document.getElementById("man-tog").textContent=oculto?"abrir":"fechar";}
 async function init(){
  var r=await fetch(BASE+"/admin/config",{headers:H()});
@@ -476,6 +480,19 @@ async function salvarProv(papel){
 async function usar(id){var r=await fetch(BASE+"/admin/llm/usar",{method:"POST",headers:H(),body:JSON.stringify({id:id})});toast(r.ok?"Definido como EM USO":"erro",r.ok?"ok":"err");loadLLM("texto");loadLLM("imagem");}
 async function del(id,papel){if(!confirm("Remover este provedor?"))return;var r=await fetch(BASE+"/admin/llm/del",{method:"POST",headers:H(),body:JSON.stringify({id:id})});toast(r.ok?"Removido":"erro",r.ok?"ok":"err");loadLLM(papel);}
 async function testar(id){toast("Testando...","ok");var r=await fetch(BASE+"/admin/llm/testar",{method:"POST",headers:H(),body:JSON.stringify({id:id})});var j=await r.json().catch(function(){return{};});toast(j.ok?("OK: "+(j.resposta||"")):("FALHOU: "+(j.detalhe||"")),j.ok?"ok":"err");loadLLM("texto");loadLLM("imagem");}
+var FINS=[
+ {k:"molde",nome:"Molde de figurinha",dica:"Edita a figurinha de referencia do time (recebe a imagem como entrada) trocando rosto e escritas. Use um modelo kontext (flux.1-kontext-dev). E a tela Gerar nano nos Moldes do time."},
+ {k:"avatar",nome:"Avatar do jogador (foto da pessoa)",dica:"Transforma a FOTO do usuario num avatar/figurinha estilizado mantendo o rosto. Use kontext (flux.1-kontext-dev). Recurso do app do jogador."},
+ {k:"arte",nome:"Arte por prompt (texto para imagem)",dica:"Cria imagem do ZERO a partir de texto (banners, artes promocionais). Use flux.1-dev. Nao usa foto de entrada."}
+];
+async function loadFinalidades(){
+ var r=await fetch(BASE+"/admin/criador-fig/finalidades",{headers:H()});if(!r.ok)return;
+ var d=await r.json();var map=d.map||{};var mot=d.motores||[];
+ var opt=function(sel){var o='<option value="">(motor EM USO geral)</option>';mot.forEach(function(m){o+='<option value="'+m.id+'"'+(String(sel)===String(m.id)?" selected":"")+'>'+svcName(m.base_url,m.provedor)+' \u00b7 '+m.modelo+(m.em_uso?" (EM USO)":"")+'</option>';});return o;};
+ var html=FINS.map(function(f){return '<div style="display:flex;align-items:center;gap:10px;margin:8px 0;flex-wrap:wrap"><span style="min-width:240px;font-weight:600">'+f.nome+' <span title="'+f.dica+'" style="display:inline-block;width:16px;height:16px;line-height:16px;text-align:center;border-radius:50%;background:#6366f1;color:#fff;font-size:11px;font-weight:800;cursor:help">?</span></span><select id="fin-'+f.k+'" style="flex:1;min-width:240px;padding:8px;border:1px solid var(--bd);border-radius:9px">'+opt(map[f.k])+'</select></div>';}).join("");
+ document.getElementById("fin-rows").innerHTML=html;
+}
+async function salvarFinalidades(){var body={};FINS.forEach(function(f){var s=document.getElementById("fin-"+f.k);body[f.k]=s?s.value:"";});var r=await fetch(BASE+"/admin/criador-fig/finalidades",{method:"POST",headers:H(),body:JSON.stringify(body)});toast(r.ok?"Finalidades salvas \u2713":"erro",r.ok?"ok":"err");}
 function imgTab(w){var llm=w==="llm";document.getElementById("img-llm").classList.toggle("hide",!llm);document.getElementById("img-nvidia").classList.toggle("hide",llm);document.getElementById("imgtab-llm").className=llm?"sm":"sm gh";document.getElementById("imgtab-nv").className=llm?"sm gh":"sm";if(!llm)loadNvidiaCfg();}
 async function loadNvidiaCfg(){var r=await fetch(BASE+"/admin/llm?papel=imagem",{headers:H()});if(!r.ok)return;var lista=await r.json();var nv=null;for(var i=0;i<lista.length;i++){if(String(lista[i].base_url||"").toLowerCase().indexOf("nvidia")>=0){nv=lista[i];break;}}var mod=document.getElementById("nv-modelo");var ks=document.getElementById("nv-keyset");if(nv){if(mod&&!mod.value)mod.value=nv.modelo||"";if(ks)ks.textContent=nv.api_key_set?(nv.em_uso?"\u2014 chave salva \u2713, EM USO":"\u2014 chave salva \u2713"):"\u2014 sem chave";window._nvId=nv.id;}else{if(ks)ks.textContent="\u2014 novo";window._nvId=null;}}
 async function salvarNvidia(){var modelo=val("nv-modelo").trim()||"black-forest-labs/flux.1-dev";var key=val("nv-key");var msg=document.getElementById("nv-msg");if(msg)msg.textContent="salvando...";var body={id:window._nvId||null,papel:"imagem",provedor:"openai",base_url:"https://ai.api.nvidia.com/v1/genai",modelo:modelo,api_key:key};var r=await fetch(BASE+"/admin/llm",{method:"POST",headers:H(),body:JSON.stringify(body)});var j=await r.json().catch(function(){return{};});if(!j.id){if(msg)msg.textContent="erro ao salvar";return null;}window._nvId=j.id;var k=document.getElementById("nv-key");if(k)k.value="";if(msg)msg.textContent="config salva \u2713";loadLLM("imagem");loadNvidiaCfg();return j.id;}

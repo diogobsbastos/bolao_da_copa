@@ -59,6 +59,11 @@ async function provImagem(): Promise<any | null> {
   return (rows as any[])[0] ?? null;
 }
 
+async function provImagemPara(fin: string): Promise<any | null> {
+  try { const id = await getCfg("img_uso_" + fin); if (id) { const r = (await pool.query("SELECT * FROM llm_provedores WHERE id=$1", [Number(id)])).rows[0]; if (r) return r; } } catch {}
+  return provImagem();
+}
+
 async function gerarImagemGemini(prov: any, prompt: string, refs: string[]): Promise<{ b64: string; mime: string; usage: any }> {
   if (typeof fetch !== "function") throw new Error("fetch indisponivel");
   const parts: any[] = [{ text: prompt }];
@@ -172,13 +177,27 @@ export async function rotasCriadorFig(app: FastifyInstance) {
     return { ok: true };
   });
 
+  app.get("/admin/criador-fig/finalidades", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    const map: any = {};
+    for (const f of ["molde", "avatar", "arte"]) map[f] = await getCfg("img_uso_" + f);
+    const { rows } = await pool.query("SELECT id, provedor, modelo, base_url, em_uso FROM llm_provedores WHERE papel='imagem' ORDER BY id");
+    return { ok: true, map, motores: rows };
+  });
+  app.post("/admin/criador-fig/finalidades", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    const b = (req.body ?? {}) as any;
+    for (const f of ["molde", "avatar", "arte"]) { if (f in b) await setCfg("img_uso_" + f, String(b[f] ?? "")); }
+    return { ok: true };
+  });
+
   app.post("/admin/criador-fig/base", async (req, reply) => {
     if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
     const body = (req.body ?? {}) as any;
     const time = String(body.time ?? "").trim();
     const refPedido = body.ref ? String(body.ref) : undefined;
     if (!time || time.includes("/") || time.includes("..")) return reply.code(400).send({ erro: "time invalido" });
-    const prov = await provImagem();
+    const prov = await provImagemPara("molde");
     if (!prov) return reply.code(400).send({ erro: "configure o Motor de Imagem (Configuracoes - aba Motor de Imagem): Gemini (gemini-2.5-flash-image) ou NVIDIA (base com nvidia + modelo black-forest-labs/flux.1-dev)" });
     try {
       const ref = await refDoTime(time, refPedido);
