@@ -105,7 +105,7 @@ export async function rotasLLM(app: FastifyInstance) {
   app.get("/admin/llm/noticias", async (req, reply) => {
     if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
     let ids: any[] = []; try { const v = (await pool.query("SELECT valor FROM config WHERE chave='llm_noticias_ids'")).rows[0]?.valor; if (v) { const a = JSON.parse(v); if (Array.isArray(a)) ids = a; } } catch {}
-    const { rows } = await pool.query("SELECT id, provedor, modelo, papel FROM llm_provedores ORDER BY papel, id");
+    const { rows } = await pool.query("SELECT id, provedor, modelo, papel, base_url FROM llm_provedores ORDER BY papel, id");
     return { ok: true, ids, lista: rows };
   });
   app.post("/admin/llm/noticias", async (req, reply) => {
