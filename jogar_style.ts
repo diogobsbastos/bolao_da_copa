@@ -231,7 +231,7 @@ html{scrollbar-width:thin;scrollbar-color:var(--bar,#14a06a) transparent}.main{s
 .live365::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;animation:radar365 1.9s ease-out infinite}
 @keyframes radar365{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--rc,#0e9488) 50%,transparent)}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
 .brand{display:flex;align-items:center;gap:9px}
-.blogo{height:30px;width:auto;display:block;flex:none;filter:drop-shadow(0 3px 8px rgba(0,0,0,.4))}.brand .bcol{display:inline-flex;flex-direction:column;align-items:flex-end;line-height:1.05}.brand .bbeta{font-size:8px;font-weight:800;letter-spacing:.5px;color:var(--pri2);text-transform:none;margin-top:1px}
+.blogo{height:30px;width:auto;display:block;flex:none;filter:drop-shadow(0 3px 8px rgba(0,0,0,.4))}.brand .bcol{display:inline-flex;flex-direction:column;align-items:flex-end;line-height:1.05}.brand .bbeta{font-size:7px;font-weight:600;letter-spacing:0;color:var(--mut);text-transform:none;opacity:.8;margin-top:0}
 .burger{display:flex!important;align-items:center;justify-content:center;font-size:20px}
 .side{transition:width .2s ease}
 body.mcol .side{width:58px;padding:10px 6px}
