@@ -140,9 +140,11 @@ async function load(){
   else if(st==="pendente")acts='<button class="act" onclick="rodar('+t.id+')">rodar agora</button>';
   var meta='<span class="cat">'+esc(t.categoria)+'</span><span class="fonte">'+esc(t.fonte||"\u2014")+'</span>'+(t.tentativas?("tent. "+t.tentativas+" · "):"")+(t.log?esc(String(t.log).slice(0,80)):"agendada");
   var jogoHtml=t.jogo?('<div class="jgline">'+fl(t.jogo.casa_iso)+esc(t.jogo.casa_pt)+' <b>x</b> '+esc(t.jogo.visit_pt)+fl(t.jogo.visit_iso)+'<span class="ko">apito '+hhmm(t.jogo.inicio)+'</span></div>'):'';
-  return '<div class="tk '+st+'"><span class="hr">'+hhmm(t.horario_gatilho)+'</span>'
+  var nx=(t.acao==="gerar_noticias")?' style="border-left-color:#7c3aed;background:linear-gradient(90deg,rgba(124,58,237,.08),transparent 60%)"':"";
+  var pill=(t.acao==="gerar_noticias")?' <span style="font-size:9px;font-weight:800;letter-spacing:.4px;color:#fff;background:#7c3aed;padding:1px 7px;border-radius:999px;vertical-align:middle">SERVI&Ccedil;O DEDICADO</span>':"";
+  return '<div class="tk '+st+'"'+nx+'><span class="hr">'+hhmm(t.horario_gatilho)+'</span>'
    +'<span class="ico">'+(ICO[t.acao]||"⚙")+'</span>'
-   +'<div class="body"><div class="ac">'+esc(ROT[t.acao]||t.acao)+'</div>'+jogoHtml+'<div class="meta">'+meta+'</div></div>'
+   +'<div class="body"><div class="ac">'+esc(ROT[t.acao]||t.acao)+pill+'</div>'+jogoHtml+'<div class="meta">'+meta+'</div></div>'
    +stHtml+acts+'</div>';
  }).join("");
 }
