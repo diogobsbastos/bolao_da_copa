@@ -12,7 +12,6 @@ ${CSS}
  <div class="wallets">
   <span class="w hmpote" title="Premia&ccedil;&atilde;o (pote em dinheiro)">&#127942; <span id="hm-pote">R$ 0</span></span>
   <span class="w" title="Tokens">&#129689; <span id="w-saldo">0</span></span>
-  <span class="w hmest pend" id="hm-estado" title="Estado do bol&atilde;o">&#9679; &mdash;</span>
   <div class="pwrap">
    <span class="av" id="av" onclick="togDrop(event)" title="Perfil">?</span>
    <div class="pdrop" id="pdrop">
