@@ -410,6 +410,18 @@ export async function rotasJogar(app: FastifyInstance) {
     const proximos = proxRows.map((j) => { const c = timePT(j.selecao_casa), v = timePT(j.selecao_visitante); return { casa: { pt: c.pt, iso: c.iso }, visitante: { pt: v.pt, iso: v.iso }, inicio: j.inicio, rodada: j.rodada }; });
     return { ok: true, grupos, proximos, calendario };
   });
+  app.post("/jogar/pacote/abrir", async (req, reply) => {
+    const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    const tem = (await pool.query("SELECT count(*) n FROM inventario_figurinhas WHERE usuario_id=$1", [u.id])).rows[0] as any;
+    if (Number(tem.n) > 0) return { ok: false, jaAbriu: true };
+    const plano: [string, number][] = [["Goalkeeper", 1], ["Defence", 4], ["Midfield", 4], ["Offence", 2]];
+    const cartas: any[] = [];
+    for (const [pos, n] of plano) {
+      const cards = (await pool.query("SELECT id, nome, posicao, selecao, raridade, figurinha FROM jogadores WHERE posicao=$1 AND figurinha IS NOT NULL ORDER BY random() LIMIT $2", [pos, n])).rows as any[];
+      for (const c of cards) { await pool.query("INSERT INTO inventario_figurinhas (usuario_id, jogador_id, origem) VALUES ($1,$2,'pacote_gratis') ON CONFLICT DO NOTHING", [u.id, c.id]); cartas.push(c); }
+    }
+    return { ok: true, cartas };
+  });
   app.get("/jogar/news", async (req, reply) => {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
     const itens: any[] = [];
