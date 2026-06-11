@@ -373,6 +373,8 @@ body.mcol .side a .tag,body.mcol .side a .free,body.mcol .side a .dot,body.mcol 
 .hmprev{align-items:center;text-align:center;display:flex;flex-direction:column}
 .hmprev .btnclube{display:inline-flex !important;width:auto !important;max-width:none;align-self:center;padding:8px 14px !important;font-size:12.5px;font-weight:800;margin-top:10px;border-radius:9px;box-shadow:0 3px 8px rgba(15,122,69,.22);white-space:nowrap}
 .hmprev .btnclube:hover{transform:translateY(-1px)}
+.btnclube .pricetag{display:inline-flex;align-items:center;gap:5px;background:#fff;color:#0f7a45;border-radius:999px;padding:2px 9px 2px 7px;margin-left:10px;font-weight:900;font-size:12px;box-shadow:0 1px 2px rgba(0,0,0,.06);line-height:1}
+.btnclube .pricetag svg{display:block;flex:none}
 @media(min-width:761px) and (max-width:1024px){body{zoom:.82}.layout{min-height:calc(100vh / 0.82 - 52px)}.side{min-height:calc(100vh / 0.82 - 52px)}}
 @media(min-width:1025px) and (max-width:1280px){body{zoom:.9}.layout{min-height:calc(100vh / 0.9 - 52px)}.side{min-height:calc(100vh / 0.9 - 52px)}}
 /* ===== Cards de pacotes de depósito ===== */
