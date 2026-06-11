@@ -55,12 +55,13 @@ async function getLocalCfg(): Promise<any> {
 
 async function provImagem(): Promise<any | null> {
   let { rows } = await pool.query("SELECT * FROM llm_provedores WHERE em_uso=true AND papel='imagem' ORDER BY id LIMIT 1");
+  if (!rows.length || !(rows[0] as any).api_key) ({ rows } = await pool.query("SELECT * FROM llm_provedores WHERE papel='imagem' AND api_key<>'' ORDER BY id LIMIT 1"));
   if (!rows.length) ({ rows } = await pool.query("SELECT * FROM llm_provedores WHERE papel='imagem' ORDER BY id LIMIT 1"));
   return (rows as any[])[0] ?? null;
 }
 
 async function provImagemPara(fin: string): Promise<any | null> {
-  try { const id = await getCfg("img_uso_" + fin); if (id) { const r = (await pool.query("SELECT * FROM llm_provedores WHERE id=$1", [Number(id)])).rows[0]; if (r) return r; } } catch {}
+  try { const id = await getCfg("img_uso_" + fin); if (id) { const r: any = (await pool.query("SELECT * FROM llm_provedores WHERE id=$1", [Number(id)])).rows[0]; if (r && r.api_key) return r; } } catch {}
   return provImagem();
 }
 
