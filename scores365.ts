@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 import { pool } from "./db.js";
 import { usuarioDaReq } from "./auth.js";
 import { apurarJogo, apurarPendentes } from "./pontuacao.js";
+import { noticiasTime, timePT } from "./jogos_placar.js";
 
 const S365 = "https://webws.365scores.com/web";
 const COMP = 5930; // FIFA World Cup 2026
@@ -210,7 +211,7 @@ export async function coletarDados365(): Promise<any> {
 }
 
 export async function atualizarDadosJogo(jogoId: number): Promise<any> {
-  const j = (await pool.query("SELECT id, odds->>'gid' AS gid FROM jogos WHERE id=$1", [jogoId])).rows[0] as any;
+  const j = (await pool.query("SELECT id, selecao_casa, selecao_visitante, odds->>'gid' AS gid FROM jogos WHERE id=$1", [jogoId])).rows[0] as any;
   if (!j?.gid) return { ok: false, erro: "sem gid (jogo distante ou nao mapeado)" };
   const gj = await s365(`/game?appTypeId=5&langId=1&userCountryId=21&timezoneName=America/Sao_Paulo&gameId=${j.gid}`);
   const g = gj?.game; if (!g) return { ok: false, erro: "sem game no 365" };
@@ -220,6 +221,8 @@ export async function atualizarDadosJogo(jogoId: number): Promise<any> {
   const cache = new Map<number, any>();
   try { base.casa.ultimas5 = await ultimas5(hcId, base.casa.recentIds, cache); } catch {}
   try { base.visitante.ultimas5 = await ultimas5(acId, base.visitante.recentIds, cache); } catch {}
+  try { base.noticiasCasa = await noticiasTime(timePT(j.selecao_casa).pt, j.selecao_casa); } catch {}
+  try { base.noticiasVisitante = await noticiasTime(timePT(j.selecao_visitante).pt, j.selecao_visitante); } catch {}
   try {
     const od = odds1x2(g);
     if (od) {

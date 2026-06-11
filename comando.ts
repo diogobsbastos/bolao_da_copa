@@ -13,7 +13,7 @@ async function setCfg(k: string, v: string): Promise<void> { try { await pool.qu
 
 // Mapa de acoes do robo. Fase 1: dados do jogo, auto-preencher, resultado(+gols+apuracao) e odds = REAIS.
 const FONTE: Record<string, string> = {
-  atualizar_dados_jogo: "365scores", coletar_resultado: "365scores", atualizar_odds: "365scores", confirmar_agenda: "365scores", regua_figurinhas: "365scores",
+  atualizar_dados_jogo: "365scores + ESPN", coletar_resultado: "365scores", atualizar_odds: "365scores", confirmar_agenda: "365scores", regua_figurinhas: "365scores",
   auto_preencher: "interno", injetar_tokens: "interno", liquidar_bets: "interno", arena_resolver: "interno", gerar_noticias: "ESPN + IA",
 };
 const ACOES: Record<string, (p: any) => Promise<any>> = {
