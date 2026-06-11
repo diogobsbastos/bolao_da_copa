@@ -410,6 +410,20 @@ export async function rotasJogar(app: FastifyInstance) {
     const proximos = proxRows.map((j) => { const c = timePT(j.selecao_casa), v = timePT(j.selecao_visitante); return { casa: { pt: c.pt, iso: c.iso }, visitante: { pt: v.pt, iso: v.iso }, inicio: j.inicio, rodada: j.rodada }; });
     return { ok: true, grupos, proximos, calendario };
   });
+  app.get("/jogar/news", async (req, reply) => {
+    const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    const itens: any[] = [];
+    try {
+      const res = (await pool.query("SELECT selecao_casa, selecao_visitante, resultado_casa, resultado_visitante, resultado_em FROM jogos WHERE status='final' AND resultado_casa IS NOT NULL ORDER BY resultado_em DESC NULLS LAST LIMIT 6")).rows as any[];
+      for (const j of res){ const c=timePT(j.selecao_casa), v=timePT(j.selecao_visitante); itens.push({tipo:"resultado",tit:"Resultado",txt:c.pt+" "+j.resultado_casa+" x "+j.resultado_visitante+" "+v.pt,iso:c.iso,ts:j.resultado_em,past:true}); }
+      const mp = (await pool.query("SELECT pb.pontos, j.selecao_casa, j.selecao_visitante, j.resultado_em FROM palpites_bolao pb JOIN jogos j ON j.id=pb.jogo_id WHERE pb.usuario_id=$1 AND pb.creditado=true AND pb.pontos>0 ORDER BY j.resultado_em DESC NULLS LAST LIMIT 5", [u.id])).rows as any[];
+      for (const m of mp){ const c=timePT(m.selecao_casa), v=timePT(m.selecao_visitante); itens.push({tipo:"pontos",tit:"Voce pontuou",txt:"+"+m.pontos+" pts em "+c.pt+" x "+v.pt,iso:c.iso,ts:m.resultado_em,past:true}); }
+      const px = (await pool.query("SELECT selecao_casa, selecao_visitante, inicio FROM jogos WHERE inicio>=now() AND selecao_casa<>'A definir' ORDER BY inicio ASC LIMIT 3")).rows as any[];
+      for (const j of px){ const c=timePT(j.selecao_casa), v=timePT(j.selecao_visitante); itens.push({tipo:"proximo",tit:"Proximo jogo",txt:c.pt+" x "+v.pt,iso:c.iso,ts:j.inicio,past:false}); }
+    } catch {}
+    itens.sort((a:any,b:any)=> new Date(b.ts||0).getTime() - new Date(a.ts||0).getTime());
+    return { ok:true, itens: itens.slice(0,12) };
+  });
   app.get("/jogar/longo", async (req, reply) => {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
     let trava = "2026-06-23T23:59:00-03:00";
