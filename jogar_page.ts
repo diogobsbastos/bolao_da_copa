@@ -77,11 +77,10 @@ ${CSS}
    <div class="pghead"><div class="pghl"><h1>Meu Time</h1></div><div class="muted" style="margin:0">Escale seu XI no 4-4-2. Toque num titular e depois numa reserva pra trocar.</div></div>
    <div class="card" id="tm-vazio" style="display:none"><div class="muted">Voc&ecirc; ainda n&atilde;o tem cartas. Abra seu Clube no Marketplace pra montar o time.</div><div style="margin-top:12px"><button class="btn" onclick="nav('market')">Abrir meu Clube</button></div></div>
    <div id="tm-wrap" style="display:none">
-    <div class="tmprev"><span class="tmprevlab">&#9888; Em breve</span><span class="tmprevopt">Forma&ccedil;&atilde;o 4-4-2</span><span class="tmprevopt">Titulares</span><span class="tmprevopt">Reservas</span><span class="tmprevopt">Por posi&ccedil;&atilde;o</span></div>
     <div class="tmtop">
      <div class="tmbadge"><div><div class="k">Forma&ccedil;&atilde;o</div><div class="v">4-4-2</div></div></div>
      <div class="tmbadge"><div><div class="k">For&ccedil;a do elenco</div><div class="v gold" id="tm-forca">--</div></div></div>
-     <div class="tmbadge"><div><div class="k">Cartas</div><div class="v" id="tm-qt">--</div></div></div>
+     <div class="tmbadge"><div><div class="k">Cartas</div><div class="v" id="tm-qt">--</div></div></div><div class="tmbadge tmsoon"><div><div class="k">&#9888; Em breve</div><div class="v">Forma&ccedil;&atilde;o 4-4-2</div></div></div><div class="tmbadge tmsoon"><div><div class="k">&#9888; Em breve</div><div class="v">Titulares</div></div></div><div class="tmbadge tmsoon"><div><div class="k">&#9888; Em breve</div><div class="v">Reservas</div></div></div><div class="tmbadge tmsoon"><div><div class="k">&#9888; Em breve</div><div class="v">Por posi&ccedil;&atilde;o</div></div></div>
     </div>
     <div class="tmgrid">
      <div class="tmpit-wrap"><div class="card" style="padding:10px"><div class="pitch tmbig" id="tm-pitch"></div></div></div>
