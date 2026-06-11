@@ -4,7 +4,8 @@ import { usuarioDaReq } from "./auth.js";
 import { PAGINA_COMANDO } from "./comando_page.js";
 import { atualizarDadosJogo, coletarResultadoJogo, syncOdds, confirmarAgenda } from "./scores365.js";
 import { autoPreencherTick } from "./jogar.js";
-import { timePT } from "./jogos_placar.js";
+import { timePT, noticiasTime, resumirNoticias } from "./jogos_placar.js";
+import { chamarLLM } from "./llm.js";
 
 async function admOk(req: FastifyRequest): Promise<boolean> {
   const t = req.headers["x-admin-token"]; const e = process.env.ADMIN_TOKEN ?? "";
@@ -15,7 +16,7 @@ async function setCfg(k: string, v: string): Promise<void> { try { await pool.qu
 // Mapa de acoes do robo. Fase 1: dados do jogo, auto-preencher, resultado(+gols+apuracao) e odds = REAIS.
 const FONTE: Record<string, string> = {
   atualizar_dados_jogo: "365scores + ESPN", coletar_resultado: "365scores", atualizar_odds: "365scores", confirmar_agenda: "365scores", regua_figurinhas: "365scores",
-  auto_preencher: "interno", injetar_tokens: "interno", liquidar_bets: "interno", arena_resolver: "interno", gerar_noticias: "ESPN + IA",
+  auto_preencher: "interno", injetar_tokens: "interno", liquidar_bets: "interno", arena_resolver: "interno", gerar_noticias: "ESPN + IA (local)",
 };
 const ACOES: Record<string, (p: any) => Promise<any>> = {
   atualizar_dados_jogo: (p) => atualizarDadosJogo(Number(p?.jogo_id)),
@@ -23,7 +24,7 @@ const ACOES: Record<string, (p: any) => Promise<any>> = {
   coletar_resultado: (p) => coletarResultadoJogo(Number(p?.jogo_id)),
   atualizar_odds: () => syncOdds(),
   confirmar_agenda: async () => { const r = await confirmarAgenda(); await gerarTarefasDosJogos(); return { ok: true, agenda: r }; },
-  gerar_noticias: async () => ({ ok: true, placeholder: true, msg: "Noticias IA (Cron 01): modulo a construir" }),
+  gerar_noticias: async () => resumirNoticiasDoDia(),
   injetar_tokens: async () => ({ ok: true, placeholder: true, msg: "Drip de tokens diario: modulo a construir" }),
   liquidar_bets: async () => ({ ok: true, placeholder: true, msg: "Bet: fora do Beta 1.0" }),
   arena_resolver: async () => ({ ok: true, placeholder: true, msg: "Arena PvP: modulo a construir" }),
@@ -83,6 +84,14 @@ export async function gerarTarefasDosJogos(): Promise<any> {
   return { ok: true, jogos: jogos.length };
 }
 
+async function resumirNoticiasDoDia(): Promise<any> {
+  const jogos = (await pool.query("SELECT DISTINCT selecao_casa, selecao_visitante FROM jogos WHERE inicio > now() AND inicio < now() + interval '36 hours' AND selecao_casa<>'A definir' AND selecao_visitante<>'A definir'")).rows as any[];
+  const times = new Set<string>(); for (const j of jogos) { times.add(j.selecao_casa); times.add(j.selecao_visitante); }
+  const inv = (p: string) => chamarLLM(p, "texto", { origem: "cron", processo: "resumo_noticias" });
+  let n = 0;
+  for (const en of Array.from(times)) { try { const news = await noticiasTime(timePT(en).pt, en); const r = await resumirNoticias(news, inv, null); n += (r || []).filter((x: any) => x.resumo_ia).length; } catch {} }
+  return { ok: true, times: times.size, noticias_resumidas: n };
+}
 export function iniciarComando(): void {
   setTimeout(() => { gerarTarefasDosJogos().catch(() => {}); }, 8000);
   setInterval(() => { gerarTarefasDosJogos().catch(() => {}); }, 60 * 60 * 1000);

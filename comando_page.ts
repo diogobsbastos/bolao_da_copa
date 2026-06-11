@@ -82,7 +82,7 @@ function esc(v){return String(v==null?"":v).replace(/[&<>"]/g,function(c){return
 function fl(iso){return iso?('<img class="fl" src="https://flagcdn.com/w40/'+iso+'.png" onerror="this.style.opacity=.2">'):"";}
 function hhmm(s){var d=new Date(s);if(isNaN(d))return "--:--";return d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});}
 var ICO={atualizar_dados_jogo:"\u{1F504}",auto_preencher:"\u{1F916}",coletar_resultado:"\u{1F3C1}",atualizar_odds:"\u{1F4B9}",gerar_noticias:"\u{1F4F0}",injetar_tokens:"\u{1FA99}",liquidar_bets:"\u{1F3B0}",arena_resolver:"\u{2694}",regua_figurinhas:"\u{1F0CF}",confirmar_agenda:"\u{1F4C5}"};
-var ROT={atualizar_dados_jogo:"Atualizar dados do jogo",auto_preencher:"Auto-preencher palpites",coletar_resultado:"Coletar resultado + apurar",atualizar_odds:"Atualizar odds",gerar_noticias:"Gerar noticias (IA)",injetar_tokens:"Injetar tokens diarios",liquidar_bets:"Liquidar Bets",arena_resolver:"Resolver Arenas",regua_figurinhas:"Regua de notas",confirmar_agenda:"Confirmar agenda (horarios reais)"};
+var ROT={atualizar_dados_jogo:"Atualizar dados do jogo",auto_preencher:"Auto-preencher palpites",coletar_resultado:"Coletar resultado + apurar",atualizar_odds:"Atualizar odds",gerar_noticias:"Resumir noticias (IA local)",injetar_tokens:"Injetar tokens diarios",liquidar_bets:"Liquidar Bets",arena_resolver:"Resolver Arenas",regua_figurinhas:"Regua de notas",confirmar_agenda:"Confirmar agenda (horarios reais)"};
 function setCat(c){CAT=c;[].forEach.call(document.querySelectorAll(".fb"),function(b){b.classList.toggle("on",b.getAttribute("data-c")===c);});load();}
 function saude(lastTick,agora){
  var d=document.getElementById("rdot"),s=document.getElementById("rstat"),sub=document.getElementById("rsub");

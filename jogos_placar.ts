@@ -152,9 +152,28 @@ export async function noticiasTime(nomePT: string, en: string): Promise<string[]
   const c = CACHE_NEWS.get(en);
   if (c && Date.now() - c.t < 6 * 3600 * 1000) return c.linhas;
   const d = await newsRaw(nomePT, en);
-  const linhas: any = d.items.slice(0, 5).map((i: any) => ({ titulo: i.title, resumo: i.desc || "", data: i.data || null }));
+  const linhas: any = d.items.slice(0, 5).map((i: any) => ({ titulo: i.title, resumo: i.desc || "", data: i.data || null, link: i.link || null }));
   if (linhas.length) CACHE_NEWS.set(en, { t: Date.now(), linhas });
   return linhas;
+}
+export async function resumirNoticias(items: any[], invoker: ((p: string) => Promise<string>) | null, porUsuario: number | null): Promise<any[]> {
+  if (!Array.isArray(items) || !items.length) return items || [];
+  const links = items.map((n) => n && n.link).filter(Boolean);
+  const tem = new Map<string, string>();
+  if (links.length) { try { const { rows } = await pool.query("SELECT chave, resumo_llm FROM noticias_resumos WHERE chave = ANY($1)", [links]); for (const r of rows as any[]) tem.set(r.chave, r.resumo_llm); } catch {} }
+  for (const n of items) { if (n && n.link && tem.has(n.link)) n.resumo_ia = tem.get(n.link); }
+  const faltam = items.filter((n) => n && n.link && !n.resumo_ia && (n.titulo || n.title));
+  if (faltam.length && invoker) {
+    try {
+      const lista = faltam.map((n, i) => (i + 1) + ". " + (n.titulo || n.title || "") + " - " + (n.resumo || n.desc || "")).join("\n");
+      const prompt = "Resuma cada manchete de futebol abaixo em UMA frase curta (max 12 palavras), foco no que afeta o jogo (escalacao, desfalque, lesao, suspensao, forma). Se nao afetar o jogo, responda \"-\". Responda SOMENTE um array JSON [{\"i\":1,\"r\":\"...\"}]. MANCHETES:\n" + lista;
+      const resp = await invoker(prompt);
+      const mm = String(resp || "").match(/\[[\s\S]*\]/);
+      const arr: any[] = mm ? JSON.parse(mm[0]) : [];
+      for (const o of arr) { const idx = Number(o.i) - 1; const r = o && o.r ? String(o.r).slice(0, 220) : ""; if (idx >= 0 && idx < faltam.length && r && r !== "-") { const n = faltam[idx]; n.resumo_ia = r; try { await pool.query("INSERT INTO noticias_resumos (chave, titulo, data, resumo_llm, por_usuario) VALUES ($1,$2,$3,$4,$5) ON CONFLICT (chave) DO NOTHING", [n.link, n.titulo || n.title || "", n.data || null, r, porUsuario]); } catch {} } }
+    } catch {}
+  }
+  return items;
 }
 
 async function oddsGet(path: string): Promise<{ data: any; rest: string | null }> {

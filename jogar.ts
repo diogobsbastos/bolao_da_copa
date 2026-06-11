@@ -5,7 +5,7 @@ import { usuarioDaReq } from "./auth.js";
 import { PAGINA_JOGAR } from "./jogar_page.js";
 import { invocarTexto, listarModelos } from "./llm.js";
 import { registrarGasto } from "./custos.js";
-import { timePT, rankOf, palpiteOdds, calcClassificacao, mapaGrupos, forma2022, noticiasTime, classifGrupoDe } from "./jogos_placar.js";
+import { timePT, rankOf, palpiteOdds, calcClassificacao, mapaGrupos, forma2022, noticiasTime, classifGrupoDe, resumirNoticias } from "./jogos_placar.js";
 
 async function jogador(req: FastifyRequest) {
   const u = await usuarioDaReq(req); if (u) return u;
@@ -97,6 +97,7 @@ async function montarContexto(id: number): Promise<any | null> {
       } finally { fetchandoCtx.delete(j.id); }
     }
   }
+  try { nCasa = await resumirNoticias(nCasa, null, null); nVisi = await resumirNoticias(nVisi, null, null); } catch {}
   const f5 = (l: any) => { const m = medias5(l?.ultimas5); return m ? { jogos: m.n, golsPro: +m.gpM.toFixed(2), golsContra: +m.gcM.toFixed(2), aproveitamento: Math.round(m.aprov * 100) } : null; };
   return { ok: true, jogo: { id: j.id, rodada: j.rodada, fase: j.fase, inicio: j.inicio, casa: { pt: c.pt, en: j.selecao_casa, iso: c.iso, rankFifa: rankOf(j.selecao_casa) }, visitante: { pt: v.pt, en: j.selecao_visitante, iso: v.iso, rankFifa: rankOf(j.selecao_visitante) } }, odds, probabilidade: prob, escalacao: { casa: lineup(j.lineup_casa), visitante: lineup(j.lineup_visitante) }, forma2022: { casa: forCasa, visitante: forVisi }, classificacao: clas, noticias: { casa: nCasa, visitante: nVisi }, extra365: j.dados365 || null, forma5: { casa: f5(j.dados365?.casa), visitante: f5(j.dados365?.visitante) } };
 }
@@ -315,6 +316,7 @@ export async function rotasJogar(app: FastifyInstance) {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
     const id = Number((req.body as any)?.jogo || 0); if (!id) return { ok: false, erro: "jogo?" };
     const ctx = await montarContexto(id); if (!ctx) return { ok: false, erro: "jogo nao existe" };
+    try { const pv = (await pool.query("SELECT provedor, modelo, api_key, base_url FROM usuarios_llm WHERE usuario_id=$1", [u.id])).rows[0] as any; if (pv && pv.api_key && ctx.noticias) { const inv = (p: string) => invocarTexto({ provedor: pv.provedor, modelo: pv.modelo, api_key: pv.api_key, base_url: pv.base_url } as any, p).then((r: any) => String(r.texto || "")); ctx.noticias.casa = await resumirNoticias(ctx.noticias.casa, inv, u.id); ctx.noticias.visitante = await resumirNoticias(ctx.noticias.visitante, inv, u.id); } } catch {}
     const base: any = { ok: true, jogo_id: id, casa: ctx.jogo.casa.pt, visitante: ctx.jogo.visitante.pt, isoC: ctx.jogo.casa.iso, isoV: ctx.jogo.visitante.iso };
     const prov = (await pool.query("SELECT provedor, modelo, api_key, base_url FROM usuarios_llm WHERE usuario_id=$1", [u.id])).rows[0] as any;
     const logico = (): any => {
