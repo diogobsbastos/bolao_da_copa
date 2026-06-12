@@ -559,7 +559,7 @@ async function depCriar(brl){var b=document.getElementById("dep-body");DEPVAL=Nu
  +'<div class="mpcopy"><input id="dep-cc" value="'+esc(d.qr_code||"")+'" readonly onclick="this.select()"><button class="btn ghost" onclick="depCopiar()">Copiar</button></div>'
  +'<div id="dep-status" class="mpstatus"><span class="dot"></span> Aguardando pagamento&hellip; <small id="dep-elapsed"></small></div>'
  +(d.teste?'<button class="btn mpsim" onclick="depSimular()">&#129514; Simular pagamento aprovado (sandbox)</button>':"")
- +'<button class="btn ghost" style="margin-top:8px;width:100%" onclick="loadDeposito()">&larr; Trocar valor</button>'
+ 
  +DEPSEALS;
  depPollInit();}
 function depCopiar(){var i=document.getElementById("dep-cc");if(!i)return;try{if(navigator.clipboard)navigator.clipboard.writeText(i.value);else{i.select();document.execCommand("copy");}}catch(e){i.select();}toast("C\u00f3digo PIX copiado \u2705");}
