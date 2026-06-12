@@ -373,6 +373,7 @@ body.mcol .side a .tag,body.mcol .side a .free,body.mcol .side a .dot,body.mcol 
 .btn.btnclb{display:inline-flex;align-items:center;gap:8px}
 .btn.btnclb svg{width:18px;height:18px;flex:none;color:#fff}
 .brlcc{font-size:.78em;font-weight:700;color:inherit !important;opacity:1 !important}
+.hmpote .brlcc,.w .brlcc{font-size:1em}
 @media(min-width:761px) and (max-width:1024px){body{zoom:.82}.layout{min-height:calc(100vh / 0.82 - 52px)}.side{min-height:calc(100vh / 0.82 - 52px)}}
 @media(min-width:1025px) and (max-width:1280px){body{zoom:.9}.layout{min-height:calc(100vh / 0.9 - 52px)}.side{min-height:calc(100vh / 0.9 - 52px)}}
 /* ===== Cards de pacotes de depósito ===== */
