@@ -124,7 +124,7 @@ export async function rotasJogar(app: FastifyInstance) {
     let autoP = false; try { autoP = !!((await pool.query("SELECT auto_preencher FROM usuarios WHERE id=$1", [u.id])).rows[0] as any)?.auto_preencher; } catch {}
     let iaOn = false; try { iaOn = !!((await pool.query("SELECT (length(api_key)>0) k FROM usuarios_llm WHERE usuario_id=$1", [u.id])).rows[0] as any)?.k; } catch {}
     let acessoFull = false; let pf: any = {};
-    try { pf = (await pool.query("SELECT acesso_full, nome_time, avatar, pagou FROM usuarios WHERE id=$1", [u.id])).rows[0] as any || {}; acessoFull = !!pf.acesso_full || u.papel === "admin"; } catch {}
+    try { pf = (await pool.query("SELECT acesso_full, nome_time, avatar, pagou, full_code, full_usado FROM usuarios WHERE id=$1", [u.id])).rows[0] as any || {}; acessoFull = !!pf.acesso_full || u.papel === "admin"; } catch {}
     let valorPago = 0; try { valorPago = Number(((await pool.query("SELECT COALESCE(SUM(valor),0) v FROM depositos WHERE usuario_id=$1 AND status='approved'", [u.id])).rows[0] as any)?.v || 0); } catch {}
     let mataAberto = false; try { const mf = (await pool.query("SELECT valor FROM config WHERE chave='mata_aberto'")).rows[0]?.valor; if (mf==='1' || mf==='true') mataAberto=true; else { const mn = (await pool.query("SELECT min(inicio) m FROM jogos WHERE fase<>'grupos' AND inicio IS NOT NULL")).rows[0]?.m; if (mn && Date.now() >= new Date(mn).getTime()) mataAberto=true; } } catch {}
     let longoFeito = false; try { longoFeito = !!((await pool.query("SELECT 1 FROM palpites_longo WHERE usuario_id=$1 AND campeao IS NOT NULL AND campeao<>'' AND vice IS NOT NULL AND vice<>'' AND terceiro IS NOT NULL AND terceiro<>'' AND quarto IS NOT NULL AND quarto<>'' AND artilheiro_id IS NOT NULL", [u.id])).rowCount); } catch {}
@@ -132,7 +132,7 @@ export async function rotasJogar(app: FastifyInstance) {
     let poteTot=0;try{const _pr=await pool.query("SELECT COALESCE(SUM(valor),0) AS v FROM depositos WHERE status='approved'");poteTot=Number(_pr.rows[0].v)||0;}catch{}
     let ultRod = { pts: 0, n: 0 };
     try { const rr = (await pool.query("SELECT COALESCE(sum(pb.pontos),0) p, count(*) n FROM palpites_bolao pb JOIN jogos j ON j.id=pb.jogo_id WHERE pb.usuario_id=$1 AND pb.creditado=true AND COALESCE(j.resultado_em, j.inicio) >= now() - interval '24 hours'", [u.id])).rows[0] as any; if (rr) { ultRod.pts = Number(rr.p || 0); ultRod.n = Number(rr.n || 0); } } catch {}
-    return { ok: true, bolaoRod: ultRod, pote: poteTot, autoPreencher: autoP, iaConectada: iaOn, acessoFull, me: { id: u.id, nome: u.nome || u.email, email: u.email, papel: u.papel, nomeTime: pf.nome_time || "", avatar: pf.avatar || "", pagou: !!pf.pagou, valorPago }, carteiras: { saldo: Number(cart.saldo || 0) }, ranking: { pos, pontos, total, arena }, proximo, palpitesPendentes: pend, mataAberto, longoFeito, steps: { rod: stRod, ca: longoFeito } };
+    return { ok: true, bolaoRod: ultRod, pote: poteTot, autoPreencher: autoP, iaConectada: iaOn, acessoFull, me: { id: u.id, nome: u.nome || u.email, email: u.email, papel: u.papel, nomeTime: pf.nome_time || "", avatar: pf.avatar || "", pagou: !!pf.pagou, valorPago, temConviteFull: !!(pf.pagou && pf.full_code && !pf.full_usado) }, carteiras: { saldo: Number(cart.saldo || 0) }, ranking: { pos, pontos, total, arena }, proximo, palpitesPendentes: pend, mataAberto, longoFeito, steps: { rod: stRod, ca: longoFeito } };
   });
 
   app.post("/jogar/perfil", async (req, reply) => {
