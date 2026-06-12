@@ -577,22 +577,5 @@ body.light .ob-box{background:linear-gradient(180deg,#fff 0%,#fafcff 100%);color
  #autobar.actpanel .act-logic{flex-direction:column!important;gap:6px;width:100%}
  #autobar.actpanel .act-logic > *{width:100%;max-width:100%}
 }
-
-/* --- MOBILE POLISH v5 (12/jun): override forte do layout IA + reset altura --- */
-@media(max-width:600px){
- div#autobar.actpanel{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:6px!important;padding:10px!important;min-height:0!important;height:auto!important}
- div#autobar.actpanel>*{flex:0 0 auto!important;width:auto!important;max-width:100%!important;min-width:0!important;margin:0!important}
- /* act-ia: row compacta */
- div#autobar.actpanel>.act-ia{display:flex!important;flex-direction:row!important;align-items:center!important;flex-wrap:nowrap!important;gap:8px!important;width:100%!important;min-height:0!important;height:auto!important}
- div#autobar.actpanel>.act-ia>.masc{flex:0 0 44px!important;width:44px!important;height:44px!important;min-width:44px!important;max-width:44px!important;max-height:44px!important;margin:0!important;align-self:center}
- div#autobar.actpanel>.act-ia>.masc>svg,div#autobar.actpanel>.act-ia>.masc svg{width:44px!important;height:44px!important;max-width:44px!important;max-height:44px!important}
- div#autobar.actpanel>.act-ia>.bubble{flex:1 1 auto!important;min-width:0!important;max-width:calc(100% - 56px)!important;width:auto!important;padding:6px 10px!important;font-size:13px!important;line-height:1.3!important}
- /* act-logic: botoes empilhados compactos */
- div#autobar.actpanel>.act-logic{display:flex!important;flex-direction:column!important;gap:4px!important;width:100%!important;min-height:0!important}
- div#autobar.actpanel>.act-logic>*{width:100%!important;max-width:100%!important;margin:0!important}
- div#autobar.actpanel button{width:100%!important;max-width:100%!important;white-space:normal!important;text-align:center!important;padding:9px 12px!important;font-size:13px!important;line-height:1.2!important;min-height:0!important;height:auto!important}
- /* .actcol (botao X de fechar) compacto */
- div#autobar.actpanel>.actcol{align-self:flex-end!important;padding:2px 8px!important;font-size:14px!important;height:auto!important;min-height:0!important}
-}
 .ob-emoji{font-size:46px}}
 `;
