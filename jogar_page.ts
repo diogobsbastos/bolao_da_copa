@@ -207,7 +207,7 @@ ${CSS}
 
  </main>
 </div>
-<div class="mov" id="mov" onclick="if(event.target===this)fecha()"><div class="modal"><button class="mx" onclick="fecha()" title="Fechar">&times;</button><div id="mbody"></div><div id="mfoot" style="margin-top:12px;text-align:right"></div></div></div>
+<div class="mov" id="mov" onclick="if(event.target===this)fecha()"><div class="modal"><button class="mx" onclick="fecha()" title="Fechar">&times;</button><div id="mbody"></div><div id="mfoot" style="margin-top:12px;display:flex;gap:10px;justify-content:center"></div></div></div>
 <div class="bloqov" id="bloqueio"><div class="bloqcard"><div class="bloqtitle">&#128274; Desbloqueie pra jogar</div><div class="muted" style="margin:6px 0 14px;line-height:1.5">O Bol&atilde;o Copa 26 &eacute; s&oacute; pra quem &eacute; <b>full</b>. Pague <b>R$10</b> (uma vez) ou use um <b>convite full</b> de um amigo.</div><button class="btn" style="width:100%" onclick="bloqPagar()">&#128179; Pagar com PIX (R$10)</button><div class="bloqor">ou</div><div class="bloqcode"><input id="bloq-code" placeholder="cole seu convite full"><button class="btn ghost" onclick="bloqResgatar()">Resgatar</button></div><div id="bloq-msg" class="muted" style="margin-top:8px;font-size:12px"></div></div></div>
 <div class="avov" id="avcrop" onclick="if(event.target===this)avCancel()"><div class="avbox">
  <div class="avtitle">Ajustar foto</div><div class="avhint">Arraste para posicionar &middot; use o zoom</div>
