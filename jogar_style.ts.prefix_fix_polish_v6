@@ -594,23 +594,5 @@ body.light .ob-box{background:linear-gradient(180deg,#fff 0%,#fafcff 100%);color
  /* .actcol (botao X de fechar) compacto */
  div#autobar.actpanel>.actcol{align-self:flex-end!important;padding:2px 8px!important;font-size:14px!important;height:auto!important;min-height:0!important}
 }
-
-/* --- MOBILE POLISH v6 (12/jun): .actcol pequeno top-right + .act-logic row --- */
-@media(max-width:600px){
- /* Container relativo pra ancorar o X absoluto */
- div#autobar.actpanel{position:relative!important;padding:32px 10px 10px 10px!important}
- /* X = botaozinho compacto no canto superior direito */
- div#autobar.actpanel>.actcol{position:absolute!important;top:6px!important;right:8px!important;width:26px!important;height:26px!important;min-width:0!important;max-width:26px!important;padding:0!important;font-size:14px!important;line-height:1!important;border-radius:50%!important;align-self:auto!important;z-index:3}
- /* act-logic: ROW — Preencher (flex grande) + Auto (compacto) + ? (compacto), na mesma linha */
- div#autobar.actpanel>.act-logic{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;align-items:center!important;gap:6px!important;width:100%!important}
- /* Primeiro filho (Preencher pela logica): toma o espaco principal */
- div#autobar.actpanel>.act-logic>*:first-child{flex:1 1 60%!important;width:auto!important;min-width:0!important;max-width:100%!important}
- /* Demais filhos (Auto toggle, ?, etc): compactos a direita */
- div#autobar.actpanel>.act-logic>*:not(:first-child){flex:0 0 auto!important;width:auto!important;max-width:none!important}
- /* Botoes do act-logic com height/padding uniformes */
- div#autobar.actpanel>.act-logic button{height:36px!important;padding:6px 12px!important;font-size:13px!important;white-space:nowrap!important}
- /* Auto toggle precisa caber */
- div#autobar.actpanel>.act-logic .toggle,div#autobar.actpanel>.act-logic [class*=toggle],div#autobar.actpanel>.act-logic [class*=switch]{flex:0 0 auto!important;width:auto!important}
-}
 .ob-emoji{font-size:46px}}
 `;
