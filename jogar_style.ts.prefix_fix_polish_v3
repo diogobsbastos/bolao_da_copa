@@ -565,17 +565,5 @@ body.light .ob-box{background:linear-gradient(180deg,#fff 0%,#fafcff 100%);color
  .cm.cmtop .tag{padding:2px 8px;gap:0}
  .cm.cmtop .tag.lk{padding:2px 8px}
 }
-
-/* --- MOBILE POLISH v3 (12/jun): OVERRIDE v2 — masc do IA volta a ser pequeno --- */
-@media(max-width:600px){
- /* .act-ia: volta pra linha, mascote pequeno a esquerda */
- #autobar.actpanel .act-ia{flex-direction:row!important;align-items:center!important;flex-wrap:nowrap!important;gap:10px!important;width:100%}
- #autobar.actpanel .act-ia .masc{flex:0 0 auto!important;width:48px!important;height:48px!important;max-width:48px!important;min-width:48px!important;align-self:center;margin:0!important}
- #autobar.actpanel .act-ia .masc svg{width:48px!important;height:48px!important;max-width:48px!important}
- #autobar.actpanel .act-ia .bubble{flex:1 1 auto!important;width:auto!important;min-width:0!important;max-width:none!important}
- /* .act-logic: mantem column (botoes empilhados) */
- #autobar.actpanel .act-logic{flex-direction:column!important;gap:6px;width:100%}
- #autobar.actpanel .act-logic > *{width:100%;max-width:100%}
-}
 .ob-emoji{font-size:46px}}
 `;
