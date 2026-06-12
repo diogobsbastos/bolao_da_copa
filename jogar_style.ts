@@ -383,6 +383,9 @@ body.mcol .side a .tag,body.mcol .side a .free,body.mcol .side a .dot,body.mcol 
 .side a.navfull .navfreesel{background:#f5c451;color:#fff;font-size:9px;font-weight:800;padding:1px 6px;border-radius:999px;margin-left:auto;margin-right:6px;position:relative;animation:radarg 1.8s ease-out infinite}
 .side .navdiv{height:1px;background:var(--bd);margin:12px 8px;border-radius:1px}
 .side a.navfull{margin-top:0}
+.modal .mkpac{height:auto !important;max-height:200px !important;width:auto;margin:0 auto 6px}
+.modal .pack.base{padding:6px}
+.modal .pkflag{transform:scale(.85);transform-origin:top right}
 @media(min-width:761px) and (max-width:1024px){body{zoom:.82}.layout{min-height:calc(100vh / 0.82 - 52px)}.side{min-height:calc(100vh / 0.82 - 52px)}}
 @media(min-width:1025px) and (max-width:1280px){body{zoom:.9}.layout{min-height:calc(100vh / 0.9 - 52px)}.side{min-height:calc(100vh / 0.9 - 52px)}}
 /* ===== Cards de pacotes de depósito ===== */
