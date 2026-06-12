@@ -528,5 +528,15 @@ body.light .ob-box{background:linear-gradient(180deg,#fff 0%,#fafcff 100%);color
  .pack.base{min-width:0;padding:14px 10px}
  .pksoon,.pksoon2{display:block;margin:6px auto 0;text-align:center}
 }
+
+/* --- MOBILE UX (Bloco C2: P2.9 tabL bolao + tabs copa/rank) --- */
+@media(max-width:600px){
+ .tabL{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;-webkit-mask-image:linear-gradient(to right,#000 88%,transparent);mask-image:linear-gradient(to right,#000 88%,transparent)}
+ .tabL::-webkit-scrollbar{display:none}
+ .tabL .tab{flex-shrink:0}
+ #copa-tabs.tabs,#rank-tabs.tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;-webkit-mask-image:linear-gradient(to right,#000 88%,transparent);mask-image:linear-gradient(to right,#000 88%,transparent)}
+ #copa-tabs.tabs::-webkit-scrollbar,#rank-tabs.tabs::-webkit-scrollbar{display:none}
+ #copa-tabs.tabs .tab,#rank-tabs.tabs .tab{flex-shrink:0}
+}
 .ob-emoji{font-size:46px}}
 `;
