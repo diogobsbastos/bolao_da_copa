@@ -331,7 +331,11 @@ body.mcol .side a .tag,body.mcol .side a .free,body.mcol .side a .dot,body.mcol 
 .convbtns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .cbtn{display:flex;align-items:center;justify-content:center;gap:5px;border:0;border-radius:10px;padding:11px 6px;font-weight:800;font-size:12.5px;cursor:pointer;text-decoration:none}
 .cbtn.zap{background:#25d366;color:#fff}
-.cbtn.zap svg{fill:#fff;flex:none}.cbtn.mail{background:#2f6fed;color:#fff}.cbtn.cp{background:var(--surface2);color:var(--tx);border:1px solid var(--bd)}
+.cbtn.zap svg{fill:#fff;flex:none}
+.cbtn.fb{background:#1877f2;color:#fff}
+.cbtn.fb svg{fill:#fff;flex:none}
+.cbtn.ig{background:linear-gradient(45deg,#f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);color:#fff}
+.cbtn.ig svg{fill:#fff;flex:none}.cbtn.mail{background:#2f6fed;color:#fff}.cbtn.cp{background:var(--surface2);color:var(--tx);border:1px solid var(--bd)}
 .bloqov{position:fixed;inset:0;background:var(--bgrad);display:none;align-items:center;justify-content:center;z-index:250;padding:18px}
 .bloqcard{width:380px;max-width:94vw;background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:22px 20px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.5)}
 .bloqtitle{font-size:19px;font-weight:800;margin-bottom:4px}
