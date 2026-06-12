@@ -383,8 +383,9 @@ body.mcol .side a .tag,body.mcol .side a .free,body.mcol .side a .dot,body.mcol 
 .side a.navfull .navfreesel{background:#f5c451;color:#fff;font-size:9px;font-weight:800;padding:1px 6px;border-radius:999px;margin-left:auto;margin-right:6px;position:relative;animation:radarg 1.8s ease-out infinite}
 .side .navdiv{height:1px;background:var(--bd);margin:12px 8px;border-radius:1px}
 .side a.navfull{margin-top:0}
-.modal .mkpac{height:auto !important;max-height:200px !important;width:auto;margin:0 auto 4px}
-.modal .pack.base{padding:4px;margin-bottom:4px !important}
+.modal .mkpac{height:auto !important;max-height:280px !important;width:auto;margin:0 auto 6px}
+.modal .pack.base{padding:8px;margin:0 auto 4px !important;max-width:340px}
+.modal #mfoot{max-width:340px;margin-left:auto;margin-right:auto}
 .modal .pack.base h3{font-size:15px;margin:2px 0 1px !important;justify-content:center;text-align:center}
 .modal .pack.base>div{font-size:10.5px !important}
 .modal .pkchips{margin:2px 0}
