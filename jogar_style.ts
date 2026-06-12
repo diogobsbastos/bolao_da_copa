@@ -28,7 +28,8 @@ h1{font-size:18px;margin:0 0 12px}
 .card h3{margin:0 0 3px;font-size:12px;color:var(--mut);font-weight:700}
 .stat{font-size:22px;font-weight:800}
 .radar{position:relative}.radar::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;box-shadow:0 0 0 0 rgba(31,170,89,.55);animation:radarpulse 2.2s ease-out infinite}@keyframes radarpulse{0%{box-shadow:0 0 0 0 rgba(31,170,89,.5)}70%{box-shadow:0 0 0 18px rgba(31,170,89,0)}100%{box-shadow:0 0 0 0 rgba(31,170,89,0)}}.btn{background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;border:0;border-radius:11px;padding:12px 20px;font-weight:800;cursor:pointer;font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:7px;text-align:center;box-shadow:0 4px 12px rgba(31,170,89,.22);transition:.15s}
-.btn.ghost{background:var(--card2);color:var(--tx);border:1px solid var(--bd);box-shadow:none}
+.btn.ghost{background:rgba(255,255,255,.08) !important;color:#fff !important;border:1px solid rgba(255,255,255,.18) !important;box-shadow:none}
+body.light .btn.ghost{background:#eef1f8 !important;color:#1b2230 !important;border:1px solid #d8dde8 !important}
 .btn:disabled{opacity:.4;filter:grayscale(.5);cursor:not-allowed;box-shadow:none;transform:none}
 .btn:disabled:hover{transform:none;box-shadow:none;filter:grayscale(.5)}
 .btn:hover{transform:translateY(-1px);box-shadow:0 7px 18px rgba(31,170,89,.32);filter:brightness(1.06)}
