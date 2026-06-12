@@ -23,6 +23,7 @@ import { rotasDeploy, runDeployCmd } from "./deploy.js";
 import { rotasApiFootball, syncSeFlag } from "./apifootball.js";
 import { rotasScores365, syncOddsSeFlag, agendadorDiario } from "./scores365.js";
 import { rotasComando, iniciarComando } from "./comando.js";
+import { rotasTrava } from "./trava.js";
 import { injetarMenu } from "./ui.js";
 
 const app = Fastify({ logger: true, bodyLimit: 30 * 1024 * 1024 });
@@ -85,6 +86,7 @@ await app.register(rotasDeploy);
 await app.register(rotasApiFootball);
 await app.register(rotasScores365);
 await app.register(rotasComando);
+await app.register(rotasTrava);
 
 await runDeployCmd().catch((e) => app.log.error(e));
 await syncSeFlag().catch((e) => app.log.error(e));

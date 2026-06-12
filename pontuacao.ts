@@ -8,6 +8,11 @@ import { pool } from "./db.js";
 //   acertou os gols de 1 dos times -> gol_time  (1)
 //   nada                    -> 0
 // Os MESMOS pontos viram token (creditado no ledger como 'premio_bolao').
+//
+// TRAVA DE PONTUACAO (config.bolao_trava_pontuacao):
+//   'on'  (default): jogos com inicio < config.bolao_inicio_oficial NAO sao apurados
+//                    SEM nenhuma mutacao no banco — desligavel a qualquer momento.
+//   'off': apuracao normal pra todos os jogos.
 
 export interface Regra { exato: number; vencedor_saldo: number; vencedor: number; gol_time: number; }
 export const REGRA_PADRAO: Regra = { exato: 10, vencedor_saldo: 7, vencedor: 5, gol_time: 1 };
@@ -43,21 +48,20 @@ export async function apurarJogo(jogoId: number): Promise<{ ok: boolean; jogo: n
   const j = (await pool.query("SELECT id, inicio, resultado_casa AS rc, resultado_visitante AS rv FROM jogos WHERE id=$1", [jogoId])).rows[0] as any;
   if (!j) return { ok: false, jogo: jogoId, palpites: 0, creditados: 0, tokens: 0, motivo: "jogo nao existe" };
   if (j.rc == null || j.rv == null) return { ok: false, jogo: jogoId, palpites: 0, creditados: 0, tokens: 0, motivo: "sem resultado real" };
-  // Trava de inicio oficial do bolao (config.bolao_inicio_oficial)
-  let bloqueadoPreInicio = false;
+
+  // TRAVA — saida CEDO sem nenhuma mutacao no banco.
+  // Permite ligar/desligar a qualquer momento sem corromper estado.
   try {
-    const _ini = (await pool.query("SELECT valor FROM config WHERE chave='bolao_inicio_oficial'")).rows[0]?.valor;
-    if (_ini && j.inicio && new Date(j.inicio).getTime() < new Date(_ini).getTime()) bloqueadoPreInicio = true;
-  } catch {}
-  if (bloqueadoPreInicio) {
-    // Zera pontos, nao credita token, marca como apurado pra nao reprocessar
-    const pals0 = (await pool.query("SELECT id, usuario_id FROM palpites_bolao WHERE jogo_id=$1", [jogoId])).rows as any[];
-    for (const p of pals0) {
-      await pool.query("UPDATE palpites_bolao SET pontos=0, creditado=true WHERE id=$1", [p.id]);
+    const _trava = (await pool.query("SELECT valor FROM config WHERE chave='bolao_trava_pontuacao'")).rows[0]?.valor;
+    const travaAtiva = String(_trava || "on").toLowerCase() === "on";
+    if (travaAtiva) {
+      const _ini = (await pool.query("SELECT valor FROM config WHERE chave='bolao_inicio_oficial'")).rows[0]?.valor;
+      if (_ini && j.inicio && new Date(j.inicio).getTime() < new Date(_ini).getTime()) {
+        return { ok: true, jogo: jogoId, palpites: 0, creditados: 0, tokens: 0, motivo: "trava_pre_inicio_oficial" };
+      }
     }
-    await pool.query("UPDATE jogos SET apurado=true WHERE id=$1", [jogoId]);
-    return { ok: true, jogo: jogoId, palpites: pals0.length, creditados: 0, tokens: 0, motivo: "pre_inicio_oficial" };
-  }
+  } catch {}
+
   const regra = await regraAtual();
   const pals = (await pool.query("SELECT id, usuario_id, placar_casa AS pc, placar_visitante AS pv, creditado FROM palpites_bolao WHERE jogo_id=$1", [jogoId])).rows as any[];
   let creditados = 0, tokens = 0; const usuarios = new Set<number>();

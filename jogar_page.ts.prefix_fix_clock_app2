@@ -220,8 +220,6 @@ ${CSS}
 <script>
 var BASE=location.pathname.replace(/\\/jogar.*$/,"");
 var TOKEN=localStorage.getItem("sessao");
-async function loadCd(){try{var r=await fetch(BASE+"/inicio");var d=await r.json();if(!d||!d.iso)return;var alvo=new Date(d.iso).getTime();function z(n){return("0"+n).slice(-2);}function tickCd(){var el=document.getElementById("cdminival");if(!el)return;var di=alvo-Date.now();if(di<=0){el.textContent="\u26bd AGORA";return;}var D=Math.floor(di/86400000),H=Math.floor(di/3600000)%24,M=Math.floor(di/60000)%60,S=Math.floor(di/1000)%60;el.textContent=(D>0?(D+"d "):"")+z(H)+":"+z(M)+":"+z(S);}tickCd();setInterval(tickCd,1000);}catch(e){}}
-setTimeout(loadCd,300);
 var CURROD=1;
 var MATA=false;var LONGO_FEITO=false;var LP_PCT_PREV=-1;
 function tabRnd(r,lbl){return '<span class="tab" data-r="'+r+'" onclick="loadBolao('+r+')">'+lbl+'</span>';}
