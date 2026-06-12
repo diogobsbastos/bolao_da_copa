@@ -287,8 +287,7 @@ self.addEventListener("notificationclick",function(e){e.notification.close();
 var url=(e.notification.data&&e.notification.data.url)||self.registration.scope;
 e.waitUntil(self.clients.matchAll({type:"window",includeUncontrolled:true}).then(function(cs){
 for(var i=0;i<cs.length;i++){if(cs[i].url.indexOf(self.registration.scope)===0){return cs[i].focus();}}
-return self.clients.openWindow(url);}));});
-self.addEventListener("fetch",function(){});`;
+return self.clients.openWindow(url);}));});`;
 
 // ---------- pagina admin ----------
 const PAGE = `<!doctype html><html lang="pt-br"><head><meta charset="utf-8">

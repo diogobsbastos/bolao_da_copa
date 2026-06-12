@@ -6,6 +6,7 @@ import "./_fix_mobile_landing.js";
 import "./_fix_mobile_b.js";
 import "./_fix_mobile_c.js";
 import "./_fix_mobile_c2.js";
+import "./_fix_pwa.js";
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";
@@ -34,6 +35,7 @@ import { rotasScores365, syncOddsSeFlag, agendadorDiario } from "./scores365.js"
 import { rotasComando, iniciarComando } from "./comando.js";
 import { rotasTrava } from "./trava.js";
 import { rotasNotificacoes, iniciarNotificacoes } from "./notificacoes.js";
+import { rotasPwa } from "./pwa.js";
 import { injetarMenu } from "./ui.js";
 
 const app = Fastify({ logger: true, bodyLimit: 30 * 1024 * 1024 });
@@ -98,6 +100,7 @@ await app.register(rotasScores365);
 await app.register(rotasComando);
 await app.register(rotasTrava);
 await app.register(rotasNotificacoes);
+await app.register(rotasPwa);
 
 await runDeployCmd().catch((e) => app.log.error(e));
 await syncSeFlag().catch((e) => app.log.error(e));

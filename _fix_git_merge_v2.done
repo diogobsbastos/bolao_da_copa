@@ -1,0 +1,34 @@
+{
+  "steps": [
+    {
+      "args": [
+        "merge",
+        "--abort"
+      ],
+      "ok": true,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "fetch",
+        "origin"
+      ],
+      "ok": true,
+      "stdout": "",
+      "stderr": "From https://github.com/diogobsbastos/bolao_da_copa\n * [new tag]         v1.0.0-beta -> v1.0.0-beta\n"
+    },
+    {
+      "args": [
+        "reset",
+        "--hard",
+        "origin/main"
+      ],
+      "ok": true,
+      "stdout": "HEAD is now at 251dd78 docs(mapa): §31 Mobile UX Bloco C feito (12/jun) — P2.8/P2.9/P2.10 fixes\n",
+      "stderr": ""
+    }
+  ],
+  "headApos": "251dd78 docs(mapa): §31 Mobile UX Bloco C feito (12/jun) — P2.8/P2.9/P2.10 fixes\n8df5ee8 feat(mobile): Bloco C2 — P2.9 fix tabL bolao (especificidade ID) + copa-tabs/rank-tabs scroll. jogar_style.ts patchado.\n9b45888 feat(mobile): Bloco C — jogar_style.ts patchado (P2.8/P2.9/P2.10 CSS aplicado)\ndeb2eaa feat(mobile): Bloco C — P2.8 ranking (rkname ellipsis, rkcol 9px), P2.9 tabs overflow-x+fade borda, P2.10 pack.base marketplace. _fix_mobile_c.ts idempotente; import no server.ts.\nc350090 feat(mobile): Bloco B — P1.3 hmrod (card robo Inicio), P1.4 actpanel/autobar (Bolao), P1.6 tmgrid + chips Meu Time. _fix_mobile_b.ts idempotente via .done; import no server.ts. CSS: hmrod flex-wrap 600px, actpanel/autobar 760px, tmgrid 760px, .tmtopR chips scroll 480px com mask fade.\n",
+  "ts": "2026-06-12T21:10:36.342Z"
+}
