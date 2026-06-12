@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 import { pool } from "./db.js";
 import { usuarioDaReq } from "./auth.js";
 import { aoPagar } from "./indicacao.js";
+import { notificar } from "./notificacoes.js";
 
 const MP = "https://api.mercadopago.com";
 
@@ -43,6 +44,7 @@ async function creditarDeposito(depId: number): Promise<boolean> {
   await pool.query("UPDATE depositos SET tokens_creditados=$2 WHERE id=$1", [depId, tokens]);
   try { await pool.query("UPDATE usuarios SET pagou=true, acesso_full=true, tipo_entrada=COALESCE(tipo_entrada,'pago') WHERE id=$1", [uid]); } catch {}
   try { await aoPagar(uid); } catch {}
+  try { await notificar(uid, "pix", "\u2705 PIX confirmado!", tokens + " tokens creditados \u2014 voce esta dentro do Bolao Copa 26. Bora cravar!", { referencia: "dep:" + depId }); } catch {}
   console.log("[pagamento] +", tokens, "tokens p/ usuario", uid, "deposito", depId, "saldo", saldoApos);
   return true;
 }

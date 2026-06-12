@@ -24,6 +24,7 @@ import { rotasApiFootball, syncSeFlag } from "./apifootball.js";
 import { rotasScores365, syncOddsSeFlag, agendadorDiario } from "./scores365.js";
 import { rotasComando, iniciarComando } from "./comando.js";
 import { rotasTrava } from "./trava.js";
+import { rotasNotificacoes, iniciarNotificacoes } from "./notificacoes.js";
 import { injetarMenu } from "./ui.js";
 
 const app = Fastify({ logger: true, bodyLimit: 30 * 1024 * 1024 });
@@ -87,12 +88,14 @@ await app.register(rotasApiFootball);
 await app.register(rotasScores365);
 await app.register(rotasComando);
 await app.register(rotasTrava);
+await app.register(rotasNotificacoes);
 
 await runDeployCmd().catch((e) => app.log.error(e));
 await syncSeFlag().catch((e) => app.log.error(e));
 await syncOddsSeFlag().catch((e) => app.log.error(e));
 agendadorDiario();
 iniciarComando();
+iniciarNotificacoes();
 casarFc26SeFlag();
 setTimeout(() => { autoPreencherTick().catch(() => {}); }, 8000);
 setInterval(() => { autoPreencherTick().catch(() => {}); }, 15 * 60 * 1000);

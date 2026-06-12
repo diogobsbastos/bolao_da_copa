@@ -6,6 +6,7 @@ import { PAGINA_JOGAR } from "./jogar_page.js";
 import { invocarTexto, listarModelos } from "./llm.js";
 import { registrarGasto } from "./custos.js";
 import { timePT, rankOf, palpiteOdds, calcClassificacao, mapaGrupos, forma2022, noticiasTime, classifGrupoDe, resumirNoticias } from "./jogos_placar.js";
+import { notifsDoUsuario } from "./notificacoes.js";
 
 async function jogador(req: FastifyRequest) {
   const u = await usuarioDaReq(req); if (u) return u;
@@ -505,7 +506,8 @@ export async function rotasJogar(app: FastifyInstance) {
       for (const j of px){ const c=timePT(j.selecao_casa), v=timePT(j.selecao_visitante); itens.push({tipo:"proximo",tit:"Proximo jogo",txt:c.pt+" x "+v.pt,iso:c.iso,ts:j.inicio,past:false}); }
     } catch {}
     itens.sort((a:any,b:any)=>{ if(!!a.past!==!!b.past) return a.past?1:-1; const ta=new Date(a.ts||0).getTime(), tb=new Date(b.ts||0).getTime(); return a.past?(tb-ta):(ta-tb); });
-    return { ok:true, itens: itens.slice(0,12) };
+    let nf: any[] = []; try { nf = await notifsDoUsuario(u.id); } catch {}
+    return { ok:true, itens: [...nf, ...itens].slice(0,15) };
   });
   app.get("/jogar/regras", async (req, reply) => {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });

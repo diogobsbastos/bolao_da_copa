@@ -15,6 +15,7 @@ const ITENS: Array<[string, string, string]> = [
   ["rank", "&#127942; Ranking", "/admin?pg=rank"],
   ["regras", "&#128221; Regras", "/admin?pg=regras"],
   ["trava", "&#128274; Trava de Pontuacao", "/admin/trava"],
+  ["notif", "&#128276; Notificacoes", "/admin/notificacoes"],
   ["comando", "&#129302; Centro de Comando", "/admin/comando"],
   ["integ", "&#128268; Integracoes / Crons", "/admin?pg=integ"],
   ["deploy", "&#128190; Git &amp; Deploy", "/admin/deploy"],

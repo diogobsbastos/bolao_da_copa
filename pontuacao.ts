@@ -1,4 +1,6 @@
 import { pool } from "./db.js";
+import { notificar } from "./notificacoes.js";
+import { timePT } from "./jogos_placar.js";
 
 // ===== Motor de pontuacao do Bolao (fase de grupos) — Beta 1.0 =====
 // Regras (config.pontos_regra), aplicadas em CAMADAS (vale a MAIOR que bater):
@@ -45,7 +47,7 @@ export async function regraAtual(): Promise<Regra> {
 // Apura UM jogo (precisa de resultado real em jogos.resultado_casa/visitante).
 // Idempotente: jogos.apurado trava re-apuracao; palpites_bolao.creditado trava re-credito de token.
 export async function apurarJogo(jogoId: number): Promise<{ ok: boolean; jogo: number; palpites: number; creditados: number; tokens: number; motivo?: string }> {
-  const j = (await pool.query("SELECT id, inicio, resultado_casa AS rc, resultado_visitante AS rv FROM jogos WHERE id=$1", [jogoId])).rows[0] as any;
+  const j = (await pool.query("SELECT id, inicio, selecao_casa AS casa, selecao_visitante AS visitante, resultado_casa AS rc, resultado_visitante AS rv FROM jogos WHERE id=$1", [jogoId])).rows[0] as any;
   if (!j) return { ok: false, jogo: jogoId, palpites: 0, creditados: 0, tokens: 0, motivo: "jogo nao existe" };
   if (j.rc == null || j.rv == null) return { ok: false, jogo: jogoId, palpites: 0, creditados: 0, tokens: 0, motivo: "sem resultado real" };
 
@@ -71,7 +73,7 @@ export async function apurarJogo(jogoId: number): Promise<{ ok: boolean; jogo: n
     if (!p.creditado) {
       if (pts > 0) {
         const r = (await pool.query("UPDATE usuarios_carteiras SET saldo=saldo+$2 WHERE usuario_id=$1 RETURNING saldo", [p.usuario_id, pts])).rows[0] as any;
-        if (r) { try { await pool.query("INSERT INTO transacoes_tokens (usuario_id,carteira,valor,saldo_apos,tipo,referencia) VALUES ($1,'token',$2,$3,'premio_bolao',$4)", [p.usuario_id, pts, r.saldo, "jogo:" + jogoId]); } catch {} creditados++; tokens += pts; }
+        if (r) { try { await pool.query("INSERT INTO transacoes_tokens (usuario_id,carteira,valor,saldo_apos,tipo,referencia) VALUES ($1,'token',$2,$3,'premio_bolao',$4)", [p.usuario_id, pts, r.saldo, "jogo:" + jogoId]); } catch {} creditados++; tokens += pts; try { const _c = timePT(j.casa).pt, _v = timePT(j.visitante).pt; notificar(p.usuario_id, "pontos", "\u2b50 Voce pontuou!", "+" + pts + " pts e +" + pts + " tokens em " + _c + " " + j.rc + " x " + j.rv + " " + _v, { canais: ["webpush"], referencia: "pts:jogo:" + jogoId }).catch(() => {}); } catch {} }
       }
       await pool.query("UPDATE palpites_bolao SET pontos=$2, creditado=true WHERE id=$1", [p.id, pts]);
     } else {
