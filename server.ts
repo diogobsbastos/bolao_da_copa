@@ -8,6 +8,7 @@ import "./_fix_mobile_c.js";
 import "./_fix_mobile_c2.js";
 import "./_fix_pwa.js";
 import "./_fix_mobile_polish.js";
+import "./_fix_mobile_polish_v2.js";
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";

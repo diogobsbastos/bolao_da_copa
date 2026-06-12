@@ -544,26 +544,5 @@ body.light .ob-box{background:linear-gradient(180deg,#fff 0%,#fafcff 100%);color
  .hmrod .hmrbody{min-width:0;flex:1 1 0%}
  .hmrod .hmbubble{white-space:normal;word-break:normal;overflow-wrap:anywhere;max-width:100%;line-height:1.35}
 }
-
-/* --- MOBILE POLISH v2 (12/jun): Bolao polish — desc 2 linhas, progresso centro, IA layout coluna, esconder svg de cm.cmtop --- */
-@media(max-width:600px){
- /* 1) Descricao do Bolao em 2 linhas */
- .pghead .pgsub,.pghl .pgsub{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.35}
- /* 2) Aba Progresso centralizada */
- .pgsteps,.pgsteps-inner{justify-content:center;margin-left:auto;margin-right:auto;width:100%}
- .pgsteps-inner .steprow,.pgsteps-inner .stephead{justify-content:center;margin-left:auto;margin-right:auto}
- /* 4) Palpite IA aberto: cada item numa linha */
- #autobar.actpanel{flex-direction:column!important;align-items:stretch!important;gap:8px!important;padding:10px!important}
- #autobar.actpanel>*{flex:1 1 100%!important;width:100%;max-width:100%;min-width:0}
- #autobar.actpanel .act-ia,#autobar.actpanel .act-logic{flex-direction:column;align-items:stretch;width:100%;gap:6px}
- #autobar.actpanel .act-ia>*,#autobar.actpanel .act-logic>*{flex:1 1 100%!important;width:100%!important;max-width:100%}
- #autobar.actpanel button{width:100%;max-width:100%;white-space:normal;text-align:center;padding:10px 12px;font-size:13px}
- #autobar.actpanel .masc{margin:0 auto;align-self:center}
- #autobar.actpanel .bubble{width:100%;max-width:100%;white-space:normal}
- /* 5+6) Esconder svg de fechadura/relogio no topo dos cards de jogo */
- .cm.cmtop svg{display:none}
- .cm.cmtop .tag{padding:2px 8px;gap:0}
- .cm.cmtop .tag.lk{padding:2px 8px}
-}
 .ob-emoji{font-size:46px}}
 `;
