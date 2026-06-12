@@ -146,21 +146,8 @@ input:focus{border-color:var(--pri);background:rgba(255,255,255,.09);box-shadow:
 @keyframes gsh{to{background-position:300% 0}}
 .fineprint{color:#6b7790;font-size:11px;text-align:center;margin-top:6px;line-height:1.4}
 @media(max-width:820px){html,body{height:auto;overflow:auto}.shell{height:auto;min-height:100vh;overflow:visible}.card{max-height:none;overflow:visible}.hero{grid-template-columns:1fr;gap:20px;padding-top:6px}.copy h1{font-size:30px}.nav{padding:12px 18px}}
-.potebar }
-
-
 
 55%,100%{transform:translateX(130%)}}
-
-
-
-
-
-
-.potepos b{color:#5a3e00;font-size:10px;font-weight:900}
-.potepos small{font-size:9.5px;font-weight:800}
-
-
 
 @media(max-width:560px){}
 
