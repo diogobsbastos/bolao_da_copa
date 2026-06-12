@@ -77,7 +77,11 @@ Tags: `#infra` `#vps` `#systemd` `#mcp`
   ```
   Primeiro registro: **Vipworks · R$40 · ativo**.
 
-Tags: `#schema` `#postgres` `#patrocinadores`
+### Planejadas (ver [[ROADMAP.md]])
+- `notif_canais`, `notif_mensagens`, `notif_envios` — sistema de notificações multicanal.
+- `patrocinador_contas` — login self-service de patrocinadores.
+
+Tags: `#schema` `#postgres` `#patrocinadores` `#notificacoes`
 
 ---
 
@@ -122,7 +126,7 @@ Tags: `#tokenomics` `#pontuacao` `#bolao` `#arena` `#marketplace`
 - `GET /og.png` — Open Graph (UA-detection: scrapers sociais pegam `og-square.jpg`).
 - `GET /og-square.jpg` — imagem quadrada.
 - `GET /pote` — `{ pote, jogadores, split, premios }` (depósitos + patrocinadores).
-- `GET /inicio` — **NOVO** `{ ok, iso }` com `bolao_inicio_oficial` do config.
+- `GET /inicio` — `{ ok, iso }` com `bolao_inicio_oficial` do config (alimenta relógio regressivo).
 - `GET /health` — healthcheck.
 - `GET /ranking` — top 50 raw.
 
@@ -141,10 +145,14 @@ Tags: `#tokenomics` `#pontuacao` `#bolao` `#arena` `#marketplace`
 - `POST /jogar/resgatar-full` — aplica convite.
 
 ### Admin (papel='admin' OU `x-admin-token`)
-- `/admin`, `/admin/figurinhas`, `/admin/cartas`, `/admin/config-hub`, `/admin/tokenomics`, `/admin/criador-fig`, `/admin/comando`, `/admin/deploy`.
-- `POST /admin/deploy/run` `{acao:"push"|"pull"|"status", msg}` — git via Node child_process.
+- `/admin`, `/admin/figurinhas`, `/admin/cartas`, `/admin/config-hub`, `/admin/tokenomics`, `/admin/criador-fig`, `/admin/comando`, `/admin/deploy`, `/admin/trava`.
+- **Trava de pontuação:**
+  - `GET /admin/trava/status` → `{ ativa, inicio_oficial, aviso }`
+  - `POST /admin/trava/toggle` body `{ ativa }`
+  - `POST /admin/trava/inicio` body `{ iso }`
+- **Deploy git:** `POST /admin/deploy/run` `{acao:"push"|"pull"|"status", msg}`.
 
-Tags: `#endpoints` `#api` `#fastify`
+Tags: `#endpoints` `#api` `#fastify` `#admin`
 
 ---
 
@@ -163,17 +171,27 @@ Tags: `#cron` `#automacao` `#pontuacao`
 
 ---
 
-## 7. Trava de pontuação até sábado 13/06 19h
+## 7. Trava de pontuação (toggle no admin)
 
-> **Regra especial do lançamento.** Beta 1.0 entra em produção 11/jun mas **só pontua a partir do jogo do Brasil x Marrocos = sábado 13/06 19h00 BRT**.
+> Beta 1.0 entra em produção 11/jun mas **só pontua a partir do jogo do Brasil x Marrocos = sábado 13/06 19h00 BRT**.
 
+- `config.bolao_trava_pontuacao` = `'on'` (default) | `'off'`.
 - `config.bolao_inicio_oficial = "2026-06-13T22:00:00.000Z"` (UTC).
 - `config.bolao_aviso_inicio` — mensagem amigável pra UI.
-- `pontuacao.ts/apurarJogo()`: se `jogo.inicio < bolao_inicio_oficial` → zera pontos, marca `apurado=true`, NÃO credita tokens, retorna `motivo: "pre_inicio_oficial"`.
-- Endpoint `GET /inicio` — alimenta relógio regressivo no header (landing + app logado).
-- Pílula `.cdmini` no header: **"começa em HH:MM:SS"** (ou `Xd HH:MM:SS`).
 
-Tags: `#trava-sabado` `#bolao-inicio-oficial` `#pontuacao`
+### Funcionamento (zero corrupção)
+- `pontuacao.ts/apurarJogo()` quando trava=`on` e `jogo.inicio < bolao_inicio_oficial` → **retorna cedo sem mutar o banco**. `apurado` fica `false`.
+- Quando admin desliga a trava, o coletor processa naturalmente os jogos pendentes — nada foi perdido.
+- Jogos APÓS o `inicio_oficial` apuram normalmente mesmo com a trava ligada.
+
+### UI admin
+- Página `/admin/trava` no menu lateral (item "🔒 Trava de Pontuação").
+- Estado visual: dot verde TRAVADO / dot vermelho DESTRAVADO.
+- Botão único ligar/desligar (verde/vermelho).
+- **Calendário popup animado** pra editar a data ISO (mês/ano/dia + hora/minuto).
+- Endpoint `GET /inicio` (público) alimenta o relógio regressivo `.cdmini` (landing + app logado).
+
+Tags: `#trava-sabado` `#bolao-inicio-oficial` `#pontuacao` `#admin`
 
 ---
 
@@ -205,21 +223,22 @@ Tags: `#pix` `#mercadopago` `#pagamento`
 
 ### Landing (`landing.ts`)
 - HTML monolítico (template literal `const LANDING`).
-- Header: brand pill (escudo + "BOLÃO COPA 26" CAPS + Beta 1.0 + Manager chip + `.cdmini` regressivo) + pílula dourada do Pote (`.w.hmpote`).
+- Header: brand pill (escudo + "BOLÃO COPA 26" CAPS + Beta 1.0 + Manager chip) + relógio `.cdmini` centralizado absoluto + pílula dourada do Pote.
 - Hero, login (e-mail/senha + Google), explicação do produto.
-- Endpoint `GET /` retorna o HTML; substitui template do convite se `?full=` ou `?ref=` na URL.
-- OG image quadrada via User-Agent detection (WhatsApp/FB/IG/TG/LinkedIn/Discord/Slack).
+- OG image quadrada via User-Agent detection.
 
 ### App logado (`jogar_page.ts` + `jogar_style.ts`)
-- SPA single-file. CSS extraído em `jogar_style.ts` (regra de ouro pra não corromper).
-- Seções: Início (Manager dashboard), Bolão, Meu Time, Copa, Ranking, Marketplace, IA, Regras, Convidar, Depósito.
+- SPA single-file. CSS extraído em `jogar_style.ts`.
+- Top bar: burger + brand + `.cdmini` centralizado entre brand e wallets (margin auto) + wallets/avatar.
+- Seções: Início, Bolão, Meu Time, Copa, Ranking, Marketplace, IA, Regras, Convidar, Depósito.
 - Bloqueio freemium via `reqFull()` helper.
-- Brand idêntico à landing + `.cdmini` regressivo.
+- `loadCd()` injetado puxa `/inicio` e tica de 1 em 1 segundo.
 
 ### Admin
-- Hub central em `admin.ts`. Telas: Tokenomics, Centro de Comando, Cartas (Fábrica), Config Hub, Custos, LLM, Figurinhas (legado).
+- Sidebar compacta (`ui.ts`): 212px, padding 6/10, scroll fino, 15 itens incluindo **Trava de Pontuação**.
+- Hub central `/admin`. Telas: Tokenomics, Centro de Comando, Cartas, Config Hub, Custos, LLM, Figurinhas, **Trava** (com calendário popup).
 
-Tags: `#frontend` `#html-template` `#pwa`
+Tags: `#frontend` `#html-template` `#pwa` `#sidebar`
 
 ---
 
@@ -233,24 +252,24 @@ Tags: `#frontend` `#html-template` `#pwa`
 .brand .bmgr{font-size:10px;font-weight:800;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.22);border-radius:8px;padding:3px 9px}
 .brand .blogo{height:32px;width:auto;filter:drop-shadow(0 3px 8px rgba(0,0,0,.4))}
 .w.hmpote,.hmpote{border-radius:999px !important;padding:6px 14px !important;background:linear-gradient(135deg,#f8d873,#e0a008);border:1px solid #e6ad12}
-.cdmini{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:rgba(255,255,255,.85);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:3px 9px;margin-left:6px}
-.cdmini b{color:#f5c451;font-weight:800}
-.cdmini .cdlbl{font-size:9px;color:rgba(255,255,255,.6);text-transform:uppercase}
+.cdmini{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:800;background:linear-gradient(135deg,rgba(31,170,89,.25),rgba(20,121,74,.35));border:1px solid rgba(31,170,89,.55);border-radius:999px;padding:6px 14px;box-shadow:0 4px 14px rgba(31,170,89,.25)}
+/* landing: position:absolute;left:50%;top:14px;transform:translateX(-50%) */
+/* app logado: margin:0 auto (centralizado no flex entre brand e wallets) */
+.cdmini b{color:#f5c451;font-weight:900;font-size:14px}
+.cdmini .cdlbl{font-size:10px;font-weight:800;text-transform:uppercase}
 ```
 
-HTML:
+HTML brand (landing — sem clock dentro):
 ```html
 <div class="brand">
   <img class="blogo" src="data:image/png;base64,..." alt="">
   <span>Bolão <b>Copa 26</b> <small class="bbeta">Beta 1.0</small></span>
   <small class="bmgr">Manager</small>
-  <span class="cdmini" id="cdmini" title="Bolão começa no jogo do Brasil">
-    <span class="cdlbl">começa em</span> <b id="cdminival">--</b>
-  </span>
 </div>
+<span class="cdmini" id="cdmini"><span class="cdlbl">começa em</span> <b id="cdminival">--</b></span>
 ```
 
-Tags: `#design` `#brand` `#css`
+Tags: `#design` `#brand` `#css` `#relogio`
 
 ---
 
@@ -266,44 +285,44 @@ Tags: `#design` `#brand` `#css`
 **Limites do MCP:**
 - `ler_arquivo` corta acima de ~25k tokens.
 - `escrever_arquivo` só substitui arquivo inteiro (sem patch).
-- Edit/Write corrompem `.ts` grandes nos mounts → usar `python/sed`.
+- Edit/Write corrompem `.ts` grandes nos mounts → usar `python/sed` ou padrão "fix script" (`_fix_*.ts` importado uma vez do server.ts, faz a edição, escreve `.done`, e remove o import depois).
 - Padrão **arquivos pequenos** (separar página vs lógica).
 - Sandbox **não alcança** VPS host público.
 
-**Git automático via Node:**
-- `deploy.ts` expõe `runDeployCmd()` que lê `config.deploy_cmd` no boot.
+**Git automático via Node** (`deploy.ts`):
 - SQL: `INSERT INTO config(chave,valor) VALUES('deploy_cmd','{"acao":"push","msg":"..."}') ON CONFLICT DO UPDATE` → restart → roda + grava em `config.deploy_out`.
 
 Tags: `#deploy` `#git` `#sandbox` `#tsx`
 
 ---
 
-## 13. Estado atual (12/jun/2026)
+## 13. Estado atual (12/jun/2026 noite)
 
 ### ✅ No ar e funcionando
 - Cadastro/login (e-mail/senha + Google).
-- Bolão tradicional (palpite manual, robô, IA do usuário Gemini/Anthropic/OpenAI/Ollama).
+- Bolão tradicional (palpite manual, robô, IA do usuário).
 - Depósito PIX **produção real** (R$10 já caiu).
 - Webhook MP idempotente.
 - Convite FULL ponta-a-ponta + bloqueio freemium.
 - Ranking Geral com prêmio R$ projetado.
 - og:image quadrada via UA-detection.
-- Pílula dourada do Pote sincronizada (landing + app logado), soma deposito + patrocinador.
+- Pílula dourada do Pote (landing + app logado) — depositos + patrocinadores.
+- Patrocinadores: tabela + Vipworks R$40 (Pote total R$50).
 - Centro de Comando com retry (+10min, máx 3).
-- Logo final no padrão da seção 11.
-- Relógio regressivo `.cdmini` no header (landing + app logado) ligado em `/inicio`.
-- Trava de pontuação até 13/06 19h (`apurarJogo` honra `bolao_inicio_oficial`).
+- Logo final + relógio regressivo `.cdmini` tickando.
+- Trava de pontuação toggle (`/admin/trava`) com calendário popup animado.
+- Sidebar admin compacta (212px).
+- Reset zero (ranking/palpites/jogos.apurado/transações_premio_bolao) executado.
 
 ### 🚧 Pendentes (ver [[ROADMAP.md]])
+- **⭐ Sistema de Notificações** (TOP PRIORIDADE — Web Push + WhatsApp Business + e-mail + composer admin).
 - Tour inicial (onboarding interativo + checklist Primeiros Passos).
 - Tela pública de patrocinadores (`/patrocinadores`).
-- Login self-service de patrocinador (pagamento via PIX próprio).
+- Login self-service de patrocinador (pagamento PIX próprio).
 - Sistema de Arena PvP — design fino (matchmaking, teto XI, anti-conluio).
 - Validação de assinatura do webhook MP.
 - Tarefa `reconciliar_pix` no Centro de Comando.
 - Aposentar coletor legacy paralelo ao scheduler.
-- Banner público de aviso da trava (texto + relógio expandido).
-- WhatsApp Business API + Web Push.
 - Material de propaganda.
 
 Tags: `#estado` `#pendencias` `#roadmap`
@@ -314,11 +333,12 @@ Tags: `#estado` `#pendencias` `#roadmap`
 
 - **TypeScript ESM** (`.js` em imports, tsx resolve).
 - **Sem build.** tsx roda direto.
-- **Arquivos pequenos** preferidos (`cartas.ts` + `cartas_page.ts`, etc.).
-- **Regras** editáveis no `config` table (não no código). Tela admin `?pg=regras`.
+- **Arquivos pequenos** preferidos.
+- **Regras** editáveis no `config` table (não no código).
 - **Idempotência** em `apurarJogo`, webhook MP, `INSERT ... ON CONFLICT`.
 - **Logs estruturados** Pino (JSON).
-- **PWA** — Service Worker cacheia agressivo: usar `Ctrl+Shift+R` ou DevTools → Application → Clear site data.
+- **PWA** — Service Worker cacheia agressivo: `Ctrl+Shift+R` ou Clear site data.
+- **Fix scripts** (`_fix_*.ts`) — quando precisa editar `.ts` grande sem corromper: write um TS importado uma vez via server.ts.
 
 Tags: `#convencoes` `#typescript` `#esm`
 
@@ -326,9 +346,9 @@ Tags: `#convencoes` `#typescript` `#esm`
 
 ## 15. Links Obsidian (mapa mental)
 
-- [[CLAUDE.md]] — regras de produto/stack + tokenomia
+- [[CLAUDE.md]] — regras de produto/stack + tokenomia oficial
 - [[MAPA_SISTEMA.md]] — fonte da verdade técnica (infra/tabelas/arquivos)
-- [[ROADMAP.md]] — próximas ondas
+- [[ROADMAP.md]] — próximas ondas (com Notificações no TOP)
 - [[ROTINAS_ZERAR.md]] — funções SQL `apagar_jogador()` / `apagar_todos_jogadores()`
 - [[HANDOFF_FABRICA.md]] — Fábrica de Figurinhas
 - [[HANDOFF_SESSAO_2026-06-12.md]] — última sessão

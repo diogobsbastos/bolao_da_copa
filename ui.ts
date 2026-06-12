@@ -14,6 +14,7 @@ const ITENS: Array<[string, string, string]> = [
   ["users", "&#128100; Usuarios &amp; Carteiras", "/admin?pg=users"],
   ["rank", "&#127942; Ranking", "/admin?pg=rank"],
   ["regras", "&#128221; Regras", "/admin?pg=regras"],
+  ["trava", "&#128274; Trava de Pontuacao", "/admin/trava"],
   ["comando", "&#129302; Centro de Comando", "/admin/comando"],
   ["integ", "&#128268; Integracoes / Crons", "/admin?pg=integ"],
   ["deploy", "&#128190; Git &amp; Deploy", "/admin/deploy"],
@@ -21,11 +22,14 @@ const ITENS: Array<[string, string, string]> = [
 
 // ---------- Variante para telas novas (dentro de um .app flex) ----------
 export const NAV_CSS = `
-.side{width:236px;background:var(--card);border-right:1px solid var(--bd);padding:18px 12px;position:sticky;top:0;height:100vh;flex-shrink:0;z-index:50;transition:transform .25s ease}
-.brand{font-weight:800;font-size:17px;padding:6px 10px 16px}
-.nav a{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;color:var(--mut);text-decoration:none;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:2px}
+.side{width:212px;background:var(--card);border-right:1px solid var(--bd);padding:10px 8px;position:sticky;top:0;height:100vh;flex-shrink:0;z-index:50;transition:transform .25s ease;overflow-y:auto}
+.side::-webkit-scrollbar{width:6px}
+.side::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px}
+.brand{font-weight:800;font-size:15px;padding:8px 10px 12px;letter-spacing:.2px}
+.nav{display:flex;flex-direction:column;gap:1px}
+.nav a{display:flex;gap:9px;align-items:center;padding:6px 10px;border-radius:7px;color:var(--mut);text-decoration:none;font-size:13px;font-weight:600;cursor:pointer;line-height:1.25}
 .nav a:hover{background:#eef1fb;color:var(--tx)}
-.nav a.on{background:var(--pri);color:#fff}
+.nav a.on{background:var(--pri);color:#fff;font-weight:700}
 .hamb{display:none;position:fixed;top:11px;left:11px;z-index:60;background:var(--card);border:1px solid var(--bd);border-radius:10px;width:40px;height:40px;font-size:18px;line-height:1;cursor:pointer;color:var(--tx);font-weight:700}
 .ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:45}
 @media(max-width:900px){
@@ -56,12 +60,15 @@ function toggleMenu(){var s=document.querySelector('.side');var o=document.query
 
 // ---------- Injetor para telas legadas (classes proprias .mnu-* para nao colidir) ----------
 const MNU_CSS = `
-.mnu-main{margin-left:236px}
-.mnu-side{position:fixed;left:0;top:0;width:236px;height:100vh;overflow:auto;background:#fff;border-right:1px solid #e6e8f0;padding:18px 12px;z-index:50;transition:transform .25s ease}
-.mnu-brand{font-weight:800;font-size:17px;padding:6px 10px 16px;color:#1f2430}
-.mnu-side a{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;color:#7a8194;text-decoration:none;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:2px}
+.mnu-main{margin-left:212px}
+.mnu-side{position:fixed;left:0;top:0;width:212px;height:100vh;overflow-y:auto;background:#fff;border-right:1px solid #e6e8f0;padding:10px 8px;z-index:50;transition:transform .25s ease}
+.mnu-side::-webkit-scrollbar{width:6px}
+.mnu-side::-webkit-scrollbar-thumb{background:#e6e8f0;border-radius:3px}
+.mnu-brand{font-weight:800;font-size:15px;padding:8px 10px 12px;color:#1f2430;letter-spacing:.2px}
+.mnu-side nav{display:flex;flex-direction:column;gap:1px}
+.mnu-side a{display:flex;gap:9px;align-items:center;padding:6px 10px;border-radius:7px;color:#7a8194;text-decoration:none;font-size:13px;font-weight:600;cursor:pointer;line-height:1.25}
 .mnu-side a:hover{background:#eef1fb;color:#1f2430}
-.mnu-side a.on{background:#4361ee;color:#fff}
+.mnu-side a.on{background:#4361ee;color:#fff;font-weight:700}
 .mnu-hamb{display:none;position:fixed;top:11px;left:11px;z-index:60;background:#fff;border:1px solid #e6e8f0;border-radius:10px;width:40px;height:40px;font-size:18px;line-height:1;cursor:pointer;color:#1f2430;font-weight:700}
 .mnu-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:45}
 @media(max-width:900px){
