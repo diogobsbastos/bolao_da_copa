@@ -593,7 +593,7 @@ async function loadConvidar(){
  var html="";
  if(d.fullLink){
   var msg="⚽ Te dei acesso FULL ao Bolão Copa 26! Palpites, apostas e figurinhas da Copa. Entra grátis pelo meu convite: "+d.fullLink;
-  html='<div class="card"><h3>&#127873; Seu convite full</h3><div class="muted" style="margin:4px 0 10px">Voc&ecirc; tem <b>1 convite</b> pra presentear. Quem clicar entra com <b>acesso full gr&aacute;tis</b> e v&ecirc; &#127881; "voc&ecirc; ganhou acesso full pelo seu convite".</div>'
+  html='<div class="card"><h3 style="font-size:19px;margin:0 0 6px">&#127873; Seu convite FULL</h3><div class="muted" style="margin:4px 0 10px">Voc&ecirc; tem <b>1 convite</b> pra presentear. Quem clicar entra com <b>acesso full gr&aacute;tis</b> e v&ecirc; &#127881; "voc&ecirc; ganhou acesso full pelo seu convite".</div>'
    +'<div class="convlink"><input id="conv-link" value="'+esc(d.fullLink)+'" readonly onclick="this.select()"></div>'
    +'<div class="convbtns"><a class="cbtn zap" href="https://wa.me/?text='+encodeURIComponent(msg)+'" target="_blank">&#128241; WhatsApp</a>'
    +'<a class="cbtn mail" href="mailto:?subject='+encodeURIComponent("Convite full — Bolão Copa 26")+'&body='+encodeURIComponent(msg)+'">&#9993;&#65039; Email</a>'
