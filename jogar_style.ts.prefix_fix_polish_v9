@@ -639,13 +639,5 @@ body.light .ob-box{background:linear-gradient(180deg,#fff 0%,#fafcff 100%);color
  /* Auto toggle (.toggle, label com switch) — visivel com fundo */
  div#autobar.actpanel>.act-logic>label,div#autobar.actpanel>.act-logic>.toggle,div#autobar.actpanel>.act-logic>.switch,div#autobar.actpanel>.act-logic>[class*=auto-toggle]{display:inline-flex!important;align-items:center!important;gap:6px!important;background:rgba(255,255,255,0.08)!important;padding:4px 10px!important;border-radius:999px!important;flex:0 0 auto!important;min-width:62px!important;font-size:11px!important;color:#fff!important;font-weight:700!important;border:1px solid rgba(255,255,255,0.15)!important}
 }
-
-/* --- MOBILE POLISH v9 (12/jun): X simples sem fundo, toggle volta ao natural --- */
-@media(max-width:600px){
- /* X (.actcol): sem fundo, sem borda, sem circulo. So o '×' branco posicionado */
- div#autobar.actpanel>.actcol,.actpanel>.actcol{display:inline-flex!important;position:absolute!important;top:6px!important;right:8px!important;width:auto!important;min-width:0!important;max-width:none!important;height:auto!important;padding:2px 6px!important;font-size:16px!important;line-height:1!important;background:transparent!important;background-color:transparent!important;border:0!important;color:rgba(255,255,255,0.7)!important;border-radius:0!important;box-shadow:none!important;cursor:pointer!important;font-weight:400!important;z-index:5;align-items:center!important;justify-content:center!important}
- /* Toggle Auto: deixa estilo natural, so garante que tem espaco */
- div#autobar.actpanel>.act-logic>label,div#autobar.actpanel>.act-logic>.toggle,div#autobar.actpanel>.act-logic>.switch,div#autobar.actpanel>.act-logic>[class*=auto-toggle]{background:none!important;background-color:transparent!important;border:0!important;padding:0!important;flex:0 0 auto!important;min-width:0!important;max-width:none!important;width:auto!important;border-radius:0!important;color:inherit!important;box-shadow:none!important}
-}
 .ob-emoji{font-size:46px}}
 `;

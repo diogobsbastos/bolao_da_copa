@@ -14,6 +14,7 @@ import "./_fix_mobile_polish_v5.js";
 import "./_fix_mobile_polish_v6.js";
 import "./_fix_mobile_polish_v7.js";
 import "./_fix_mobile_polish_v8.js";
+import "./_fix_mobile_polish_v9.js";
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";
