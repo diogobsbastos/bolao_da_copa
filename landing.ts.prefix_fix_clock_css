@@ -38,13 +38,6 @@ export async function rotasLanding(app: FastifyInstance) {
     return reply.header("cache-control","public, max-age=86400").type("image/png").send(Buffer.from(OG_B64, "base64"));
   });
   app.get("/og-square.jpg", async (_req, reply) => reply.header("cache-control","public, max-age=86400").type("image/jpeg").send(OG_SQUARE));
-  app.get("/inicio", async (_req, reply) => {
-    try {
-      const r = await pool.query("SELECT valor FROM config WHERE chave='bolao_inicio_oficial'");
-      const iso = String((r.rows[0] as any)?.valor || "2026-06-13T22:00:00.000Z");
-      return reply.header("cache-control","public, max-age=60").send({ ok: true, iso });
-    } catch { return { ok: false, iso: "2026-06-13T22:00:00.000Z" }; }
-  });
   app.get("/pote", async (_req, reply) => {
     try {
       const r = await pool.query("SELECT COALESCE(SUM(valor),0) AS v, COUNT(*) AS n FROM depositos WHERE status='approved' AND creditado=true");
@@ -177,7 +170,7 @@ input:focus{border-color:var(--pri);background:rgba(255,255,255,.09);box-shadow:
 .brand .bmgr{font-size:10px;font-weight:800;letter-spacing:.5px;color:rgba(255,255,255,.85);background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.22);border-radius:8px;padding:3px 9px;white-space:nowrap;align-self:center;text-transform:none}
 .brand .blogo{height:32px;width:auto;display:block;flex:none;filter:drop-shadow(0 3px 8px rgba(0,0,0,.4))}
 .w.hmpote,.hmpote{border-radius:999px !important;padding:6px 14px !important}
-.cdmini{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:rgba(255,255,255,.85);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:3px 9px;white-space:nowrap;margin-left:6px}.cdmini b{color:#f5c451;font-weight:800;font-size:11px}.cdmini .cdlbl{font-size:9px;font-weight:700;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.3px}</style></head><body>
+</style></head><body>
 <div class="bg">
  <div class="glow g1"></div><div class="glow g2"></div><div class="glow g3"></div>
  <div class="sweep"></div><div class="pitch"></div>

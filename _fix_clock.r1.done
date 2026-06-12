@@ -1,0 +1,30 @@
+{
+  "ts": "2026-06-12T04:18:52.885Z",
+  "/home/ubuntu/bolao-copa26/landing.ts": {
+    "css": {
+      "occ": 0,
+      "fix": "NAO_TROCOU"
+    },
+    "html": {
+      "occ": 1,
+      "fix": "ok"
+    },
+    "js": {
+      "occ": 1,
+      "fix": "ok"
+    },
+    "changed": true
+  },
+  "/home/ubuntu/bolao-copa26/jogar_page.ts": {
+    "html": {
+      "occ": 1,
+      "fix": "ok"
+    },
+    "css": {
+      "occ": 1,
+      "fix": "ok"
+    },
+    "changed": true
+  },
+  "endpoint_inicio": "ja_existe"
+}

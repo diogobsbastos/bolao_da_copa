@@ -40,24 +40,9 @@ export async function regraAtual(): Promise<Regra> {
 // Apura UM jogo (precisa de resultado real em jogos.resultado_casa/visitante).
 // Idempotente: jogos.apurado trava re-apuracao; palpites_bolao.creditado trava re-credito de token.
 export async function apurarJogo(jogoId: number): Promise<{ ok: boolean; jogo: number; palpites: number; creditados: number; tokens: number; motivo?: string }> {
-  const j = (await pool.query("SELECT id, inicio, resultado_casa AS rc, resultado_visitante AS rv FROM jogos WHERE id=$1", [jogoId])).rows[0] as any;
+  const j = (await pool.query("SELECT id, resultado_casa AS rc, resultado_visitante AS rv FROM jogos WHERE id=$1", [jogoId])).rows[0] as any;
   if (!j) return { ok: false, jogo: jogoId, palpites: 0, creditados: 0, tokens: 0, motivo: "jogo nao existe" };
   if (j.rc == null || j.rv == null) return { ok: false, jogo: jogoId, palpites: 0, creditados: 0, tokens: 0, motivo: "sem resultado real" };
-  // Trava de inicio oficial do bolao (config.bolao_inicio_oficial)
-  let bloqueadoPreInicio = false;
-  try {
-    const _ini = (await pool.query("SELECT valor FROM config WHERE chave='bolao_inicio_oficial'")).rows[0]?.valor;
-    if (_ini && j.inicio && new Date(j.inicio).getTime() < new Date(_ini).getTime()) bloqueadoPreInicio = true;
-  } catch {}
-  if (bloqueadoPreInicio) {
-    // Zera pontos, nao credita token, marca como apurado pra nao reprocessar
-    const pals0 = (await pool.query("SELECT id, usuario_id FROM palpites_bolao WHERE jogo_id=$1", [jogoId])).rows as any[];
-    for (const p of pals0) {
-      await pool.query("UPDATE palpites_bolao SET pontos=0, creditado=true WHERE id=$1", [p.id]);
-    }
-    await pool.query("UPDATE jogos SET apurado=true WHERE id=$1", [jogoId]);
-    return { ok: true, jogo: jogoId, palpites: pals0.length, creditados: 0, tokens: 0, motivo: "pre_inicio_oficial" };
-  }
   const regra = await regraAtual();
   const pals = (await pool.query("SELECT id, usuario_id, placar_casa AS pc, placar_visitante AS pv, creditado FROM palpites_bolao WHERE jogo_id=$1", [jogoId])).rows as any[];
   let creditados = 0, tokens = 0; const usuarios = new Set<number>();

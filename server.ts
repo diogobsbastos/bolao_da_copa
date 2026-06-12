@@ -38,7 +38,6 @@ app.addContentTypeParser("application/json", { parseAs: "string", bodyLimit: 30 
   }
 });
 
-// injeta o menu lateral + botao FIGURA DEFAULT nas telas legadas (ex.: figurinhas)
 const BTN_DEFAULT = `<a onclick="location.href=location.pathname.replace('/figurinhas','/cartas')" style="position:fixed;bottom:22px;right:22px;z-index:70;background:#14794a;color:#fff;padding:13px 20px;border-radius:30px;font-weight:800;font-size:14px;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.28)">&#127981; FIGURA DEFAULT</a>`;
 app.addHook("onSend", async (req, reply, payload) => {
   const url = String(req.url || "").split("?")[0];
@@ -87,15 +86,14 @@ await app.register(rotasApiFootball);
 await app.register(rotasScores365);
 await app.register(rotasComando);
 
-// executa comando de deploy pendente (git) gravado em config.deploy_cmd
 await runDeployCmd().catch((e) => app.log.error(e));
 await syncSeFlag().catch((e) => app.log.error(e));
 await syncOddsSeFlag().catch((e) => app.log.error(e));
 agendadorDiario();
 iniciarComando();
-casarFc26SeFlag(); // refresh diário interno: odds + lineups -> banco (jogadores só leem)
-setTimeout(() => { autoPreencherTick().catch(() => {}); }, 8000); // auto-preencher no boot
-setInterval(() => { autoPreencherTick().catch(() => {}); }, 15 * 60 * 1000); // a cada 15min: preenche faltantes 1h antes do jogo
+casarFc26SeFlag();
+setTimeout(() => { autoPreencherTick().catch(() => {}); }, 8000);
+setInterval(() => { autoPreencherTick().catch(() => {}); }, 15 * 60 * 1000);
 
 const port = Number(process.env.PORT ?? 8510);
 const host = process.env.HOST ?? "127.0.0.1";

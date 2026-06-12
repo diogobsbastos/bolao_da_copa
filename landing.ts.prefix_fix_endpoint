@@ -38,13 +38,6 @@ export async function rotasLanding(app: FastifyInstance) {
     return reply.header("cache-control","public, max-age=86400").type("image/png").send(Buffer.from(OG_B64, "base64"));
   });
   app.get("/og-square.jpg", async (_req, reply) => reply.header("cache-control","public, max-age=86400").type("image/jpeg").send(OG_SQUARE));
-  app.get("/inicio", async (_req, reply) => {
-    try {
-      const r = await pool.query("SELECT valor FROM config WHERE chave='bolao_inicio_oficial'");
-      const iso = String((r.rows[0] as any)?.valor || "2026-06-13T22:00:00.000Z");
-      return reply.header("cache-control","public, max-age=60").send({ ok: true, iso });
-    } catch { return { ok: false, iso: "2026-06-13T22:00:00.000Z" }; }
-  });
   app.get("/pote", async (_req, reply) => {
     try {
       const r = await pool.query("SELECT COALESCE(SUM(valor),0) AS v, COUNT(*) AS n FROM depositos WHERE status='approved' AND creditado=true");
