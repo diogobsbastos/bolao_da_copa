@@ -389,7 +389,7 @@ body.mcol .side a .tag,body.mcol .side a .free,body.mcol .side a .dot,body.mcol 
 .modal .pack.base>div{font-size:10.5px !important}
 .modal .pkchips{margin:2px 0}
 .modal .pkflag{transform:scale(.8);transform-origin:top right}
-.pacov{position:fixed;inset:0;background:rgba(8,12,24,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:9000;opacity:0;transition:opacity .2s ease;padding:20px}
+.pacov{position:fixed;inset:0;background:rgba(8,12,24,.22);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;z-index:9000;opacity:0;transition:opacity .2s ease;padding:20px}
 .pacov.on{opacity:1}
 .pacbox{position:relative;max-width:340px;width:100%}
 .pacbox .pack.base{margin:0}
