@@ -159,8 +159,8 @@ input:focus{border-color:var(--pri);background:rgba(255,255,255,.09);box-shadow:
 @keyframes potshine{0%{transform:translateX(-120%)}55%,100%{transform:translateX(120%)}}
 .hmpote .brlcc{font-size:1em;font-weight:800;color:inherit}
 
-.brand .bcol{display:inline-flex;flex-direction:column;align-items:flex-end;line-height:1.05}
-.brand .bline{font-weight:800;font-size:15px;color:#fff;text-transform:uppercase}
+.brand .bcol{display:inline-flex;flex-direction:column;align-items:flex-start;line-height:1.05}
+.brand .bline{font-weight:800;font-size:15px;color:#fff}
 .brand .bline b{color:#1faa59}
 .brand .bbeta{font-size:9px;font-weight:800;letter-spacing:.5px;color:rgba(255,255,255,.55);text-transform:none;margin-top:1px}
 .brand .bmgr{font-size:9px;font-weight:800;letter-spacing:.5px;color:rgba(255,255,255,.7);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:6px;padding:2px 7px;white-space:nowrap;text-transform:none;align-self:center}
