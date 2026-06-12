@@ -77,8 +77,12 @@ Tags: `#infra` `#vps` `#systemd` `#mcp`
   ```
   Primeiro registro: **Vipworks · R$40 · ativo**.
 
+### Notificações (criadas 12/jun — Onda A no ar)
+- `notif_canais` — subscriptions Web Push por usuário (destino=endpoint FCM, p256dh, auth, consentimento, ativo). UNIQUE (canal,destino).
+- `notif_mensagens` — broadcasts do composer admin (titulo, template, segmento, criado_por).
+- `notif_envios` — inbox/fila: usuario_id, canal (inapp|webpush), titulo/texto renderizados, status (pendente|enviado|falhou|lido), `referencia` p/ dedup (UNIQUE parcial usuario+canal+referencia).
+
 ### Planejadas (ver [[ROADMAP.md]])
-- `notif_canais`, `notif_mensagens`, `notif_envios` — sistema de notificações multicanal.
 - `patrocinador_contas` — login self-service de patrocinadores.
 
 Tags: `#schema` `#postgres` `#patrocinadores` `#notificacoes`
@@ -143,6 +147,12 @@ Tags: `#tokenomics` `#pontuacao` `#bolao` `#arena` `#marketplace`
 ### Convite FULL
 - `GET /jogar/convidar` — link + status.
 - `POST /jogar/resgatar-full` — aplica convite.
+
+### Notificações (`notificacoes.ts`)
+- `GET /jogar/push/vapid` · `POST /jogar/push/subscribe` · `POST /jogar/push/unsubscribe` — Web Push do jogador.
+- `POST /jogar/notifs/lidas` — sino chama ao abrir; marca inbox in-app como lida.
+- `GET /sw.js` — Service Worker (escopo `/bolao-copa26/`).
+- `GET /admin/notificacoes` (página) · `GET /admin/notificacoes/dados` · `POST /admin/notificacoes/enviar` (segmentos: todos/full/nao-full/top50/inativos) · `POST /admin/notificacoes/teste`.
 
 ### Admin (papel='admin' OU `x-admin-token`)
 - `/admin`, `/admin/figurinhas`, `/admin/cartas`, `/admin/config-hub`, `/admin/tokenomics`, `/admin/criador-fig`, `/admin/comando`, `/admin/deploy`, `/admin/trava`.
@@ -313,9 +323,10 @@ Tags: `#deploy` `#git` `#sandbox` `#tsx`
 - Trava de pontuação toggle (`/admin/trava`) com calendário popup animado.
 - Sidebar admin compacta (212px).
 - Reset zero (ranking/palpites/jogos.apurado/transações_premio_bolao) executado.
+- **Notificações Onda A (12/jun):** sino in-app (badge + lidas) + Web Push (VAPID/aes128gcm node:crypto puro, sem lib) + composer `/admin/notificacoes` com segmentos + gatilhos pontos/PIX/palpite pendente + `/sw.js`. Testado ponta-a-ponta (FCM 201).
 
 ### 🚧 Pendentes (ver [[ROADMAP.md]])
-- **⭐ Sistema de Notificações** (TOP PRIORIDADE — Web Push + WhatsApp Business + e-mail + composer admin).
+- Notificações Onda B/C: WhatsApp Business (HSM) + e-mail transacional + A/B.
 - Tour inicial (onboarding interativo + checklist Primeiros Passos).
 - Tela pública de patrocinadores (`/patrocinadores`).
 - Login self-service de patrocinador (pagamento PIX próprio).

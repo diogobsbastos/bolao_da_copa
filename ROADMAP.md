@@ -7,7 +7,7 @@
 
 ## ⭐ TOP PRIORIDADE
 
-### 1. Sistema de Notificações (MUITO IMPORTANTE)
+### 1. Sistema de Notificações — ✅ ONDA A (in-app + Web Push) NO AR desde 12/jun
 > Toda novidade, lançamento, evento da Copa, atualização de regra ou alerta operacional precisa chegar nos jogadores. **Sem isso o engajamento morre.**
 
 **Canais a implementar:**
@@ -63,9 +63,9 @@ CREATE TABLE notif_envios (
 **Painel admin** `/admin/notificacoes` — composer + segmento + canal(is) + agendamento + preview + histórico de aberturas.
 
 **Ondas:**
-- **Onda A (essencial):** in-app + web push + admin composer básico.
-- **Onda B (alto impacto):** WhatsApp Business com 2-3 templates HSM aprovados.
-- **Onda C:** e-mail transactional + segmentação avançada + A/B test.
+- **Onda A (essencial):** in-app + web push + admin composer. ✅ **ENTREGUE 12/jun** (commits `de076db`+`ee5db5d`, detalhe em `MAPA_SISTEMA.md` §20). Tabelas criadas, sino plugado, Web Push com VAPID/aes128gcm em node:crypto puro (sem lib), composer `/admin/notificacoes` com 5 segmentos, gatilhos: pontos creditados (webpush), PIX caiu, palpite pendente 60-180min (respeita a trava).
+- **Onda B (alto impacto):** WhatsApp Business com 2-3 templates HSM aprovados. ⏳
+- **Onda C:** e-mail transactional + segmentação avançada + A/B test. ⏳
 
 ---
 
@@ -135,3 +135,4 @@ CREATE TABLE notif_envios (
 - **Sidebar admin compacta** (212px, padding 6/10, scroll fino).
 - Funções SQL `apagar_jogador()` / `apagar_todos_jogadores()` pra reset.
 - **Reset zero de pontos** executado (ranking/palpites/jogos.apurado/transacoes_premio_bolao).
+- **Sistema de Notificações Onda A (12/jun):** tabelas `notif_*`, `notificacoes.ts`, sino in-app com badge/lidas, Web Push completo (VAPID + aes128gcm puro), composer admin com segmentos, gatilhos automáticos (pontos/PIX/palpite pendente), Service Worker `/sw.js`.

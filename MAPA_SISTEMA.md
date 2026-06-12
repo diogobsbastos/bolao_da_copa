@@ -286,3 +286,24 @@ Pendências Copa: aba **Artilheiros** (usar stats/FC26 até ter gols reais) e **
 
 ## SESSÃO 11/jun/2026 (tarde)
 Ver **HANDOFF_SESSAO_2026-06-11.md**: carrossel Próximos Jogos (5/pg, altura travada, auto 6s); FIX crítico Meu Perfil (#d-prox removido quebrava loadDados→setProfile, fix `||{}`); Regras DINÂMICAS do config (`/jogar/regras` + builders rg*, menu+Ranking lêem do Admin); R32 ×1 no Mata-mata; banco terceiro=5/artilheiro=100; Beta 1.0 no logo (preto); ordem do Sino. PRÓXIMO: Pagamento real (MP PIX) + onboarding/Primeiros Passos + propaganda + notificações.
+
+
+---
+
+## 20. Sistema de Notificações — Onda A NO AR (12/jun, commits de076db + ee5db5d)
+
+**Arquivo:** `notificacoes.ts` (novo, ~410 linhas). Registrado no `server.ts` (`rotasNotificacoes` + `iniciarNotificacoes()`).
+
+**Tabelas:** `notif_canais` (subscriptions webpush; UNIQUE canal+destino) · `notif_mensagens` (broadcasts) · `notif_envios` (inbox/fila; `referencia` + UNIQUE parcial usuario+canal+referencia = dedup de gatilhos).
+
+**API interna:** `notificar(uid, tipo, titulo, texto, {referencia, canais, mensagemId})` · `notificarSegmento(seg, ...)` (segmentos: todos/full/nao-full/top50/inativos) · `notifsDoUsuario(uid)` (merge no `/jogar/news`).
+
+**Web Push SEM lib externa:** VAPID JWT ES256 (`crypto.sign` ieee-p1363, JWK de chave ECDH P-256) + cifra aes128gcm RFC 8291 (`hkdfSync` + `createCipheriv`). Chaves em `config.webpush_vapid_pub/priv` (geradas no 1º boot). Sender roda a cada 60s (`enviarPendentesWebpush`); 404/410 desativa o canal. Testado real: FCM respondeu 201.
+
+**Sino (in-app):** `/jogar/news` agora retorna `[...notifs, ...news]` (notifs via `notifsDoUsuario`, status pendente→enviado). Badge existente (`hmsbadge`/localStorage) funciona sozinho. Ao abrir o sino, `togNews` chama `POST /jogar/notifs/lidas` (status→lido). Link "🔕 ativar alertas" no header do dropdown → `askPush()` (pede permissão, registra `/sw.js`, subscribe, POST `/jogar/push/subscribe`); `initPush()` no boot re-sincroniza se permissão já dada.
+
+**Gatilhos:** `pontuacao.ts/apurarJogo` → "⭐ Voce pontuou!" (só webpush — o feed de news já mostra in-app; ref `pts:jogo:<id>`) · `pagamento.ts/creditarDeposito` → "✅ PIX confirmado!" (ref `dep:<id>`) · `lembretePalpites` a cada 10min (jogos 60–180min sem palpite, só FULL; **respeita a trava**: com trava=on só lembra jogos ≥ `bolao_inicio_oficial`; ref `pend:jogo:<id>`).
+
+**Admin:** `/admin/notificacoes` (item 🔔 no menu, depois da Trava) — stats (jogadores/push ativos/envios/lidos 24h), composer (titulo+texto+segmento+checkbox push), botão "Testar comigo", histórico com taxa de leitura.
+
+**Pendente (Onda B/C):** WhatsApp Business (HSM) e e-mail — schema já aceita (`canal` no CHECK).

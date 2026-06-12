@@ -124,4 +124,6 @@ Tudo no banco `config` table:
 
 ⏳ **Próxima ação:** desligar trava em `/admin/trava` no sábado 13/06 19h (jogo Brasil x Marrocos).
 
-🔥 **Próxima prioridade dev:** Sistema de Notificações multicanal (`ROADMAP.md` §1).
+✅ **12/jun (sexta):** Sistema de Notificações **Onda A NO AR** — sino in-app + Web Push + composer admin (`MAPA_SISTEMA.md` §20).
+
+🔥 **Próxima prioridade dev:** Onda B (WhatsApp Business) ou Tour inicial / Patrocinadores (`ROADMAP.md` §2-4).
