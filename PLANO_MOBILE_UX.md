@@ -88,3 +88,44 @@ Cards de palpite do Bolão, tabelas de grupos da Copa, tela Depósito, menu burg
 - **SÁBADO 13/06 19h00 BRT:** desligar a trava em `/admin/trava` (não esquecer!). Sugestão: antes do jogo, broadcast pelo composer `/admin/notificacoes` ("A pontuação começa hoje!") — sino + push.
 - Jogadores só recebem push se clicarem "🔕 ativar alertas" no sino (consentimento individual).
 - Carteiras atuais: diogobsbastos=700, filmesvipadm=200. Pote R$70.
+
+---
+
+## 5. BLOCO E — "APP-FEEL" (navegação de jogo, como app de loja)
+> Adicionado 12/jun pelo Claude 1. Executar DEPOIS do Bloco D. ⚠️ Coordenação: 2 Claudes compartilham este repo/VPS — `git pull` antes de qualquer mexida e nunca trabalhar em paralelo com outro piloto ativo.
+
+### E1. Bottom tab bar (a mudança que mais transforma — mobile ≤760px)
+- Barra **fixa no rodapé** com 5 itens: Início · Bolão · Time · Ranking · **Mais** (thumb zone, padrão de app/jogo).
+- "Mais" chama o `menuBtn()` existente (sidebar vira menu secundário). Os outros chamam `nav('dash'|'bolao'|'time'|'rank')` que já existem.
+- HTML: injetar `<nav class="tabbar">` no fim do body do `jogar_page.ts` (python anchor). Ícones: reusar os SVGs do sidebar.
+- CSS (media query): `position:fixed;bottom:0;left:0;right:0;display:flex;padding-bottom:env(safe-area-inset-bottom)`, item ativo em `var(--gr)` com label 10px. `.main{padding-bottom:~70px}` pra não cobrir conteúdo. Desktop: `display:none`.
+- JS: marcar item ativo dentro do `nav()` (1 linha por anchor).
+
+### E2. Transições de seção
+- Ao trocar seção no `nav()`: classe `.sec-in` na seção que entra → `animation: secin .18s ease-out` (fade + translateY(8px)→0). **Só `transform`/`opacity`** (GPU, 60fps). Nada de animar width/height/left.
+
+### E3. Touch polish global (CSS ~10 linhas, mata a "cara de site")
+```css
+*{-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{overscroll-behavior-y:none}
+button,.tab,.nav a,.tabbar a{touch-action:manipulation;user-select:none}
+@media(max-width:760px){ button:active,.tab:active{transform:scale(.96);transition:transform .12s} input,select{font-size:16px} }
+```
+- `font-size:16px` nos inputs é o que impede o iOS de dar zoom ao tocar no placar do palpite — conferir os inputs dos cards do Bolão.
+
+### E4. Skeleton loading
+- Classe utilitária `.skel{background:linear-gradient(90deg,var(--card2) 25%,var(--bd) 50%,var(--card2) 75%);background-size:200% 100%;animation:skel 1.2s infinite;border-radius:8px}`.
+- Substituir os "carregando..." nos 3 pontos visíveis: lista de jogos do Bolão, ranking, sino/news — blocos no formato do conteúdo final.
+
+### E5. Notch / tela cheia
+- `<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">` + `env(safe-area-inset-top)` no `.top` e `-bottom` na tabbar. Essencial pro PWA standalone (Bloco D) em iPhone.
+
+### E6. Detalhes de jogo (opcional, sobra de tempo)
+- Saldo do header animando contagem quando muda (requestAnimationFrame ~400ms).
+- Pulse na pílula do pote quando o valor sobe.
+- `navigator.vibrate(10)` ao salvar palpite (Android; iOS ignora — ok).
+
+### Aceite do Bloco E
+- Navegar Início↔Bolão↔Time↔Ranking **só pela tab bar**, transição fluida, sem flash cinza de toque, sem elástico de overscroll, sem zoom ao tocar input, tab bar nunca cobre conteúdo nem o botão do robô.
+- Desktop inalterado (tab bar `display:none`).
