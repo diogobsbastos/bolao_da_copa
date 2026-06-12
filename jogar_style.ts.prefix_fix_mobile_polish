@@ -538,11 +538,5 @@ body.light .ob-box{background:linear-gradient(180deg,#fff 0%,#fafcff 100%);color
  #copa-tabs.tabs::-webkit-scrollbar,#rank-tabs.tabs::-webkit-scrollbar{display:none}
  #copa-tabs.tabs .tab,#rank-tabs.tabs .tab{flex-shrink:0}
 }
-
-/* --- MOBILE POLISH v1 (12/jun): texto do robo na Inicio quebra em mobile --- */
-@media(max-width:600px){
- .hmrod .hmrbody{min-width:0;flex:1 1 0%}
- .hmrod .hmbubble{white-space:normal;word-break:normal;overflow-wrap:anywhere;max-width:100%;line-height:1.35}
-}
 .ob-emoji{font-size:46px}}
 `;
