@@ -248,7 +248,7 @@ async function mostraConvite(){
   var pnome='<span class="cbnm">'+esc(String(j.nome||"amigo").trim().split(/\s+/)[0]||"amigo")+'</span>';
   if(full){bar.innerHTML="\ud83c\udf89 <b>"+pnome+"</b> te liberou <b>acesso FULL</b> \u2014 crie sua conta! \ud83c\udf86";}
   else{bar.innerHTML="\u26bd <b>"+pnome+"</b> te convidou \u2014 crie sua conta!";}
-  if(used){bar.innerHTML="\u26a0\ufe0f Este convite full j\u00e1 foi utilizado.";}
+  if(used){bar.innerHTML="\u26a0\ufe0f O convite que <b>"+esc(String(j.nome||"seu amigo").trim().split(/\s+/)[0])+"</b> te enviou j\u00e1 foi usado por outra pessoa \u2014 pe\u00e7a outro pra ele OU entre pagando <b>R$ 10</b>.";}
  }catch(e){}
 }
 function esc(v){return String(v==null?"":v).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
