@@ -43,7 +43,7 @@ ${CSS}
   <a class="soon"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1.1"/><circle cx="15" cy="15" r="1.1"/><circle cx="12" cy="12" r="1.1"/></svg></span><span class="lbl">Bet</span><span class="tag">Em breve</span></a>
   <a data-s="regras" onclick="nav('regras')" class="rnav"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4a2 2 0 0 1 2-2h11v18H7a2 2 0 0 0-2 2z"/><path d="M9 7h6M9 11h5"/></svg></span> Regras <span class="dot dotr"></span></a>
  <div class="navdiv"></div>
- <a id="nav-convite" data-s="convidar" onclick="nav('convidar')" class="navfull" style="display:none"><span class="ic">&#127873;</span><span class="lbl">Convite FULL</span><span class="navfreesel">1</span></a>
+ <a id="nav-convite" data-s="convidar" onclick="nav('convidar')" class="navfull" style="display:none"><span class="ic">&#127873;</span> Convite FULL <span class="dot dotr"></span></a>
  </nav>
  <div class="scrim" id="scrim" onclick="drawer()"></div>
  <main class="main">
