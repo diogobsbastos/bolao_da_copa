@@ -424,7 +424,8 @@ body.mcol .side a .tag,body.mcol .side a .free,body.mcol .side a .dot,body.mcol 
 .ob-cta{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
 .ob-go{background:linear-gradient(180deg,#1faa59 0%,#0f8a4d 100%);color:#fff;width:100%;font-size:15px;padding:13px;font-weight:800;box-shadow:0 4px 14px rgba(31,170,89,.35);justify-content:center}
 .ob-go:hover{filter:brightness(1.05)}
-.ob-skip{width:100%;background:transparent;color:#5b6472;font-weight:700;font-size:13px;padding:9px}
+.ob-skip{width:100%;background:var(--card2,#f4f6f9) !important;color:var(--tx,#1a2233) !important;border:1px solid var(--bd,#e2e6ee) !important;font-weight:700;font-size:13px;padding:10px;border-radius:10px}
+.ob-skip:hover{filter:brightness(.97)}
 .ob-orsep{position:relative;text-align:center;font-size:11px;color:#9aa1b0;text-transform:uppercase;letter-spacing:.3em;margin:8px 0 6px}
 .ob-orsep::before,.ob-orsep::after{content:"";position:absolute;top:50%;width:38%;height:1px;background:#e2e6ee}
 .ob-orsep::before{left:0}
