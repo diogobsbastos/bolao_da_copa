@@ -378,8 +378,8 @@ body.mcol .side a .tag,body.mcol .side a .free,body.mcol .side a .dot,body.mcol 
 .rkprize{display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,#f8d873,#e0a008);color:#3a2a00;font-weight:800;font-size:11px;padding:3px 10px;border-radius:999px;box-shadow:0 1px 3px rgba(224,160,8,.3);white-space:nowrap}
 .side a.navfull{position:relative}
 .side a.navfull .ic{font-size:16px}
-.side a.navfull .navfreesel{background:var(--pri,#1faa59);color:#fff;font-size:10px;font-weight:800;padding:2px 8px;border-radius:999px;margin-left:auto;animation:nvpulse 1.8s infinite}
-@keyframes nvpulse{0%,100%{box-shadow:0 0 0 0 rgba(31,170,89,.6)}70%{box-shadow:0 0 0 6px rgba(31,170,89,0)}}
+.side a.navfull .navfreesel{background:#f5c451;color:#3a2a08;font-size:9px;font-weight:800;padding:1px 6px;border-radius:999px;margin-left:auto;position:relative;animation:nvshock 1.8s infinite}
+@keyframes nvshock{0%{box-shadow:0 0 0 0 rgba(245,196,81,.7)}100%{box-shadow:0 0 0 7px rgba(245,196,81,0)}}
 .side .navdiv{height:1px;background:var(--bd);margin:12px 8px;border-radius:1px}
 .side a.navfull{margin-top:0}
 @media(min-width:761px) and (max-width:1024px){body{zoom:.82}.layout{min-height:calc(100vh / 0.82 - 52px)}.side{min-height:calc(100vh / 0.82 - 52px)}}
