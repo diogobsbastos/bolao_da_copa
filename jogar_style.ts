@@ -385,7 +385,7 @@ body.mcol .side a .tag,body.mcol .side a .free,body.mcol .side a .dot,body.mcol 
 .side a.navfull{margin-top:0}
 .modal .mkpac{height:auto !important;max-height:150px !important;width:auto;margin:0 auto 4px}
 .modal .pack.base{padding:4px;margin-bottom:4px !important}
-.modal .pack.base h3{font-size:14px;margin:2px 0 1px !important}
+.modal .pack.base h3{font-size:14px;margin:2px 0 1px !important;justify-content:center}
 .modal .pack.base>div{font-size:10.5px !important}
 .modal .pkchips{margin:2px 0}
 .modal .pkflag{transform:scale(.8);transform-origin:top right}
