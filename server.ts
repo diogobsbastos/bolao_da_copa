@@ -1,3 +1,9 @@
+// MOBILE UX patches (auto-aplica no boot, idempotente via flags .done).
+// Os patches modificam .ts em disco; eles surtem efeito no PROXIMO restart porque
+// tsx ja compilou os modulos antigos no link phase deste boot. Padrao _fix_*.ts.
+import "./_fix_mobile_jogar_style.js";
+import "./_fix_mobile_landing.js";
+
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { pool, pingDb } from "./db.js";

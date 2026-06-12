@@ -456,28 +456,5 @@ body.mcol .side a .tag,body.mcol .side a .free,body.mcol .side a .dot,body.mcol 
 .ob-foot{font-size:11px;color:#9aa1b0;margin-top:8px}
 body.light .ob-box{background:linear-gradient(180deg,#fff 0%,#fafcff 100%);color:#1a2233}
 .ob-confetti{position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle at 20% 20%,#f5c45122 0,#f5c45100 9%),radial-gradient(circle at 80% 25%,#1faa5922 0,#1faa5900 9%),radial-gradient(circle at 30% 80%,#009ee322 0,#009ee300 9%),radial-gradient(circle at 75% 75%,#e23f4422 0,#e23f4400 9%)}
-@media(max-width:540px){.ob-box{padding:24px 18px 18px;border-radius:18px}.ob-h1{font-size:19px}
-/* --- MOBILE UX (Bloco A: P0.1 header + P1.5 dropdowns) - seletores prefixados pra vencer o base override no <style> do jogar_page.ts --- */
-@media(max-width:600px){
- .top{gap:6px;padding:6px 8px}
- .top .brand{gap:4px}
- .top .brand>span{display:none}
- .top .brand .blogo{height:28px}
- .top .cdmini{font-size:11px;padding:4px 8px;gap:4px}
- .top .cdmini .cdlbl{display:none}
- .top .cdmini b{font-size:12px}
- .top .wallets{gap:4px;flex-wrap:nowrap}
- .top .w{padding:3px 6px;font-size:11px}
- .top .hmpote{font-size:10px;padding:3px 7px}
- .top .av{width:27px;height:27px;font-size:12px}
- .top .pchev{display:none}
- .newsdrop{position:fixed;left:8px;right:8px;top:60px;width:auto;max-height:70vh}
- .pdrop{position:fixed;right:8px;left:auto;top:60px;width:auto;max-width:calc(100vw - 16px)}
-}
-@media(max-width:400px){
- .top .brlcc{display:none}
- .top .cdmini{padding:3px 6px}
- .top .w{padding:3px 5px}
-}
-.ob-emoji{font-size:46px}}
+@media(max-width:540px){.ob-box{padding:24px 18px 18px;border-radius:18px}.ob-h1{font-size:19px}.ob-emoji{font-size:46px}}
 `;
