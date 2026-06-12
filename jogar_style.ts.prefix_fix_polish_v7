@@ -612,21 +612,5 @@ body.light .ob-box{background:linear-gradient(180deg,#fff 0%,#fafcff 100%);color
  /* Auto toggle precisa caber */
  div#autobar.actpanel>.act-logic .toggle,div#autobar.actpanel>.act-logic [class*=toggle],div#autobar.actpanel>.act-logic [class*=switch]{flex:0 0 auto!important;width:auto!important}
 }
-
-/* --- MOBILE POLISH v7 (12/jun): X removido, ? menor, IA/Logica shift right --- */
-@media(max-width:600px){
- /* Some com X (.actcol) em mobile */
- div#autobar.actpanel>.actcol,.actpanel>.actcol,.actcol{display:none!important}
- div#autobar.actpanel{padding:10px!important}
- /* ? botao (.qmark) vira bolinha pequena */
- div#autobar.actpanel .qmark,button.qmark{width:28px!important;height:28px!important;min-width:28px!important;max-width:28px!important;padding:0!important;border-radius:50%!important;font-size:13px!important;flex:0 0 28px!important;line-height:1!important}
- /* Botao Preencher (renomeado pra Palpite Logico) — flex 1, largura natural */
- div#autobar.actpanel>.act-logic>.btn.ghost,div#autobar.actpanel>.act-logic>button.btn.ghost{flex:1 1 auto!important;width:auto!important;max-width:100%!important;white-space:nowrap!important;padding:9px 14px!important;font-size:13px!important;text-overflow:ellipsis;overflow:hidden}
- /* Auto toggle e demais: compactos */
- div#autobar.actpanel>.act-logic>*:not(.btn.ghost):not(:first-child){flex:0 0 auto!important;width:auto!important;max-width:none!important}
- /* IA/Logica region nos game cards: shift right */
- .jogo .muted .origb,.jogo .muted .origb.origia,.jogo .muted .origb.origlog{margin-left:6px!important}
- .jogo .muted{justify-content:flex-end!important}
-}
 .ob-emoji{font-size:46px}}
 `;
