@@ -330,7 +330,8 @@ body.mcol .side a .tag,body.mcol .side a .free,body.mcol .side a .dot,body.mcol 
 .convlink input{width:100%;background:var(--surface2);border:1px solid var(--bd);color:var(--tx);border-radius:9px;padding:9px;font-size:12px;margin:4px 0 10px}
 .convbtns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .cbtn{display:flex;align-items:center;justify-content:center;gap:5px;border:0;border-radius:10px;padding:11px 6px;font-weight:800;font-size:12.5px;cursor:pointer;text-decoration:none}
-.cbtn.zap{background:#25d366;color:#04321a}.cbtn.mail{background:#2f6fed;color:#fff}.cbtn.cp{background:var(--surface2);color:var(--tx);border:1px solid var(--bd)}
+.cbtn.zap{background:#25d366;color:#fff}
+.cbtn.zap svg{fill:#fff;flex:none}.cbtn.mail{background:#2f6fed;color:#fff}.cbtn.cp{background:var(--surface2);color:var(--tx);border:1px solid var(--bd)}
 .bloqov{position:fixed;inset:0;background:var(--bgrad);display:none;align-items:center;justify-content:center;z-index:250;padding:18px}
 .bloqcard{width:380px;max-width:94vw;background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:22px 20px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.5)}
 .bloqtitle{font-size:19px;font-weight:800;margin-bottom:4px}
