@@ -164,6 +164,15 @@ export async function lembretePalpites(): Promise<number> {
     jogos = (await pool.query("SELECT id, selecao_casa, selecao_visitante, inicio FROM jogos WHERE selecao_casa<>'A definir' AND selecao_visitante<>'A definir' AND inicio > now() + interval '60 minutes' AND inicio <= now() + interval '180 minutes'")).rows as any[];
   } catch { return 0; }
   if (!jogos.length) return 0;
+  // trava de pontuacao ligada -> so lembra de jogos que de fato pontuam (inicio >= bolao_inicio_oficial)
+  try {
+    const trava = String((await getCfg("bolao_trava_pontuacao")) || "on").toLowerCase() === "on";
+    if (trava) {
+      const ini = await getCfg("bolao_inicio_oficial");
+      if (ini) jogos = jogos.filter((j: any) => j.inicio && new Date(j.inicio).getTime() >= new Date(ini).getTime());
+    }
+  } catch {}
+  if (!jogos.length) return 0;
   let n = 0;
   for (const j of jogos) {
     const c = timePT(j.selecao_casa).pt, v = timePT(j.selecao_visitante).pt;
