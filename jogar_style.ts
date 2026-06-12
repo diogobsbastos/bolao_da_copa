@@ -395,6 +395,10 @@ body.mcol .side a .tag,body.mcol .side a .free,body.mcol .side a .dot,body.mcol 
 .pacbox .pack.base{margin:0}
 .pacx{position:absolute;top:-12px;left:-12px;background:#fff;color:#1a2233;border:2px solid #e6ad12;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:18px;font-weight:800;line-height:1;z-index:20;box-shadow:0 4px 10px rgba(0,0,0,.3)}
 .pacx:hover{background:#f4f6f9}
+#s-convidar .card{color:#fff}
+#s-convidar .card .muted{color:#c3ccd9}
+#s-convidar .card b{color:#fff}
+#s-convidar .card h3{color:#fff}
 @media(min-width:761px) and (max-width:1024px){body{zoom:.82}.layout{min-height:calc(100vh / 0.82 - 52px)}.side{min-height:calc(100vh / 0.82 - 52px)}}
 @media(min-width:1025px) and (max-width:1280px){body{zoom:.9}.layout{min-height:calc(100vh / 0.9 - 52px)}.side{min-height:calc(100vh / 0.9 - 52px)}}
 /* ===== Cards de pacotes de depósito ===== */
