@@ -146,23 +146,23 @@ input:focus{border-color:var(--pri);background:rgba(255,255,255,.09);box-shadow:
 @keyframes gsh{to{background-position:300% 0}}
 .fineprint{color:#6b7790;font-size:11px;text-align:center;margin-top:6px;line-height:1.4}
 @media(max-width:820px){html,body{height:auto;overflow:auto}.shell{height:auto;min-height:100vh;overflow:visible}.card{max-height:none;overflow:visible}.hero{grid-template-columns:1fr;gap:20px;padding-top:6px}.copy h1{font-size:30px}.nav{padding:12px 18px}}
-.poteval{order:-1}.potebar .potelab{flex-basis:100%;text-align:center}}
+.potebar }
 
-.potebar{display:flex;flex-direction:column;gap:6px;background:linear-gradient(135deg,#f8d873,#e0a008);color:#3a2a00;font-weight:800;padding:10px 16px;border-radius:14px;margin:14px auto 0;width:100%;max-width:420px;box-shadow:0 8px 24px rgba(224,160,8,.4);border:1px solid rgba(255,255,255,.55);position:relative;overflow:hidden}
-.potebar::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 25%,rgba(255,255,255,.55) 50%,transparent 75%);transform:translateX(-130%);animation:potshine2 3.2s ease-in-out infinite}
-@keyframes potshine2{0%{transform:translateX(-130%)}55%,100%{transform:translateX(130%)}}
-.potehd{display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative;z-index:1}
-.potelab{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#5a3e00;white-space:nowrap}
-.poteval{font-size:22px;font-weight:900;color:#3a2a00}
-.poteval small{font-size:13px;font-weight:800}
-.potepd{display:flex;gap:6px;justify-content:space-between;align-items:center;position:relative;z-index:1;border-top:1px solid rgba(90,62,0,.25);padding-top:6px}
-.potepos{flex:1;text-align:center;background:rgba(255,255,255,.45);padding:4px 8px;border-radius:8px;font-size:11.5px;font-weight:800;color:#3a2a00;display:inline-flex;align-items:center;justify-content:center;gap:4px;line-height:1.2}
+
+
+55%,100%{transform:translateX(130%)}}
+
+
+
+
+
+
 .potepos b{color:#5a3e00;font-size:10px;font-weight:900}
 .potepos small{font-size:9.5px;font-weight:800}
-.potepos.pp1{background:rgba(255,255,255,.7)}
-.potepos.pp2{background:rgba(255,255,255,.55)}
-.potepos.pp3{background:rgba(255,255,255,.4)}
-@media(max-width:560px){.potebar{max-width:100%}.poteval{font-size:18px}}
+
+
+
+@media(max-width:560px){}
 
 .potepil{display:inline-flex;align-items:center;gap:6px;color:#3a2a00;background:linear-gradient(135deg,#f8d873,#e0a008);border:1px solid #e6ad12;border-radius:999px;padding:6px 14px;font-size:13px;font-weight:800;box-shadow:0 6px 18px rgba(224,160,8,.4);position:relative;overflow:hidden;margin-left:6px}
 .potepil::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.6) 50%,transparent 70%);transform:translateX(-130%);animation:ppshine 3s ease-in-out infinite}
