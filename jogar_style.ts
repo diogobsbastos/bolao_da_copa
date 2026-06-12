@@ -508,5 +508,25 @@ body.light .ob-box{background:linear-gradient(180deg,#fff 0%,#fafcff 100%);color
  .tmtopR::-webkit-scrollbar{display:none}
  .tmtopR>*{flex:0 0 auto}
 }
+
+/* --- MOBILE UX (Bloco C: P2.8 ranking + P2.9 abas + P2.10 marketplace) --- */
+@media(max-width:480px){
+ .rkrow{padding:8px 6px;gap:4px}
+ .rkname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .rkprize-w{flex-shrink:0}
+ .rkprize{font-size:10px;padding:2px 5px}
+ .rkcols{gap:4px;flex-shrink:0}
+ .rkcol span{font-size:14px}
+ .rkcol small{font-size:9px;letter-spacing:-.3px}
+}
+@media(max-width:600px){
+ .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;-webkit-mask-image:linear-gradient(to right,#000 88%,transparent);mask-image:linear-gradient(to right,#000 88%,transparent)}
+ .tabs::-webkit-scrollbar{display:none}
+ .tab{flex-shrink:0}
+}
+@media(max-width:480px){
+ .pack.base{min-width:0;padding:14px 10px}
+ .pksoon,.pksoon2{display:block;margin:6px auto 0;text-align:center}
+}
 .ob-emoji{font-size:46px}}
 `;
