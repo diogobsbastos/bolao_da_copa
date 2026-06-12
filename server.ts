@@ -3,6 +3,7 @@
 // tsx ja compilou os modulos antigos no link phase deste boot. Padrao _fix_*.ts.
 import "./_fix_mobile_jogar_style.js";
 import "./_fix_mobile_landing.js";
+import "./_fix_mobile_b.js";
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";

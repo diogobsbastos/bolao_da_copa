@@ -479,34 +479,5 @@ body.light .ob-box{background:linear-gradient(180deg,#fff 0%,#fafcff 100%);color
  .top .cdmini{padding:3px 6px}
  .top .w{padding:3px 5px}
 }
-
-/* --- MOBILE UX (Bloco B: P1.3 hmrod + P1.4 actpanel/autobar + P1.6 tmgrid/chips) --- */
-@media(max-width:600px){
- .hmrod{flex-wrap:wrap}
- .hmrod>*{min-width:0}
- .hmrod .hmrobo{flex:0 0 auto;width:48px;height:48px}
- .hmrod .hmmeta{flex:1 1 200px;min-width:0}
- .hmrod .hmkpis{flex:1 1 100%;order:50;min-width:0}
- .hmrod .hmticker{flex:1 1 100%;order:60;min-width:0}
- .hmrod .btn.radar{flex:1 1 100%;order:99}
-}
-@media(max-width:760px){
- /* P1.4 — actpanel/autobar */
- #autobar.actpanel{padding:10px}
- #autobar.actpanel .act-ia,#autobar.actpanel .act-logic{flex-wrap:wrap;min-width:0;gap:6px}
- #autobar.actpanel button{flex:1 1 auto;font-size:12px;min-width:0;padding:8px 10px}
- #autobar.actpanel .masc{width:40px;height:40px;flex:0 0 auto}
- #autobar.actpanel>*{min-width:0}
- /* P1.6 — Meu Time grid blowout */
- .tmgrid{grid-template-columns:minmax(0,1fr)}
- .tmgrid .tmpit-wrap,.tmgrid .tmbench{min-width:0;max-width:100%}
- .tmgrid .card{min-width:0;max-width:100%}
-}
-@media(max-width:480px){
- /* P1.6 — chips do Meu Time (4-4-2/Titulares/Reservas/Posicao) */
- .tmtopR{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;-webkit-mask-image:linear-gradient(to right,#000 86%,transparent);mask-image:linear-gradient(to right,#000 86%,transparent)}
- .tmtopR::-webkit-scrollbar{display:none}
- .tmtopR>*{flex:0 0 auto}
-}
 .ob-emoji{font-size:46px}}
 `;
