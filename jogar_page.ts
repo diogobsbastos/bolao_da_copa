@@ -563,8 +563,8 @@ async function depCriar(brl){var b=document.getElementById("dep-body");DEPVAL=Nu
  +DEPSEALS;
  depPollInit();}
 function depCopiar(){var i=document.getElementById("dep-cc");if(!i)return;try{if(navigator.clipboard)navigator.clipboard.writeText(i.value);else{i.select();document.execCommand("copy");}}catch(e){i.select();}toast("C\u00f3digo PIX copiado \u2705");}
-var DEPSTART=0;
-function depPollInit(){DEPSTART=Date.now();depPoll();var t=setInterval(function(){var el=document.getElementById("dep-elapsed");if(!el){clearInterval(t);return;}var s=Math.floor((Date.now()-DEPSTART)/1000);var mm=Math.floor(s/60),ss=s%60;el.textContent="("+(mm<10?"0":"")+mm+":"+(ss<10?"0":"")+ss+")";},1000);}
+var DEPSTART=0,DEPDEAD=0;
+function depPollInit(){DEPSTART=Date.now();DEPDEAD=DEPSTART+10*60*1000;/* 10min */depPoll();var t=setInterval(function(){var el=document.getElementById("dep-elapsed");if(!el){clearInterval(t);return;}var s=Math.max(0,Math.floor((DEPDEAD-Date.now())/1000));var mm=Math.floor(s/60),ss=s%60;el.textContent="("+(mm<10?"0":"")+mm+":"+(ss<10?"0":"")+ss+")";if(s<=0){clearInterval(t);el.textContent="(expirado)";el.style.color="#e23744";}},1000);}
 async function depPoll(){if(!DEPID)return;var sec=document.getElementById("s-deposito");if(!sec||!sec.classList.contains("on")){return;}
  var r=await fetch(BASE+"/jogar/deposito/status?id="+DEPID,{headers:H()});var d=await r.json().catch(function(){return{};});
  if(d&&d.ok&&d.creditado){depSucesso(Number(d.tokens||0));return;}
