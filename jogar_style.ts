@@ -376,12 +376,9 @@ body.mcol .side a .tag,body.mcol .side a .free,body.mcol .side a .dot,body.mcol 
 .hmpote .brlcc,.w .brlcc{font-size:1em}
 .rkprize-w{display:inline-flex;align-items:center;padding-right:14px;margin-right:14px;border-right:1px solid var(--bd)}
 .rkprize{display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,#f8d873,#e0a008);color:#3a2a00;font-weight:800;font-size:11px;padding:3px 10px;border-radius:999px;box-shadow:0 1px 3px rgba(224,160,8,.3);white-space:nowrap}
-.side a.navfull{background:linear-gradient(135deg,#f8d873,#e0a008);color:#3a2a00 !important;font-weight:900;box-shadow:0 4px 12px rgba(224,160,8,.35);animation:navfullpulse 2.4s ease-in-out infinite;position:relative}
-.side a.navfull .ic{color:#3a2a00;font-size:18px}
-.side a.navfull:hover{filter:brightness(1.07);background:linear-gradient(135deg,#f8d873,#e0a008)}
-.side a.navfull .lbl{color:#3a2a00}
-.side a.navfull .navfreesel{background:#fff;color:#0f7a45;font-size:10px;font-weight:900;padding:1px 6px;border-radius:999px;margin-left:auto}
-@keyframes navfullpulse{0%,100%{box-shadow:0 4px 12px rgba(224,160,8,.35)}50%{box-shadow:0 6px 18px rgba(224,160,8,.6),0 0 0 2px rgba(245,196,81,.4)}}
+.side a.navfull{position:relative}
+.side a.navfull .ic{font-size:16px}
+.side a.navfull .navfreesel{background:#f5c451;color:#3a2a08;font-size:10px;font-weight:800;padding:1px 8px;border-radius:999px;margin-left:auto}
 @media(min-width:761px) and (max-width:1024px){body{zoom:.82}.layout{min-height:calc(100vh / 0.82 - 52px)}.side{min-height:calc(100vh / 0.82 - 52px)}}
 @media(min-width:1025px) and (max-width:1280px){body{zoom:.9}.layout{min-height:calc(100vh / 0.9 - 52px)}.side{min-height:calc(100vh / 0.9 - 52px)}}
 /* ===== Cards de pacotes de depósito ===== */
