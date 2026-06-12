@@ -99,6 +99,14 @@ CREATE TABLE notif_envios (
 - Faltam decisões: matchmaking real (qual heurística de força do elenco), teto de overall do XI titular, UX do "aceitar desafio", timeout pra retorno, histórico, anti-conluio (mesma família joga? mesmo IP?).
 - Não entra no Beta 1.0 — será onda 2.
 
+### 6. Bloco E — App-feel mobile (próxima onda mobile)
+- Bottom tab bar fixa no mobile (atalho rápido: Início / Bolão / Time / Ranking).
+- Transições suaves entre abas.
+- Touch polish (active states, ripple).
+- Skeletons de carregamento.
+- Safe-area iOS (notch / home indicator).
+- Detalhes em commit `4068474` (docs: BLOCO E app-feel + regra de coordenação entre 2 Claudes).
+
 ---
 
 ## REGRAS ESPECIAIS DO LANÇAMENTO
@@ -136,3 +144,9 @@ CREATE TABLE notif_envios (
 - Funções SQL `apagar_jogador()` / `apagar_todos_jogadores()` pra reset.
 - **Reset zero de pontos** executado (ranking/palpites/jogos.apurado/transacoes_premio_bolao).
 - **Sistema de Notificações Onda A (12/jun):** tabelas `notif_*`, `notificacoes.ts`, sino in-app com badge/lidas, Web Push completo (VAPID + aes128gcm puro), composer admin com segmentos, gatilhos automáticos (pontos/PIX/palpite pendente), Service Worker `/sw.js`.
+- **Mobile UX completa (12/jun — Blocos A/B/C/D):** auditoria em 390/360px + 4 blocos de fixes com padrão `_fix_*.ts` idempotente:
+  - **Bloco A** (`3e78909`): P0.1 header app (`.top .cdmini/.brand/.wallets`...) + P0.2 landing (relógio não cobre logo, `.nav .cdmini` em static order:3) + P1.5 dropdowns sino/perfil fixed em mobile.
+  - **Bloco B** (`c350090`): P1.3 `.hmrod` flex-wrap (CTA `.btn.radar` vai pra linha cheia order:99), P1.4 `#autobar.actpanel` wrap em 760px, P1.6 `.tmgrid` minmax(0,1fr) + chips `.tmtopR` em scroll horizontal com `mask-image` fade.
+  - **Bloco C** (`deb2eaa`→`251dd78`, paralelo do Sonnet): P2.8 `.rkrow/.rkname` ellipsis + colunas compactas, P2.9 `.tabs` overflow-x:auto + fade, P2.10 `.pack.base` marketplace empilhado.
+  - **Bloco D** (`fb62249`): **PWA instalável** — `pwa.ts` com `/manifest.json` + `/icon-{192,512}.jpg` (servido do `og-square.jpg`), `_fix_pwa.ts` injeta `<link rel=manifest>`/`<meta theme-color>`/`apple-touch-icon`/`apple-mobile-web-app-capable` no head de `jogar_page.ts` e `landing.ts`, e adiciona `fetch` handler pass-through ao SW_JS pro Chrome aceitar instalação.
+  - Detalhes técnicos em `MAPA_SISTEMA.md` (§31 Bloco C, §32 PWA) e `HANDOFF_SESSAO_2026-06-12_MOBILE.md`.
