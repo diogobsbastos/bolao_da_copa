@@ -419,8 +419,10 @@ async function loadRank(tipo){
   var av=x.avatar?('<img src="'+x.avatar+'">'):('<span>'+esc((String(x.nome).trim()[0]||"?").toUpperCase())+'</span>');
   var pm=x.pos<=3?('<span class="rkmedal">'+med[x.pos-1]+'</span>'):('#'+x.pos);
   var tm=x.time?('<small>'+esc(x.time)+'</small>'):'';
+  var _prv=(RANKTIPO==='geral'&&x.pos<=3&&d.pote_split&&d.pote_split[x.pos-1])?Math.round(((d.pote||0)*d.pote_split[x.pos-1])/100*100)/100:0;
+  var prTag=_prv>0?('<span class="rkprize" title="Prêmio projetado">🏆 R$ '+Number(_prv).toFixed(2).replace(".",",")+'</span>'):'';
   var right=(RANKTIPO==="geral")?('<div class="rkcols"><div class="rkcol"><span>'+x.bolao+'</span><small>Bol\u00e3o</small></div><div class="rkcol"><span>'+x.arena+'</span><small>Arena</small></div><div class="rkcol tot"><span>'+x.total+'</span><small>Total</small></div></div>'):('<div class="rkpts">'+x.pts+'<small>pts</small></div>');
-  return '<div class="rkrow'+(x.eu?" me":"")+(x.pos===1?" top1":"")+'"><div class="rkpos">'+pm+'</div><div class="rkav">'+av+'</div><div class="rkname"><b>'+esc(x.nome)+(x.eu?' <span class="rkyou">voc\u00ea</span>':'')+'</b>'+tm+'</div>'+right+'</div>';
+  return '<div class="rkrow'+(x.eu?" me":"")+(x.pos===1?" top1":"")+'"><div class="rkpos">'+pm+'</div><div class="rkav">'+av+'</div><div class="rkname"><b>'+esc(x.nome)+(x.eu?' <span class="rkyou">voc\u00ea</span>':'')+'</b>'+tm+prTag+'</div>'+right+'</div>';
  }).join("");
 }
 var COPA=null,COPATAB="grupos";

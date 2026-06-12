@@ -232,7 +232,9 @@ export async function rotasJogar(app: FastifyInstance) {
     const rs = (await pool.query(`SELECT r.usuario_id uid, COALESCE(us.nome, us.email) nome, us.nome_time time, us.avatar avatar, COALESCE(r.pontos_bolao,0) bolao, COALESCE(r.pontos_arena,0) arena FROM ranking r JOIN usuarios us ON us.id=r.usuario_id`)).rows as any[];
     const metric = (x: any) => tipo === "bolao" ? Number(x.bolao) : tipo === "arena" ? Number(x.arena) : Number(x.bolao) + Number(x.arena);
     rs.sort((a, b) => metric(b) - metric(a) || String(a.nome).localeCompare(String(b.nome)));
-    return { ok: true, eu: u.id, tipo, ranking: rs.slice(0, 50).map((x, i) => ({ pos: i + 1, nome: x.nome, time: x.time || "", avatar: x.avatar || "", bolao: Number(x.bolao || 0), arena: Number(x.arena || 0), total: Number(x.bolao || 0) + Number(x.arena || 0), pts: metric(x), eu: x.uid === u.id })) };
+    let poteTot=0;try{const _pr=await pool.query("SELECT COALESCE(SUM(valor),0) AS v FROM depositos WHERE status='approved'");poteTot=Number(_pr.rows[0].v)||0;}catch{}
+    let poteSplit:number[]=[50,30,20];try{const _ps=(await pool.query("SELECT valor FROM config WHERE chave='pote_split'")).rows[0]?.valor;if(_ps){const arr=JSON.parse(_ps);if(Array.isArray(arr)&&arr.length)poteSplit=arr.map(Number);}}catch{}
+    return { ok: true, eu: u.id, tipo, pote: poteTot, pote_split: poteSplit, ranking: rs.slice(0, 50).map((x, i) => ({ pos: i + 1, nome: x.nome, time: x.time || "", avatar: x.avatar || "", bolao: Number(x.bolao || 0), arena: Number(x.arena || 0), total: Number(x.bolao || 0) + Number(x.arena || 0), pts: metric(x), eu: x.uid === u.id })) };
   });
 
   app.get("/jogar/contexto", async (req, reply) => {
