@@ -2,7 +2,7 @@
 
 > **Documento central de orientação.** Onde está tudo, como mexer, o que existe e o que falta.
 > Leia junto com [[CLAUDE.md]] (regras de produto/stack) e [[HANDOFF_FABRICA.md]] (detalhe da Fábrica).
-> **Última atualização:** 9 de junho de 2026.
+> **Última atualização:** 10 de junho de 2026 (CSS extraído p/ `jogar_style.ts` — ver §20).
 
 ---
 
@@ -281,29 +281,165 @@ Pendências Copa: aba **Artilheiros** (usar stats/FC26 até ter gols reais) e **
 - **Calendário (Copa)**: cards por jogo reusando `.jogo`+`.gtab` (faixa do grupo) + corpo enxuto (bandeira/nome/placar/horário), agrupado por DIA (cabeçalho `.diah`), **2 por linha** (`.gcols`). `/jogar/copa` agora também devolve `grupo` por jogo (via `mapaGrupos`).
 - **Palpites de longo prazo**: botão dourado **"Cravar Campeões & Artilheiro"** no fim da barra de abas do Bolão → popup (`modal()`) com Campeão/Vice/3º/4º (selects de seleção) + Artilheiro (input com `datalist` dos jogadores). Tabela **`palpites_longo`** (usuario_id PK, campeao/vice/terceiro/quarto [EN], artilheiro_id/nome). Endpoints **`GET/POST /jogar/longo`**. Trava em `config.longo_trava` (default `2026-06-23T23:59:00-03:00` = fim R2); depois fica só-leitura. **FALTA Cron 04** de liquidação dos pontos (Campeão 200/Vice 150/3º 100/4º 75 + Artilheiro 100/60/40).
 
-**Pendências de UX pedidas:** **Página de Regras** no front (aba Início + botão no menu do topo) — a fazer. Cache: a tela `/jogar` é `no-store`; se UI antiga aparecer, é cache do navegador (Ctrl+F5).
+**Pendências de UX pedidas:** **Página de Regras** no front (aba Início + botão no menu do topo) — a fazer. Cache: a tela `/jogar` é `no-store`; se UI 
+---
 
+## 21. Correções UI + Aba REGRAS no admin — 10/jun (commits c62841d, 815dde8, b3be005)
 
-## SESSÃO 11/jun/2026 (tarde)
-Ver **HANDOFF_SESSAO_2026-06-11.md**: carrossel Próximos Jogos (5/pg, altura travada, auto 6s); FIX crítico Meu Perfil (#d-prox removido quebrava loadDados→setProfile, fix `||{}`); Regras DINÂMICAS do config (`/jogar/regras` + builders rg*, menu+Ranking lêem do Admin); R32 ×1 no Mata-mata; banco terceiro=5/artilheiro=100; Beta 1.0 no logo (preto); ordem do Sino. PRÓXIMO: Pagamento real (MP PIX) + onboarding/Primeiros Passos + propaganda + notificações.
-
+- **Título "PALPITES CONCLUÍDOS"**: estava centralizado por COLISÃO de classe — `full` (título a 100%) batia com pill genérico `.full{display:inline-flex;padding;margin-left}`. Fix: renomeado pra `slfull`. LIÇÃO: classes genéricas (`full`/`done`) precisam de prefixo.
+- **Selos "Em breve"/"Grátis" da sidebar**: `margin-left:auto` não bastava; solução = envolver rótulo em `<span class="lbl">` com `flex:1 1 auto`+ellipsis. "Marketplace" trunca p/ "Marketpl…".
+- **Aba REGRAS (admin, `?pg=regras`)** — NOVA, separada de Integrações: `ui.ts` nav `regras`; `admin.ts` `GET/POST /admin/regras` (whitelist REGRA_KEYS, valida JSON, upsert no config); `admin_page.ts` seção `pg-regras` editável (pontos_regra, mata_mult, longo_prazo+trava, arena, pacotes, pote_split) via `loadRegras()`/`salvarRegra()`. Grava no config, vale na hora. OBS: "Tabela de pontos" read-only ainda duplicada em Integrações — remover depois.
+- **CLAUDE.md §0.1:** arena `pts:[50,50,50]`+`pts_derrota:10` (era 25/15/8).
 
 ---
 
-## 20. Sistema de Notificações — Onda A NO AR (12/jun, commits de076db + ee5db5d)
+## 22. Fluxo de trabalho com o Claude — Chrome ao vivo, deploy, specs (10/jun)
 
-**Arquivo:** `notificacoes.ts` (novo, ~410 linhas). Registrado no `server.ts` (`rotasNotificacoes` + `iniciarNotificacoes()`).
+### 22.1 Claude no Chrome (inspeção AO VIVO) — usar SEMPRE que for visual
+- **O que é:** extensão "Claude in Chrome" no navegador do dono, logada na mesma conta. Conectada, aparece em `list_connected_browsers` como "Browser N". **Manter conectada entre sessões.**
+- **O que o Claude faz com ela:** abre uma **aba própria** (não mexe nas suas), navega pra qualquer URL do app, lê o **DOM e o estilo COMPUTADO real**, mede posição de elementos em px, roda JS de inspeção. Resumo: vê exatamente o que o usuário vê.
+- **REGRA:** qualquer bug visual/layout → **inspecionar no Chrome ANTES de teorizar/deployar**. Sem isso vira "chute → deploy → pedir print", que custou horas (ex.: alinhamento da sidebar). Com isso: minutos.
+- **Sessão logada:** localStorage é compartilhado por origem no mesmo perfil. Se o dono está logado no admin (`localStorage.sessao`), a aba do Claude na mesma origem **já herda a sessão** e o `conectar()` roda sozinho → dá pra testar fluxo de salvar etc. (Claude pede OK antes de ação que grava/altera dados.)
+- **Por que não há "navegador do servidor":** o sandbox do Claude **não baixa o Chromium** (rede bloqueada nos hosts de binário) e **não tem sudo/apt**. Por isso a inspeção visual depende da extensão no Chrome do dono. (Verificado em 10/jun.)
+- **NÃO confiar só na leitura estática do CSS** pra bug visual: a cascata real tem colisões (ex.: classe `full`, `margin-left:auto` que não surte efeito). Medir no Chrome é a verdade.
 
-**Tabelas:** `notif_canais` (subscriptions webpush; UNIQUE canal+destino) · `notif_mensagens` (broadcasts) · `notif_envios` (inbox/fila; `referencia` + UNIQUE parcial usuario+canal+referencia = dedup de gatilhos).
+### 22.2 Deploy (regra de ouro — processo zumbi)
+clone sandbox (`$HOME/work`, não `/tmp` que vira `nobody`) → `python3` com `assert count==1` → `npx esbuild arquivo.ts --outfile=/dev/null` → `git push` → VPS `git pull` (confirmar "Updating X..Y") → `servico restart bolao-copa26` → `logs` e **CONFERIR PID NOVO** + "Server listening 8510". "ok" do restart não basta. Edit/Write corrompem `.ts` grandes nesses mounts.
 
-**API interna:** `notificar(uid, tipo, titulo, texto, {referencia, canais, mensagemId})` · `notificarSegmento(seg, ...)` (segmentos: todos/full/nao-full/top50/inativos) · `notifsDoUsuario(uid)` (merge no `/jogar/news`).
+### 22.3 Onde editar o quê
+- **Estilo do app jogador** → `jogar_style.ts` (CSS extraído, arquivo pequeno).
+- **Regras/economia** → aba **Regras** do admin (`?pg=regras`), grava em `config`, vale na hora (sem deploy).
+- **Spec de tarefa** → `SPEC_TEMPLATE.md` (5 linhas por tarefa antes de começar).
 
-**Web Push SEM lib externa:** VAPID JWT ES256 (`crypto.sign` ieee-p1363, JWK de chave ECDH P-256) + cifra aes128gcm RFC 8291 (`hkdfSync` + `createCipheriv`). Chaves em `config.webpush_vapid_pub/priv` (geradas no 1º boot). Sender roda a cada 60s (`enviarPendentesWebpush`); 404/410 desativa o canal. Testado real: FCM respondeu 201.
+### 22.4 O que ainda destrava mais (pendências de setup)
+- [ ] **Manter Chrome conectado + dono logado no admin** → Claude testa fluxos completos ao vivo (abrir→editar→salvar→conferir), não só render.
+- [ ] **Conta de teste do jogador** logada no Chrome → testar `/jogar` end-to-end.
+- [ ] **Rotacionar o PAT do GitHub** (texto puro em `.git/config`) — higiene de segurança.
+- [ ] **Crontab real**: hoje os crons são `setTimeout` no processo (re-armam no boot); MCP não edita crontab do SO. Avaliar se precisa de cron de verdade.
 
-**Sino (in-app):** `/jogar/news` agora retorna `[...notifs, ...news]` (notifs via `notifsDoUsuario`, status pendente→enviado). Badge existente (`hmsbadge`/localStorage) funciona sozinho. Ao abrir o sino, `togNews` chama `POST /jogar/notifs/lidas` (status→lido). Link "🔕 ativar alertas" no header do dropdown → `askPush()` (pede permissão, registra `/sw.js`, subscribe, POST `/jogar/push/subscribe`); `initPush()` no boot re-sincroniza se permissão já dada.
+---
 
-**Gatilhos:** `pontuacao.ts/apurarJogo` → "⭐ Voce pontuou!" (só webpush — o feed de news já mostra in-app; ref `pts:jogo:<id>`) · `pagamento.ts/creditarDeposito` → "✅ PIX confirmado!" (ref `dep:<id>`) · `lembretePalpites` a cada 10min (jogos 60–180min sem palpite, só FULL; **respeita a trava**: com trava=on só lembra jogos ≥ `bolao_inicio_oficial`; ref `pend:jogo:<id>`).
+## 23. Aba RESULTADOS (reais) + Classificação real — 10/jun (commit 5c749b8)
 
-**Admin:** `/admin/notificacoes` (item 🔔 no menu, depois da Trava) — stats (jogadores/push ativos/envios/lidos 24h), composer (titulo+texto+segmento+checkbox push), botão "Testar comigo", histórico com taxa de leitura.
+- **Distinção que confundia:** `jogos.placar_*` (status `encerrado`) = **palpite-base do admin** (tela Jogos & Placar, alimenta o robô de palpite). `jogos.resultado_*` (status `final`) = **RESULTADO REAL** (coletor `scores365` no horário do jogo). A apuração compara `palpites_bolao` × `resultado_*`.
+- **Nova aba `/admin/resultados`** (`resultados_page.ts`, nav `resultados` 🏁): lista todos os jogos com o resultado REAL + status + apurado, painel do coletor (apurados / aguardando) e botões **Coletar agora** (`POST /admin/bolao/coletar`) e **Re-apurar pendentes** (`/admin/bolao/apurar`). Correção manual por jogo → `POST /admin/bolao/resultado {jogo_id,rc,rv}` (grava resultado_*, status=final, re-apura). Endpoint de lista: `GET /admin/resultados/dados` (em `jogos_placar.ts`).
+- **Classificação do admin** (`/admin/classificacao/dados`) agora calcula de **`resultado_*` real** (aliased p/ placar em `calcClassificacao`), não mais do palpite-base. Texto do cabeçalho atualizado.
+- **Estado em 10/jun (pré-Copa):** 72 jogos de grupos, **0** resultados reais (1º jogo 11/jun 16:00 — normal). **GID 365 cobre só 46/72** → os outros 26 NÃO serão coletados automaticamente até mapear o gid (`mapearGameIdsSeFlag` em scores365). Pendência: completar o mapeamento de gid pros 72.
 
-**Pendente (Onda B/C):** WhatsApp Business (HSM) e e-mail — schema já aceita (`canal` no CHECK).
+---
+
+## 24. Resultados em 3 abas (Jogos/Classificação/Artilharia) — 10/jun (commit 80c72a5)
+
+- `/admin/resultados` (`resultados_page.ts`) virou **3 abas** (tabs client-side, 1 página): **Jogos** · **Classificação** · **Artilharia**. Barra do coletor (apurados/pendentes + Coletar/Re-apurar) fica no topo, global.
+- **Jogos:** chips de fase (Fase de grupos / Rodada de 32 / Oitavas / Quartas / Semi / 3º-4º / Final). Só **grupos** tem dados hoje; o mata-mata é 1 bucket `fase='mata-mata'` (32 jogos, times "A definir", excluídos do dados) → chips do mata-mata mostram placeholder até a chave existir. Cards 3 linhas (placar na linha do time, botão Editar libera). Lista por data = **mapa do coletor**.
+- **Classificação:** trazida pra DENTRO desta tela (reusa `GET /admin/classificacao/dados`, que já usa resultado real). **Removido o item standalone "Classificacao" do menu** (`ui.ts`); a rota `/admin/classificacao` continua viva mas fora da nav.
+- **Artilharia:** novo `GET /admin/resultados/artilharia` (em jogos_placar.ts) — top 50 de `jogadores_stats` (gols/assist/nota_fantasy) join `jogadores`. Hoje vazio (stats sem gols) → estado "popula com o feed de gols". É a tabela de consulta de quanto cada jogador pontuou.
+- Pendências relacionadas: (a) mapear os **26 gids** faltantes (coletor cobre 46/72); (b) modelar **rodada do mata-mata** (`rodada_mm`) p/ as chips de fase funcionarem; (c) **feed de gols** p/ Artilharia.
+
+---
+
+## 25. Padronização visual (abas/botões/cores) — 10/jun (commits ff17a54, d45bcdf)
+
+- **Abas (page tabs):** padrão único = `.tab{border-radius:11px 11px 0 0;border-bottom:0;background:#eef1f6}` + `.tab.on{background:var(--card);color:var(--pri);box-shadow:0 -2px 0 var(--pri) inset}` (estilo "folder" do Tokenomics). Já consistente em `tokenomics_page.ts`, `config_hub_page.ts` e agora `resultados_page.ts`. **Se criar tela com abas, usar esse `.tab`.**
+- **Botões de rodada/fase:** padrão = **pílula colorida por rodada** (radius 10), ativo preenchido. Cores: grupos R1 `#14a06a`/R2 `#e0a008`/R3 `#e23744`; r32 `#2f6fed`; oitavas `#7a5cff`; quartas `#d4537e`; semi `#1d9e75`; 3º-4º `#b87333`; final `#caa63a`. (Mesma família do Jogos/Placar via `--rc`.) Resultados usa `.ch` com `style="--c:<cor>"`.
+- **Resultados/mata-mata:** `/admin/resultados/dados` agora inclui os 32 jogos do mata-mata (antes excluídos por "A definir") e atribui `rodada_mm` por ordem de data (16 r32 / 8 oitavas / 4 quartas / 2 semi / 1 ter / 1 final) → chips filtram. Cards com borda esquerda na cor da rodada + cabeçalho de data colorido com o rótulo da rodada.
+- Decisão: **não** reescrever o card do Jogos/Placar (tela pesada) — só alinhar abas/botões/cores. Verificado ao vivo no Chrome.
+
+---
+
+## 26. #1 Gids 365 — causa raiz + ferramentas (10/jun, commit 696112b)
+
+- **Causa:** o 365 `/games/fixtures` só devolve o **horizonte próximo** (ex.: forcei e veio 12 jogos; antes 48). Por isso R3 (24-27/jun) e jogos distantes ainda não têm `gid` — **entram sozinhos no refresh diário** conforme a data chega. Os jogos de **11-14/jun já têm gid** (46/72) → coletor funciona no apito. NÃO é bug.
+- `mapearGameIds()` (scores365.ts:369) já grava o gid **desacoplado das odds** (`odds || jsonb_build_object('gid',...)`), 4 janelas até 24-29/jun. Roda no boot via refreshDiario (trava 1x/dia `last_daily_refresh`) ou via flag `config.mapear_gids='go'`.
+- **Adicionado:** aliases Cape Verde (`caboverde`/`capverde`→capeverdeislands); `mapearGameIds` agora registra `naoCasados` (nomes 365 que não casaram) em `config.gids_map_em`; **botão "Mapear gids 365"** na tela Resultados → `POST /admin/resultados/mapear-gids` (roda na hora, mostra jogos365/casados/naoCasados). Use isso pra auditar nomes conforme as rodadas entram no horizonte.
+
+---
+
+## 27. #2 Gols/Artilharia + #3 rodada mata-mata (armados p/ auto-completar) — 11/jun (commit c83332c)
+
+- **Coluna nova:** `jogos.gols_evt jsonb` — lista de `{tipo:'gol'|'assist', athlete_id, nome, jogador_id}` por jogo.
+- **#2 coletor de gols:** `coletarGolsDoJogo(g, jogoId)` no `scores365.ts`, chamado dentro do `processarResultadoJogo` logo após gravar o resultado real. Parser **defensivo** dos `g.events` (tenta vários nomes de campo), resolve o artilheiro via `jogadores_365.athlete_id`→`jogadores.jogador_id` (fallback por nome). **Captura crua:** grava os 6 primeiros eventos do 1º jogo em `config.eventos_probe` (pra validar a estrutura real). Se a estrutura não bater, é **no-op** (não quebra nada) — só ajustar o parser com o `eventos_probe`.
+- **Artilharia** (`GET /admin/resultados/artilharia`): agora **agrega de `jogos.gols_evt`** (count gol/assist por jogador, JOIN jogadores) — idempotente, sem depender de `jogadores_stats`. Hoje vazio; popula sozinho quando os jogos terminarem.
+- **#3 rodada_mm:** o endpoint `/admin/resultados/dados` agora lê `dados365->>'rodada'` (roundName do 365) e mapeia p/ r32/oitavas/quartas/semi/ter/final (`mapRound`), com **fallback** pro agrupamento por data. Auto-corrige quando o mata-mata ganhar gid+dados365 (após o sorteio).
+- **VALIDAR após o 1º jogo (11/jun 16:00 → coletor ~17:55):** conferir aba Artilharia + `config.eventos_probe` (estrutura crua) e ajustar o parser de gols se preciso.
+
+---
+
+## 28. CENTRO DE COMANDO (Job Scheduler) — Fase 1 — 11/jun (commit c4613c3)
+
+Arquitetura nova de automação **dirigida por banco** (substitui crons ad-hoc; um worker no próprio processo Node, sem crontab do SO).
+
+- **Tabela `tarefas_agendadas`:** id, chave_unica (UNIQUE, p/ idempotência), categoria ('Jogos'/'Pontuacao'/'Diario'/'Arena'), acao, horario_gatilho, parametros jsonb, status ('pendente'/'rodando'/'concluido'/'erro'), tentativas, log.
+- **`comando.ts`:**
+  - `tickTarefas()` — **worker `setInterval(60s)`** (+ tick boot+15s): pega pendentes vencidas, roda a ação mapeada, grava status+log. Trava `tarefas_last_tick` (saúde do robô).
+  - `gerarTarefasDosJogos()` — boot+8s e de hora em hora. Por jogo (próx. 40d): `atualizar_dados_jogo` + `auto_preencher` em **−30min** e `coletar_resultado` em **+120min**. Diárias: `atualizar_odds` 00/04/08/12/16/20, `gerar_noticias` 03:00, `injetar_tokens` 00:01. Upsert idempotente por `chave_unica` (só remarca horário se ainda 'pendente').
+  - `iniciarComando()` chamado no `server.ts` (junto do `agendadorDiario()`).
+  - **Ações REAIS (Fase 1):** `atualizar_dados_jogo`→`atualizarDadosJogo(jogoId)` (novo em scores365: dados365 + golsLideres + ultimas5 + escalação); `auto_preencher`→`autoPreencherTick()` (jogar.ts, preenche quem tem `usuarios.auto_preencher=true` e não palpitou); `coletar_resultado`→`coletarResultadoJogo(jogoId)` (novo: processarResultadoJogo → resultado+gols+apuração+token); `atualizar_odds`→`syncOdds()`.
+  - **Placeholders (logam "a construir"):** `gerar_noticias`, `injetar_tokens`, `liquidar_bets`, `arena_resolver`, `regua_figurinhas`.
+- **Dashboard `/admin/comando`** (`comando_page.ts`, nav 🤖): saúde do robô (verde se tick <120s), filtros [Todos/Jogos/Pontuacao/Diarios/Arenas], timeline por horário (cinza pendente / azul rodando / verde concluido / vermelho erro), botões "tentar de novo" (erro) e "rodar agora" (pendente) + "Gerar tarefas". Endpoints: `GET /admin/comando/tarefas?dia=&cat=`, `POST /admin/comando/{retry,rodar-agora,gerar}`.
+- **OBS / consolidar depois:** o `agendarResultados()` (setTimeout por jogo, antigo) **continua rodando em paralelo** ao `coletar_resultado` do scheduler — sem conflito (apuração é idempotente/one-shot), mas dá pra aposentar o antigo depois. Próximas fases: ligar as ações placeholder (notícias IA, drip, Arena, régua) e migrar o resto pra cá.
+
+---
+
+## 29. Menu lateral — RESOLVIDO (causa raiz: zoom × 100vh) — 11/jun (commit 9073948)
+
+**Sintoma:** sidebar não ia até o fundo na "Início" (conteúdo curto) e cortava itens embaixo (barra de scroll interna) sob zoom; no "Bolão" parecia ok (a página rola).
+
+**Causa raiz (MEDIDA ao vivo no Chrome, não teorizada):** `.side` usava `height:calc(100vh - 52px)` + `overflow-y:auto`. Dois agravantes de zoom: (a) `body{zoom:.82/.9}` das medias de "encaixar em tela 15pol" encolhe tudo 10–18%, mas `100vh` continua a viewport cheia → header+side somam `zoom×100vh` e sobra vão embaixo; (b) zoom do NAVEGADOR (ex.: 125%) aumenta os itens → altura fixa fica menor que o conteúdo → scroll interno corta o "Regras". Além disso o processo estava ZUMBI servindo o CSS revertido (1b42442) — restart real (PID novo) foi necessário antes de medir.
+
+**Correção:** `.side` passou de `height:calc(...)+overflow-y:auto` → **`min-height:calc(100vh - 52px)` sem overflow** (cresce e nunca corta; `position:sticky` mantido). Nas medias de zoom o vh é dividido pelo zoom: `min-height:calc(100vh / 0.82 - 52px)` e `/0.9` (idem `.layout`). Validado ao vivo: gap≈0 e `corta=false` em Início, Bolão e com zoom .82. Mobile `@media max-width:760` segue `position:fixed;bottom:0;overflow-y:auto` (drawer, intocado).
+
+**Lição reforçada:** medir no Chrome (getComputedStyle + getBoundingClientRect) achou a causa em minutos; ler só o CSS no código manteria a teoria errada de "é só cache". Restart real + conferir PID + conferir CSS servido continua obrigatório.
+
+---
+
+## 30. Cor dos nomes (times/seleções) padronizada — 11/jun (commit 96fc8b3)
+
+**Pedido do dono:** nome de time com a MESMA cor em TODAS as listas (Bolão, Copa grupos/calendário, Ranking, dashboard), inclusive no tema CLARO.
+
+**Causa do cinza:** o conteúdo dinâmico é renderizado dentro de um `<div class="muted">` (anti-padrão) → tudo herda `color:var(--mut)` (cinza): grupos (`.gcols td`/`.gcols b`), jogos+calendário (`span.nm`), ranking (`.rkname b`). Medido ao vivo: regra direta no elemento de texto funciona; mexer só no container às vezes não pega — **o Ranking RE-RENDERIZA** (atualização ao vivo) e descarta o nó, por isso inline/`.rkrow{}` "não funcionavam" nos testes. A regra no stylesheet aplica a cada render.
+
+**Correção:** regra única `.nm,.gcols td,.gcols b,.rkname b{color:var(--tx)}`. Usa `var(--tx)` (NÃO `#fff`) → adapta: escuro = branco `#fff`, claro = `#1b2230` (legível no fundo branco). Subtítulos (`.rkname small` = nome do time, `th` = cabeçalho) seguem `--mut` de propósito. Validado nos 2 temas ao vivo.
+
+**Padrão p/ telas novas:** nome de time/seleção sempre `var(--tx)`, nunca `#fff` fixo nem deixar herdar de `.muted`.
+
+**Menu lateral (mesma sessão, commits bc45f61 + 3a1e60c):** os itens clicáveis do `.side a` estavam em `--mut` (apagados) → mudados p/ `var(--tx)` (branco no escuro / escuro no claro). Os `.side a.soon` (Em breve) mantêm `--mut` + opacity .5 (deixados apagados de propósito); o `.on` segue `#fff` sobre o fundo verde. A bolinha de aviso de Regras (`.rnav .radar`, pulso laranja) é escondida no menu colapsado: `body.mcol .side .radar{display:none}` (ficava solta à direita dos ícones).
+
+**Cabeçalhos padronizados (commit 44bec4f):** Início, Copa, Ranking e Conectar IA passaram a usar o mesmo `.pghead` do Bolão (barrinha verde = `border-left:3px solid var(--pri2)`), envolvendo o `h1` num `.pghl`. Markup em `jogar_page.ts`. Copa: o subtítulo (EUA·Canadá·México — datas) entra no `.pghead` e vai pra direita pelo flex do `.pghl` (flex:1). IA: `h1`+descrição (vira `p.pgsub`) sobem pro `.pghead`; as abas Conectar/Custo descem pra depois dele.
+
+**Caixa branca nas barras de abas (aprovado, commits d07d56d + 0b20057):** as barras de abas de Copa (`#copa-tabs`), Ranking (`#rank-tabs`) e Conectar IA (`#s-ia .tabs`) ganharam o mesmo fundo do Bolão (`#bolao-tabs`): `background:var(--surface);border:1px solid var(--bd);border-radius:14px;padding:8px 10px` (branco no claro, surface no escuro). Antes usavam a pílula `.tabs` cinza (`--card2`), que apagava. Padrão p/ barras de abas novas: usar `var(--surface)`, não `--card2`.
+
+---
+
+## 31. Mobile UX — Blocos A/B/C FEITOS (12/jun)
+
+Padrão de fix: scripts `_fix_mobile_*.ts` — idempotentes (flag `.done`), injetam CSS em `jogar_style.ts` na âncora `.ob-emoji{font-size:46px}}\n\`;` antes do fechamento do template literal. Importados em `server.ts`. Requerem **2 restarts** (1º aplica o patch em disco; 2º carrega o CSS novo).
+
+**Atenção — nested media queries:** a âncora fica DENTRO de um bloco `@media(max-width:540px)` do CSS original. Logo os `@media(max-width:480px)` e `@media(max-width:600px)` inseridos ficam aninhados. Chrome suporta (`A and B` lógico); funciona nos breakpoints mobile alvo (390px).
+
+### Bloco A — landing + tela do jogador
+`_fix_mobile_jogar_style.ts` + `_fix_mobile_landing.ts`: padding geral, hero landing, nav menu, etc.
+
+### Bloco B — bolão / palpites
+`_fix_mobile_b.ts`: cards de jogo, bandeiras, inputs de placar, grid de palpites.
+
+### Bloco C — ranking / abas / marketplace (12/jun, commits deb2eaa + 8df5ee8)
+
+**`_fix_mobile_c.ts`** — P2.8 + P2.9 (`.tabs`) + P2.10:
+- `@media(max-width:480px)`: `.rkrow` padding/gap, `.rkname` ellipsis, `.rkprize` font-size, `.rkcol small` font 9px
+- `@media(max-width:600px)`: `.tabs` `overflow-x:auto` + `mask-image` fade + `scrollbar-width:none`
+- `@media(max-width:480px)`: `.pack.base` `min-width:0;padding:14px 10px`, `.pksoon` `display:block`
+
+**`_fix_mobile_c2.ts`** — P2.9 corretivo (specificity bug):
+- Problema: `#bolao-tabs{overflow:hidden}` (ID, especificidade 1,0,0) sobrescrevia `.tabs{overflow-x:auto}` (classe, 0,1,0).
+- Fix: target direto em `.tabL` (container flex interno das abas de rodada no Bolão) + seletores compostos `#copa-tabs.tabs` e `#rank-tabs.tabs` para ganhar especificidade.
+- `@media(max-width:600px)`: `.tabL` overflow-x auto + fade + `.tabL .tab{flex-shrink:0}` · `#copa-tabs.tabs`, `#rank-tabs.tabs` idem.
+
+**Verificado em Chrome harness 390px:**
+- P2.8 ✅ — nomes truncam (ellipsis), colunas BOLÃO/ARENA/TOTAL visíveis
+- P2.9 ✅ — `.tabL` scrollWidth 422 > clientWidth 324 (scrollável); `#copa-tabs` overflow-x:auto
+- P2.10 ✅ — cards marketplace "EM BREVE" alinhados, layout limpo
+
+**Git state (VPS):** VPS tem server.ts/fix scripts como modificações locais não commitadas (push feito via clone em /tmp/bolao_work). Para sincronizar: `git fetch origin && git reset --hard origin/main` na VPS.
+
+**Próximo — Bloco D:** PWA installable — `manifest.json`, meta tags em `jogar_page.ts`/`landing.ts`, handler `fetch` pass-through em `/sw.js`. Ver `PLANO_MOBILE_UX.md` §Bloco D.
