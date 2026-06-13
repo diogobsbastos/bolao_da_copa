@@ -139,6 +139,24 @@ body::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--pri2),var(
   margin-left:auto!important;margin-right:auto!important;display:block!important;
  }
 }
+/* HERO-CENTER-LANDING 2026-06-13-v3 */
+@media(max-width:560px){
+ .hero{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;text-align:center!important;width:100%!important;max-width:100%!important;margin-left:auto!important;margin-right:auto!important}
+ .hero>*{margin-left:auto!important;margin-right:auto!important;align-self:center!important}
+ .hero .copy{text-align:center!important;margin:0 auto!important;width:100%!important;max-width:380px!important}
+ .hero .feats{display:flex!important;flex-direction:column!important;flex-wrap:wrap!important;justify-content:center!important;align-items:center!important;gap:8px!important;margin:14px auto 0!important;width:100%!important;max-width:380px!important}
+ .hero .feats>*{flex:0 1 auto!important;margin:0 auto!important;width:100%!important;max-width:380px!important}
+ /* Login card */
+ .feats .card,.feats>.card,.card.tabs,
+ [class*=login],[class*=auth]{
+  margin-left:auto!important;margin-right:auto!important;
+  width:100%!important;max-width:380px!important;
+  display:block!important;
+ }
+ /* Tabs Entrar/Cadastrar centradas */
+ .card .tabs,.card>.tabs{justify-content:center!important;text-align:center!important}
+}
+
 
 
 
