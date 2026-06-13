@@ -1323,5 +1323,23 @@ body.light .ob-box{background:linear-gradient(180deg,#fff 0%,#fafcff 100%);color
  .tmleft .tmbadge:nth-child(1),[class*=tmleft] .tmbadge:nth-child(1){display:none!important}
  .tmleft{align-items:center!important;justify-content:center!important}
 }
+
+
+/* POLISH-RUNNING-CSS 2026-06-13-26 */
+@media(max-width:600px){
+ .pack.base{overflow:visible!important;position:relative!important}
+ .pack.base button,.pack.base .btn{padding:8px 14px!important;font-size:13px!important;min-height:0!important;height:auto!important;line-height:1.2!important}
+ .provcard.sel,.provcard.gem.sel{box-shadow:0 0 0 2px #1faa59 inset!important}
+ .top .brand{flex:0 0 auto!important;max-width:42px!important;overflow:hidden!important}
+ .top .brand .blogo,.top .brand img{max-height:32px!important;max-width:32px!important;width:auto!important;height:auto!important}
+ .top .burger{flex:0 0 auto!important}
+ div#autobar.actpanel:not([data-user-opened="1"]),.actpanel:not([data-user-opened="1"]){display:none!important;visibility:hidden!important}
+ div#autobar.actpanel[data-user-opened="1"],.actpanel[data-user-opened="1"]{display:flex!important;visibility:visible!important}
+ .tabs,#copa-tabs,#bolao-tabs,#rank-tabs,.copa-tabs,.bolao-tabs,.rank-tabs{mask-image:none!important;-webkit-mask-image:none!important;padding-right:0!important;margin-right:0!important}
+ #copa-tabs .tab,.copa-tabs .tab,#bolao-tabs .tab,#rank-tabs .tab{font-size:11px!important;padding:6px 9px!important;letter-spacing:-.2px!important}
+ [class*=ia-conec]{order:-1!important;margin:0 0 12px!important;width:100%!important}
+ .tmleft .tmbadge:nth-child(1),[class*=tmleft] .tmbadge:nth-child(1){display:none!important}
+ .tmleft{align-items:center!important;justify-content:center!important}
+}
 .ob-emoji{font-size:46px}}
 `;
