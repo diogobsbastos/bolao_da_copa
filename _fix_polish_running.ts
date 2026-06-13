@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
-const VERSION = "2026-06-13-21";
+const VERSION = "2026-06-13-22";
 const CSS_MARKER = `/* POLISH-RUNNING-CSS ${VERSION} */`;
 const JS_MARKER = `<!-- [polish-running-js ${VERSION}] -->`;
 
@@ -31,53 +31,68 @@ ${CSS_MARKER}
 }
 `;
 
-// JS v21: aplica TODOS os valores EXATOS do desktop via setProperty inline !important
-// (verificados com Claude in Chrome no viewport 911: top:0 right:0 br:0 14px etc)
+// JS v22: MutationObserver detecta qq mudança no style do pkflag e RE-APLICA desktop values
 const JS_BLOCK = `${JS_MARKER}<script>(function(){if(window.innerWidth>600)return;
-function applyDesktopPkflag(){
- document.querySelectorAll('.pack.base .pkflag, .pack.base [class*=pkflag]').forEach(function(el){
-  var s=el.style;
-  s.setProperty('position','absolute','important');
-  s.setProperty('top','0','important');
-  s.setProperty('right','0','important');
-  s.setProperty('left','auto','important');
-  s.setProperty('bottom','auto','important');
-  s.setProperty('width','auto','important');
-  s.setProperty('max-width','none','important');
-  s.setProperty('height','auto','important');
-  s.setProperty('min-height','0','important');
-  s.setProperty('max-height','none','important');
-  s.setProperty('padding','5px 13px','important');
-  s.setProperty('border-radius','0 14px','important');
-  s.setProperty('background','linear-gradient(135deg,#ffe07a,#e0a008)','important');
-  s.setProperty('z-index','3','important');
-  s.setProperty('display','flex','important');
-  s.setProperty('flex-direction','row','important');
-  s.setProperty('align-items','center','important');
-  s.setProperty('justify-content','center','important');
-  s.setProperty('gap','4px','important');
-  s.setProperty('margin','0','important');
-  s.setProperty('transform','none','important');
-  s.setProperty('color','#000','important');
-  s.setProperty('font-weight','700','important');
-  s.setProperty('font-size','12px','important');
-  s.setProperty('line-height','1','important');
-  s.setProperty('white-space','nowrap','important');
-  el.dataset.pillFixed='1'; // bloqueia v12
-  // SVG/IMG dentro
-  Array.from(el.querySelectorAll('svg, img')).forEach(function(c){
-   c.style.setProperty('width','14px','important');
-   c.style.setProperty('height','14px','important');
-   c.style.setProperty('display','inline-block','important');
-   c.style.setProperty('flex','0 0 auto','important');
-  });
+var applying=false;
+function applyPkflag(el){
+ if(applying)return;applying=true;
+ var s=el.style;
+ s.setProperty('position','absolute','important');
+ s.setProperty('top','0','important');
+ s.setProperty('right','0','important');
+ s.setProperty('left','auto','important');
+ s.setProperty('bottom','auto','important');
+ s.setProperty('width','auto','important');
+ s.setProperty('max-width','none','important');
+ s.setProperty('height','auto','important');
+ s.setProperty('min-height','0','important');
+ s.setProperty('max-height','none','important');
+ s.setProperty('padding','5px 13px','important');
+ s.setProperty('border-radius','0 14px','important');
+ s.setProperty('background','linear-gradient(135deg,#ffe07a,#e0a008)','important');
+ s.setProperty('z-index','3','important');
+ s.setProperty('display','flex','important');
+ s.setProperty('flex-direction','row','important');
+ s.setProperty('align-items','center','important');
+ s.setProperty('justify-content','center','important');
+ s.setProperty('gap','4px','important');
+ s.setProperty('margin','0','important');
+ s.setProperty('transform','none','important');
+ s.setProperty('color','#000','important');
+ s.setProperty('font-weight','700','important');
+ s.setProperty('font-size','12px','important');
+ s.setProperty('line-height','1','important');
+ s.setProperty('white-space','nowrap','important');
+ el.dataset.pillFixed='1';
+ Array.from(el.querySelectorAll('svg, img')).forEach(function(c){
+  c.style.setProperty('width','14px','important');
+  c.style.setProperty('height','14px','important');
+  c.style.setProperty('display','inline-block','important');
+  c.style.setProperty('flex','0 0 auto','important');
  });
- document.querySelectorAll('.pack.base').forEach(function(el){
-  el.style.setProperty('overflow','visible','important');
-  el.style.setProperty('position','relative','important');
+ applying=false;
+}
+function processPacks(){
+ document.querySelectorAll('.pack.base').forEach(function(p){
+  p.style.setProperty('overflow','visible','important');
+  p.style.setProperty('position','relative','important');
+ });
+ document.querySelectorAll('.pack.base .pkflag, .pack.base [class*=pkflag]').forEach(function(el){
+  applyPkflag(el);
+  if(!el.dataset.observed){
+   el.dataset.observed='1';
+   var obs=new MutationObserver(function(){applyPkflag(el);});
+   obs.observe(el,{attributes:true,attributeFilter:['style']});
+  }
  });
 }
-applyDesktopPkflag();setInterval(applyDesktopPkflag,150);
+processPacks();setInterval(processPacks,500);
+// Tb observa o body pra novos packs renderizados
+if(typeof MutationObserver!=='undefined'){
+ var bodyObs=new MutationObserver(function(){processPacks();});
+ if(document.body)bodyObs.observe(document.body,{childList:true,subtree:true});
+ else document.addEventListener('DOMContentLoaded',function(){bodyObs.observe(document.body,{childList:true,subtree:true});});
+}
 
 function getPanel(){return document.querySelector('#autobar.actpanel, .actpanel');}
 function ensureClosed(){var a=getPanel();if(!a)return;if(a.getAttribute('data-user-opened')!=='1'){if(a.style.display){a.style.removeProperty('display');}}}
