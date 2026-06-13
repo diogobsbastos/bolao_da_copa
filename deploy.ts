@@ -35,6 +35,14 @@ async function commitPush(msg: string): Promise<string> {
   out.push("$ git push\n" + await git(["push"]));
   return out.join("\n\n");
 }
+// DEPLOY BLINDADO: VPS = espelho exato do GitHub. fetch + reset --hard.
+// Nunca da conflito porque descarta qualquer alteracao local da VPS (que deve ser read-only).
+async function deployHard(): Promise<string> {
+  const out: string[] = [];
+  out.push("$ git fetch origin main\n" + await git(["fetch", "origin", "main"]));
+  out.push("$ git reset --hard origin/main\n" + await git(["reset", "--hard", "origin/main"]));
+  return out.join("\n\n");
+}
 // remove arquivos do diretorio (nomes simples, sem path traversal) e commita
 async function limpar(arquivos: string[], msg: string): Promise<string> {
   const nomes = (Array.isArray(arquivos) ? arquivos : []).map((f) => String(f).replace(/[^A-Za-z0-9_.\-]/g, "")).filter(Boolean);
@@ -57,7 +65,7 @@ export async function runDeployCmd(): Promise<void> {
   try {
     const o = JSON.parse(cmd);
     if (o.acao === "push") res = await commitPush(String(o.msg || ""));
-    else if (o.acao === "pull") res = await git(["pull"]);
+    else if (o.acao === "pull" || o.acao === "deploy") res = await deployHard();
     else if (o.acao === "rm") res = await limpar(o.arquivos, String(o.msg || ""));
     else if (o.acao === "status") res = await git(["status"]) + "\n---\n" + await git(["log", "--oneline", "-8"]);
     else res = "acao desconhecida: " + o.acao;
@@ -73,7 +81,7 @@ export async function rotasDeploy(app: FastifyInstance) {
     const acao = String(b.acao || "status");
     let saida = "";
     if (acao === "push") saida = await commitPush(String(b.msg || ""));
-    else if (acao === "pull") saida = await git(["pull"]);
+    else if (acao === "pull" || acao === "deploy") saida = await deployHard();
     else saida = await git(["status"]) + "\n--- ultimos commits ---\n" + await git(["log", "--oneline", "-8"]);
     return { ok: true, acao, saida };
   });
