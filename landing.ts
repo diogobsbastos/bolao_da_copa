@@ -311,8 +311,8 @@ input:focus{border-color:var(--pri);background:rgba(255,255,255,.09);box-shadow:
     <label>E-mail</label><input id="l-email" type="email" autocomplete="email" placeholder="voce@email.com">
     <label>Senha</label><input id="l-senha" type="password" autocomplete="current-password" placeholder="sua senha">
     <button class="go" onclick="entrar()">Entrar</button>
+    <div style="text-align:right;margin-top:6px"><a onclick="abaEsqueci()" style="color:#9aa3b5;font-size:13px;cursor:pointer;text-decoration:underline">Esqueci minha senha</a></div>
     <div id="l-msg" class="msg"></div>
-    <div style="text-align:center;margin-top:8px"><a onclick="abaEsqueci()" style="color:#9aa3b5;font-size:13px;cursor:pointer;text-decoration:underline">Esqueci minha senha</a></div>
    </div>
    <div id="f-cad" style="display:none">
     <label>Nome</label><input id="c-nome" placeholder="Como te chamam">
