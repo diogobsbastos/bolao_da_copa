@@ -202,6 +202,7 @@ export async function coletarDados365(): Promise<any> {
       base.casa.ultimas5 = await ultimas5(hcId, base.casa.recentIds, cache);
       base.visitante.ultimas5 = await ultimas5(acId, base.visitante.recentIds, cache);
       await pool.query("UPDATE jogos SET dados365=$1 WHERE id=$2", [JSON.stringify(base), j.id]); n++;
+      try { await coletarGolsDoJogo(g, j.id); } catch {}
     } catch {}
     await sleep(120);
   }
@@ -235,6 +236,7 @@ export async function atualizarDadosJogo(jogoId: number): Promise<any> {
     }
   } catch {}
   await pool.query("UPDATE jogos SET dados365=$1 WHERE id=$2", [JSON.stringify(base), jogoId]);
+  try { await coletarGolsDoJogo(g, jogoId); } catch {}
   try { const lu = await lineupsDoJogo(j.gid); if (lu) await pool.query("UPDATE jogos SET lineup_casa=$1, lineup_visitante=$2, lineup_em=now() WHERE id=$3", [JSON.stringify(lu.home?.lineup ?? null), JSON.stringify(lu.away?.lineup ?? null), jogoId]); } catch {}
   return { ok: true, jogo: jogoId, gid: j.gid };
 }

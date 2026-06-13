@@ -116,6 +116,7 @@ export function htmlLancamento(base: string, pote: number, regra: any, pacotes: 
 </td></tr>
 <tr><td style="padding:6px 24px 4px"><table role="presentation" width="100%" style="border-collapse:collapse">
   ${sec("&#127919;", "Como funciona", regras)}
+  ${sec("&#129504;", "Turbine com IA &mdash; de gra&ccedil;a", "Conecte a sua pr&oacute;pria IA (Gemini, ChatGPT e outras) no app, em segundos. Ela l&ecirc; odds, escala&ccedil;&otilde;es e not&iacute;cias e sugere o placar mais prov&aacute;vel de cada jogo &mdash; quem usa IA joga com <b>vantagem</b>. E se voc&ecirc; ligar o auto-preencher, a <b>sua</b> IA ainda crava por voc&ecirc; quando esquecer!")}
   ${sec("&#129302;", "Esqueceu de palpitar? A gente te cobre", "Se voc&ecirc; n&atilde;o preencher um jogo at&eacute; o apito, nosso <b>rob&ocirc; preenche automaticamente por voc&ecirc;</b> (pela l&oacute;gica das odds e do ranking). Voc&ecirc; <b>nunca fica zerado</b> &mdash; mas palpite voc&ecirc; mesmo pra mandar no que acredita!")}
   ${sec("&#128302;", "Vem muito mais por a&iacute; (roadmap)", "&#127183; <b>Novos pacotes de figurinhas colecion&aacute;veis</b> chegando.<br>&#127937; No <b>fim da 1&ordf; rodada</b>: lan&ccedil;amento da <b>Batalha de Times</b> (PvP) &mdash; que passa a <b>valer ponto no ranking</b>!")}
 </table></td></tr>
