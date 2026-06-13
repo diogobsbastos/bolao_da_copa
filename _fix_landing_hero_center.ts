@@ -1,8 +1,8 @@
 // PATCHES DE BOOT (2026-06-13) — roda no boot, idempotente.
 // A) LANDING: v25 + CENTER-FIX + GOOGLE-FIT.
 // B) JOGAR autocomplete Artilheiro: jogadores.id e BIGINT (string no JSON); compara como string.
-// C) JOGAR actpanel ("Conecte sua IA") SO no tema claro (body.light): toggle Auto (ON) e X de
-//    fechar ficam no VERDE PADRAO (--pri). Tema escuro intocado.
+// C) REVERT actpanel: desfaz TODAS as minhas mudancas de X/toggle Auto, voltando jogar_style.ts
+//    ao original (estado do commit ebf982a, logo apos o fix do artilheiro). Pedido do dono.
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -90,7 +90,7 @@ try {
   else console.log("[landing] nada a fazer");
 } catch (e) { console.error("[landing] ERRO", e); }
 
-// ---- B) JOGAR: Artilheiro clicavel (fix de tipo bigint/string) ----
+// ---- B) JOGAR: Artilheiro clicavel (fix de tipo bigint/string) — MANTIDO ----
 try {
   const JP = join(__dir, "jogar_page.ts");
   let j = readFileSync(JP, "utf8");
@@ -108,25 +108,25 @@ try {
   else console.log("[ac-art-fix] ja aplicado");
 } catch (e) { console.error("[ac-art-fix] ERRO", e); }
 
-// ---- C) JOGAR: actpanel — verde padrao SO no tema claro (body.light) ----
+// ---- C) REVERT actpanel: restaura jogar_style.ts ao original (ebf982a) ----
 try {
   const JS = join(__dir, "jogar_style.ts");
   let z = readFileSync(JS, "utf8");
   let ch = 0;
-  // reverte mudancas incondicionais antigas (se ainda presentes)
+  // 1) reverter mudancas globais incondicionais (se ainda presentes)
   const reverts: [string, string][] = [
     ['.sl{position:absolute;inset:0;background:#9aa3b5;border:1px solid #9aa3b5;', '.sl{position:absolute;inset:0;background:var(--surface2);border:1px solid var(--bd);'],
     ['.sw input:checked+.sl{background:#14a06a;border-color:#14a06a}', '.sw input:checked+.sl{background:var(--rc,var(--pri));border-color:var(--rc,var(--pri))}'],
     ['background:#2b3340;border:1.5px solid #fff;color:#fff;font-size:10px;font-weight:800;line-height:1;display:inline-flex', 'background:var(--rc,#14a06a);border:1.5px solid var(--surface);color:#fff;font-size:10px;font-weight:800;line-height:1;display:inline-flex'],
   ];
   for (const [a, b] of reverts) { if (z.indexOf(a) !== -1) { z = z.replace(a, b); ch++; } }
-
+  // 2) remover QUALQUER override body.light que eu adicionei (verde atual ou escuro antigo)
   const anchor = '.actcol:hover{transform:scale(1.1)}';
-  const OLD_OV = 'body.light .sl{background:#9aa3b5;border-color:#9aa3b5}body.light .sw input:checked+.sl{background:#14a06a;border-color:#14a06a}body.light .actcol{background:#2b3340;border-color:#fff;color:#fff}';
-  const NEW_OV = 'body.light .sl{background:#9aa3b5!important;border-color:#9aa3b5!important}body.light .sw input:checked+.sl{background:var(--pri)!important;border-color:var(--pri)!important}body.light .actcol{background:var(--pri)!important;border-color:#fff!important;color:#fff!important}';
-  if (z.indexOf(OLD_OV) !== -1) { z = z.replace(OLD_OV, NEW_OV); ch++; }
-  else if (z.indexOf(NEW_OV) === -1 && z.indexOf(anchor) !== -1) { z = z.replace(anchor, anchor + NEW_OV); ch++; }
-
-  if (ch) { writeFileSync(JS, z, "utf8"); console.log("[actpanel-light] aplicado", ch, "(verde padrao --pri no tema claro)"); }
-  else console.log("[actpanel-light] ja ok");
-} catch (e) { console.error("[actpanel-light] ERRO", e); }
+  const overrides = [
+    'body.light .sl{background:#9aa3b5!important;border-color:#9aa3b5!important}body.light .sw input:checked+.sl{background:var(--pri)!important;border-color:var(--pri)!important}body.light .actcol{background:var(--pri)!important;border-color:#fff!important;color:#fff!important}',
+    'body.light .sl{background:#9aa3b5;border-color:#9aa3b5}body.light .sw input:checked+.sl{background:#14a06a;border-color:#14a06a}body.light .actcol{background:#2b3340;border-color:#fff;color:#fff}',
+  ];
+  for (const ov of overrides) { if (z.indexOf(anchor + ov) !== -1) { z = z.replace(anchor + ov, anchor); ch++; } }
+  if (ch) { writeFileSync(JS, z, "utf8"); console.log("[actpanel-revert] revertido ao original", ch); }
+  else console.log("[actpanel-revert] ja no original");
+} catch (e) { console.error("[actpanel-revert] ERRO", e); }
