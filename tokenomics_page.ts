@@ -73,7 +73,7 @@ ${NAV_CSS}
       <div class="kpi"><div class="lab">Por indica&ccedil;&atilde;o</div><div class="val" id="u-ind">0</div></div>
       <div class="kpi"><div class="lab">Convidaram algu&eacute;m</div><div class="val" id="u-conv">0</div></div>
      </div>
-     <div class="scroll"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Pagou?</th><th>Como entrou</th><th>Convidou (quem usou)</th><th class="num">Saldo</th></tr></thead><tbody id="u-body"><tr><td colspan="6" class="muted">carregando...</td></tr></tbody></table></div>
+     <div class="scroll"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Pagou?</th><th>Como entrou</th><th>Convidou (quem usou)</th><th style="font-size:11px">Entrou</th><th class="num">Saldo</th></tr></thead><tbody id="u-body"><tr><td colspan="6" class="muted">carregando...</td></tr></tbody></table></div>
     </div>
    </section>
    <section id="pg-logs" class="hide">
@@ -116,7 +116,7 @@ async function loadUsuarios(){
   else if(u.tipo_entrada==="indicacao"){entrou='&#128279; Indica&ccedil;&atilde;o de <b>'+esc(u.conv_nome||u.conv_email||"?")+'</b> <span class="muted">(n&atilde;o pagou)</span>';}
   else{entrou='<span class="muted">direto</span>';}
   var convidou=(u.convidou_qtd>0)?('<b>'+u.convidou_qtd+'</b> &middot; '+esc(u.convidados||"")):'<span class="muted">&mdash;</span>';
-  h+='<tr><td>'+esc(u.nome||"&mdash;")+'</td><td>'+esc(u.email)+'</td><td>'+pagou+'</td><td>'+entrou+'</td><td style="font-size:12px">'+convidou+'</td><td class="num">'+u.saldo+'</td></tr>';
+  h+='<tr><td>'+esc(u.nome||"&mdash;")+'</td><td>'+esc(u.email)+'</td><td>'+pagou+'</td><td>'+entrou+'</td><td style="font-size:12px">'+convidou+'</td><td style="font-size:11px;color:var(--mut);white-space:nowrap">'+esc(u.criado||"&mdash;")+'</td><td class="num">'+u.saldo+'</td></tr>';
  }
  tb.innerHTML=h||'<tr><td colspan="6" class="muted">nenhum jogador ainda</td></tr>';
 }

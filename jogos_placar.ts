@@ -361,18 +361,21 @@ export async function rotasJogosPlacar(app: FastifyInstance) {
   app.get("/admin/resultados/artilharia", async (req, reply) => {
     if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
     try {
-      const rows = (await pool.query(
-        `SELECT jg.nome, jg.selecao,
-                count(*) FILTER (WHERE e->>'tipo'='gol') AS gols,
-                count(*) FILTER (WHERE e->>'tipo'='assist') AS ass
-           FROM jogos j
-           CROSS JOIN LATERAL jsonb_array_elements(COALESCE(j.gols_evt,'[]'::jsonb)) e
-           JOIN jogadores jg ON jg.id = NULLIF(e->>'jogador_id','')::int
-          GROUP BY jg.nome, jg.selecao
-          ORDER BY gols DESC, ass DESC LIMIT 50`)).rows as any[];
+      const rows = (await pool.query(`
+        WITH lid AS (
+          SELECT e->>'nome' AS nome,
+                 CASE WHEN e->>'lado'='casa' THEN j.selecao_casa WHEN e->>'lado'='visitante' THEN j.selecao_visitante END AS selecao,
+                 NULLIF(e->>'gols','')::int AS gols
+            FROM jogos j CROSS JOIN LATERAL jsonb_array_elements(COALESCE(j.dados365->'golsLideres','[]'::jsonb)) e
+           WHERE COALESCE(e->>'nome','') <> ''
+        ),
+        agg AS (SELECT nome, selecao, MAX(gols) AS gols FROM lid WHERE gols > 0 AND selecao IS NOT NULL GROUP BY nome, selecao)
+        SELECT a.nome, a.selecao, a.gols,
+               (SELECT j2.figurinha FROM jogadores j2 WHERE j2.figurinha IS NOT NULL AND (lower(j2.nome)=lower(a.nome) OR lower(a.nome) LIKE '%'||lower(j2.nome)||'%' OR lower(j2.nome) LIKE '%'||lower(a.nome)||'%') ORDER BY (lower(j2.nome)=lower(a.nome)) DESC, length(j2.nome) DESC LIMIT 1) AS figurinha
+          FROM agg a ORDER BY a.gols DESC, a.nome LIMIT 60`)).rows as any[];
       const artilheiros = rows.map((r) => {
         const t = timePT(r.selecao);
-        return { nome: r.nome, sel_pt: t.pt, iso: t.iso, gols: Number(r.gols), ass: Number(r.ass), jogos: null, nota: null };
+        return { nome: r.nome, sel_pt: t.pt, iso: t.iso, fig: r.figurinha || "", gols: Number(r.gols), ass: 0, jogos: null, nota: null };
       });
       return { ok: true, artilheiros };
     } catch (e: any) { return reply.code(500).send({ erro: String(e?.message ?? e).slice(0, 160) }); }

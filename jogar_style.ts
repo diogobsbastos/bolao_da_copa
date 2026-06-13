@@ -1410,4 +1410,7 @@ body.light .ob-box{background:linear-gradient(180deg,#fff 0%,#fafcff 100%);color
 
 /* [rank-mobile 13jun] celular: so a coluna Total no ranking (libera espaco pro nome) */
 @media(max-width:560px){.rkcol:not(.tot){display:none}.rkcols{gap:0}}
+
+/* [ui 13jun] meu-time sem chip 4-4-2 no mobile + abas Copa preenchendo a largura */
+@media(max-width:560px){.tmtopR .tmbadge:first-child{display:none}#copa-tabs{display:flex!important;justify-content:space-between}#copa-tabs .tab{flex:1;text-align:center;justify-content:center}}
 `;
