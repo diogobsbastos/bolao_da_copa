@@ -1,14 +1,14 @@
-// Polish running — acumulador unico (patcha jogar_style.ts + jogar_page.ts + landing.ts).
+// Polish running — acumulador unico (jogar_style.ts + jogar_page.ts).
+// landing.ts NAO e mais tocado — fica EXATAMENTE como original.
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
-const VERSION = "2026-06-13-28";
+const VERSION = "2026-06-13-29";
 const CSS_MARKER = `/* POLISH-RUNNING-CSS ${VERSION} */`;
 const JS_MARKER = `<!-- [polish-running-js ${VERSION}] -->`;
-const LANDING_MARKER = `/* POLISH-LANDING-CSS ${VERSION} */`;
 
 const CSS_BLOCK = `
 ${CSS_MARKER}
@@ -26,37 +26,6 @@ ${CSS_MARKER}
  [class*=ia-conec]{order:-1!important;margin:0 0 12px!important;width:100%!important}
  .tmleft .tmbadge:nth-child(1),[class*=tmleft] .tmbadge:nth-child(1){display:none!important}
  .tmleft{align-items:center!important;justify-content:center!important}
-}
-`;
-
-// v28: usa "all:revert" pra desfazer TODAS minhas regras antigas no header
-// (revert volta pro CSS original do landing.ts, nao pro browser default como initial faria).
-const LANDING_CSS = `
-${LANDING_MARKER}
-@media(max-width:560px){
- /* REVERT do header — volta TUDO ao CSS original do landing.ts */
- .hlogo,.nav,.brand,.blogo,.brand .blogo,.brand img,.hlogo img,[class*=blogo],
- .brand b,.brand strong,.brand>span,.htitle,
- .bbeta,[class*=bbeta],[class*=beta-tag],[class*=tarja],
- [class*=manager],[class*=mgr],.hmpote,[class*=hmpote]{
-  all:revert!important;
- }
-
- /* Centraliza APENAS .hero (conteudo abaixo do header) */
- .hero{
-  display:flex!important;flex-direction:column!important;
-  align-items:center!important;justify-content:flex-start!important;
-  text-align:center!important;
-  margin-left:auto!important;margin-right:auto!important;
-  width:100%!important;max-width:100%!important;
- }
- .hero>*{margin-left:auto!important;margin-right:auto!important;align-self:center!important}
- .hero .copy{text-align:center!important;margin:0 auto!important;width:100%!important;max-width:380px!important}
- .hero .feats{
-  display:flex!important;flex-wrap:wrap!important;justify-content:center!important;align-items:center!important;
-  gap:8px!important;margin:14px auto 0!important;width:100%!important;max-width:380px!important;
- }
- .hero .feats>*{flex:0 1 auto!important;margin:0!important}
 }
 `;
 
@@ -118,25 +87,5 @@ try {
     const anchor = "<!-- [mobile-polish-v2-script] -->";
     if (sJs.split(anchor).length - 1 === 1) writeFileSync(JP, sJs.replace(anchor, JS_BLOCK + anchor), "utf8");
   }
-  const LDP = join(__dir, "landing.ts");
-  const sLd = readFileSync(LDP, "utf8");
-  if (sLd.indexOf(LANDING_MARKER) === -1) {
-    const reMark = /\/\* POLISH-LANDING-CSS [^*]+\*\//g;
-    const mks: string[] = [];
-    let m;
-    while ((m = reMark.exec(sLd)) !== null) mks.push(m[0]);
-    if (mks.length > 0) {
-      const lAnchor = mks[mks.length - 1];
-      const idx = sLd.lastIndexOf(lAnchor);
-      let depth = 0, foundEnd = -1;
-      for (let i = idx + lAnchor.length; i < sLd.length; i++) {
-        if (sLd[i] === '{') depth++;
-        else if (sLd[i] === '}') { depth--; if (depth === 0) { foundEnd = i + 1; break; } }
-      }
-      if (foundEnd > 0) writeFileSync(LDP, sLd.substring(0, foundEnd) + "\n" + LANDING_CSS + sLd.substring(foundEnd), "utf8");
-    } else {
-      const fallback = "@media(max-width:560px){.cdlab{display:none}.cdval{min-width:0}}";
-      if (sLd.split(fallback).length - 1 === 1) writeFileSync(LDP, sLd.replace(fallback, fallback + "\n" + LANDING_CSS), "utf8");
-    }
-  }
+  // landing.ts NUNCA MAIS — removido o bloco que patchava.
 } catch (e) { console.error("[polish_running] ERRO", e); }
