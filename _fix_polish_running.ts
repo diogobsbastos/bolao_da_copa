@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
-const VERSION = "2026-06-13-26";
+const VERSION = "2026-06-13-27";
 const CSS_MARKER = `/* POLISH-RUNNING-CSS ${VERSION} */`;
 const JS_MARKER = `<!-- [polish-running-js ${VERSION}] -->`;
 const LANDING_MARKER = `/* POLISH-LANDING-CSS ${VERSION} */`;
@@ -29,32 +29,33 @@ ${CSS_MARKER}
 }
 `;
 
-// v26 LANDING: REMOVE rules antigas do header (user nao quer mexer no cabeçalho)
-// e CENTRALIZA tudo abaixo do header. Anchor encadeado: vai apos o LATEST marker pra vencer cascade.
+// v27 LANDING: SO mexe em .hero/.copy/.feats (conteudo abaixo do header). NUNCA mexe no header.
 const LANDING_CSS = `
 ${LANDING_MARKER}
 @media(max-width:560px){
- /* RESET do header v23/v24/v25 (deixa o cabecalho como esta originalmente) */
- .hlogo,.nav,.brand{flex-wrap:initial!important;overflow:visible!important;justify-content:initial!important;padding:initial!important}
- .blogo,.brand .blogo,.brand img,.hlogo img,.hlogo .blogo,[class*=blogo]{max-height:initial!important;max-width:initial!important}
- .brand b,.brand strong,.brand>span,.htitle{font-size:initial!important;letter-spacing:initial!important;white-space:initial!important}
- .bbeta,[class*=bbeta]{font-size:initial!important;padding:initial!important}
+ /* RESETA tudo do v26 que era amplo demais (.lcontent/.lmain/[class*=container] etc) */
+ .hsec,.hbody,.lbody,.lcontainer,.lcontent,.lmain,
+ [class*=lcontent],[class*=lmain],[class*=hsection],[class*=container]{
+  text-align:initial!important;margin-left:initial!important;margin-right:initial!important;
+  display:initial!important;flex-direction:initial!important;align-items:initial!important;justify-content:initial!important;
+  width:initial!important;max-width:initial!important;
+ }
 
- /* CENTRALIZAR tudo abaixo do header */
- .hero,.main,.lcontent,.lmain,.hsec,.hbody,.lbody,.lcontainer,
- [class*=hero],[class*=lcontent],[class*=lmain],[class*=hsection],[class*=container]{
-  text-align:center!important;margin-left:auto!important;margin-right:auto!important;
-  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;
+ /* === CENTRALIZAR APENAS o .hero (conteudo abaixo do header) === */
+ .hero{
+  display:flex!important;flex-direction:column!important;
+  align-items:center!important;justify-content:flex-start!important;
+  text-align:center!important;
+  margin-left:auto!important;margin-right:auto!important;
   width:100%!important;max-width:100%!important;
  }
- .hero>*,.main>*,.lcontent>*,.lmain>*,
- [class*=hero]>*,[class*=lcontent]>*,[class*=lmain]>*,[class*=container]>*{
-  margin-left:auto!important;margin-right:auto!important;align-self:center!important;
+ .hero>*{margin-left:auto!important;margin-right:auto!important;align-self:center!important}
+ .hero .copy{text-align:center!important;margin:0 auto!important;width:100%!important;max-width:380px!important}
+ .hero .feats{
+  display:flex!important;flex-wrap:wrap!important;justify-content:center!important;align-items:center!important;
+  gap:8px!important;margin:14px auto 0!important;width:100%!important;max-width:380px!important;
  }
- /* Botoes dos atalhos centralizados */
- .lbtns,.hbtns,[class*=lbtns],[class*=hbtns],[class*=cta]{
-  display:flex!important;flex-wrap:wrap!important;justify-content:center!important;align-items:center!important;gap:8px!important;
- }
+ .hero .feats>*{flex:0 1 auto!important;margin:0!important}
 }
 `;
 
@@ -116,33 +117,24 @@ try {
     const anchor = "<!-- [mobile-polish-v2-script] -->";
     if (sJs.split(anchor).length - 1 === 1) writeFileSync(JP, sJs.replace(anchor, JS_BLOCK + anchor), "utf8");
   }
-  // landing.ts: anchor encadeado — encontra o MAIS RECENTE marker e insere APOS pra vencer cascade
+  // landing.ts: anchor encadeado pra vencer cascade
   const LDP = join(__dir, "landing.ts");
   const sLd = readFileSync(LDP, "utf8");
   if (sLd.indexOf(LANDING_MARKER) === -1) {
-    // Procura ultimo marker existente (v25, v24, v23, etc) — usa o ultimo como anchor
     const reMark = /\/\* POLISH-LANDING-CSS [^*]+\*\//g;
     const mks: string[] = [];
     let m;
     while ((m = reMark.exec(sLd)) !== null) mks.push(m[0]);
-    let lAnchor: string;
     if (mks.length > 0) {
-      // Pega o ULTIMO marker (mais recente em source order = onde queremos inserir apos)
-      lAnchor = mks[mks.length - 1];
-      // Acha o fim do bloco @media desse marker (apos o })
+      const lAnchor = mks[mks.length - 1];
       const idx = sLd.lastIndexOf(lAnchor);
-      // procura o proximo } no nivel certo apos o marker
-      let depth = 0, end = idx + lAnchor.length, foundEnd = -1;
-      for (let i = end; i < sLd.length; i++) {
+      let depth = 0, foundEnd = -1;
+      for (let i = idx + lAnchor.length; i < sLd.length; i++) {
         if (sLd[i] === '{') depth++;
         else if (sLd[i] === '}') { depth--; if (depth === 0) { foundEnd = i + 1; break; } }
       }
-      if (foundEnd > 0) {
-        const novo = sLd.substring(0, foundEnd) + "\n" + LANDING_CSS + sLd.substring(foundEnd);
-        writeFileSync(LDP, novo, "utf8");
-      }
+      if (foundEnd > 0) writeFileSync(LDP, sLd.substring(0, foundEnd) + "\n" + LANDING_CSS + sLd.substring(foundEnd), "utf8");
     } else {
-      // Fallback: anchor original
       const fallback = "@media(max-width:560px){.cdlab{display:none}.cdval{min-width:0}}";
       if (sLd.split(fallback).length - 1 === 1) writeFileSync(LDP, sLd.replace(fallback, fallback + "\n" + LANDING_CSS), "utf8");
     }
