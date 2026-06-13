@@ -1,14 +1,13 @@
-// Polish running — acumulador unico (patcha jogar_style.ts + jogar_page.ts + landing.ts).
+// Polish running — acumulador unico.
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
-const VERSION = "2026-06-13-23";
+const VERSION = "2026-06-13-24";
 const CSS_MARKER = `/* POLISH-RUNNING-CSS ${VERSION} */`;
 const JS_MARKER = `<!-- [polish-running-js ${VERSION}] -->`;
-const LANDING_MARKER = `/* POLISH-LANDING-CSS ${VERSION} */`;
 
 const CSS_BLOCK = `
 ${CSS_MARKER}
@@ -16,7 +15,6 @@ ${CSS_MARKER}
  .pack.base{overflow:visible!important;position:relative!important}
  .pack.base button,.pack.base .btn{padding:8px 14px!important;font-size:13px!important;min-height:0!important;height:auto!important;line-height:1.2!important}
 
- /* Conectar IA: provedor selecionado scrolla pra input chave (CSS + JS) */
  .provcard.sel,.provcard.gem.sel{box-shadow:0 0 0 2px #1faa59 inset!important}
 
  .top .brand{flex:0 0 auto!important;max-width:42px!important;overflow:hidden!important}
@@ -35,7 +33,7 @@ ${CSS_MARKER}
 }
 `;
 
-// CSS para LANDING — classes reais: .brand .blogo .bbeta
+const LANDING_MARKER = `/* POLISH-LANDING-CSS ${VERSION} */`;
 const LANDING_CSS = `
 ${LANDING_MARKER}
 @media(max-width:560px){
@@ -47,7 +45,7 @@ ${LANDING_MARKER}
 `;
 
 const JS_BLOCK = `${JS_MARKER}<script>(function(){if(window.innerWidth>600)return;
-// pkflag desktop values (mantido do v22)
+// pkflag
 function applyPkflag(el){var s=el.style;
  s.setProperty('position','absolute','important');s.setProperty('top','0','important');s.setProperty('right','0','important');s.setProperty('left','auto','important');s.setProperty('bottom','auto','important');
  s.setProperty('width','auto','important');s.setProperty('max-width','none','important');s.setProperty('height','auto','important');s.setProperty('min-height','0','important');s.setProperty('max-height','none','important');
@@ -62,20 +60,29 @@ function processPacks(){
 }
 processPacks();setInterval(processPacks,500);
 
-// Conectar IA: clique em .provcard scrolla pra input/textarea de chave
+// Titulo "Marketplace" recebe a mesma barrinha verde dos outros titulos
+function addMarketplaceBar(){
+ document.querySelectorAll('h1,h2,h3,h4,[class*=title],[class*=secthd]').forEach(function(el){
+  if(el.dataset.mbarFixed)return;
+  var t=(el.textContent||'').trim();
+  if(t==='Marketplace' && el.children.length<=1){
+   el.style.setProperty('border-left','4px solid #1faa59','important');
+   el.style.setProperty('padding-left','10px','important');
+   el.style.setProperty('line-height','1.1','important');
+   el.dataset.mbarFixed='1';
+  }
+ });
+}
+addMarketplaceBar();setInterval(addMarketplaceBar,1500);
+
+// Conectar IA: clique em .provcard scrolla pra input chave
 document.addEventListener('click',function(e){
  if(!e.target||!e.target.closest)return;
  var card=e.target.closest('.provcard');
  if(!card)return;
  setTimeout(function(){
-  // Procura primeiro input/textarea de chave visivel
   var keys=document.querySelectorAll('input[type=password], input[name*=key], input[name*=chave], input[name*=api], textarea');
-  for(var i=0;i<keys.length;i++){
-   var k=keys[i];if(k.offsetParent===null)continue;
-   k.scrollIntoView({behavior:'smooth',block:'center'});
-   setTimeout(function(){try{k.focus();}catch(_){}}, 350);
-   return;
-  }
+  for(var i=0;i<keys.length;i++){var k=keys[i];if(k.offsetParent===null)continue;k.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(function(){try{k.focus();}catch(_){}}, 350);return;}
  },300);
 },true);
 
@@ -97,27 +104,22 @@ hide442();setInterval(hide442,1500);
 })();</script>`;
 
 try {
-  // jogar_style.ts
   const LP = join(__dir, "jogar_style.ts");
   const sCss = readFileSync(LP, "utf8");
   if (sCss.indexOf(CSS_MARKER) === -1) {
     const anchor = ".ob-emoji{font-size:46px}}\n`;";
     if (sCss.split(anchor).length - 1 === 1) writeFileSync(LP, sCss.replace(anchor, "\n" + CSS_BLOCK + anchor), "utf8");
   }
-  // jogar_page.ts
   const JP = join(__dir, "jogar_page.ts");
   const sJs = readFileSync(JP, "utf8");
   if (sJs.indexOf(JS_MARKER) === -1) {
     const anchor = "<!-- [mobile-polish-v2-script] -->";
     if (sJs.split(anchor).length - 1 === 1) writeFileSync(JP, sJs.replace(anchor, JS_BLOCK + anchor), "utf8");
   }
-  // landing.ts — anchor: o @media(max-width:560px){.cdlab/.cdval} top-level
   const LDP = join(__dir, "landing.ts");
   const sLd = readFileSync(LDP, "utf8");
   if (sLd.indexOf(LANDING_MARKER) === -1) {
     const lAnchor = "@media(max-width:560px){.cdlab{display:none}.cdval{min-width:0}}";
-    if (sLd.split(lAnchor).length - 1 === 1) {
-      writeFileSync(LDP, sLd.replace(lAnchor, lAnchor + "\n" + LANDING_CSS), "utf8");
-    }
+    if (sLd.split(lAnchor).length - 1 === 1) writeFileSync(LDP, sLd.replace(lAnchor, lAnchor + "\n" + LANDING_CSS), "utf8");
   }
 } catch (e) { console.error("[polish_running] ERRO", e); }

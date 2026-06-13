@@ -114,6 +114,15 @@ body::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--pri2),var(
 .cdval{font-weight:850;font-size:15px;color:var(--gold);font-variant-numeric:tabular-nums;letter-spacing:.5px;min-width:118px;text-align:right}
 @media(max-width:560px){.cdlab{display:none}.cdval{min-width:0}}
 
+/* POLISH-LANDING-CSS 2026-06-13-24 */
+@media(max-width:560px){
+ .brand{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:8px!important;flex-wrap:wrap!important;width:100%!important}
+ .brand .blogo{max-height:54px!important;width:auto!important;height:auto!important}
+ .brand .bbeta{display:inline-flex!important;font-size:10px!important;padding:2px 7px!important;border-radius:4px!important;align-self:center!important;margin:0!important}
+ .hlogo{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:8px!important;flex-wrap:wrap!important}
+}
+
+
 /* POLISH-LANDING-CSS 2026-06-13-23 */
 @media(max-width:560px){
  .brand{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:8px!important;flex-wrap:wrap!important;width:100%!important}
