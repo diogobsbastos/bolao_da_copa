@@ -5,26 +5,27 @@ import { dirname, join } from "node:path";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
-const VERSION = "2026-06-13-08";
+const VERSION = "2026-06-13-09";
 const CSS_MARKER = `/* POLISH-RUNNING-CSS ${VERSION} */`;
 const JS_MARKER = `<!-- [polish-running-js ${VERSION}] -->`;
 
 const CSS_BLOCK = `
 ${CSS_MARKER}
 @media(max-width:600px){
- /* === Marketplace: layout ORIGINAL preservado, so encolhe tarja do preco === */
- .pack.base [class*=preco],.pack.base [class*=price],.pack.base [class*=pkprice],.pack.base [class*=pksoon]{
-  font-size:10px!important;padding:2px 7px!important;line-height:1!important;
-  height:auto!important;display:inline-flex!important;align-items:center!important;gap:3px!important;
-  border-radius:999px!important;white-space:nowrap!important;
- }
- .pack.base [class*=preco] img,.pack.base [class*=preco] svg,
- .pack.base [class*=price] img,.pack.base [class*=price] svg,
- .pack.base [class*=pkprice] img,.pack.base [class*=pkprice] svg{
-  width:11px!important;height:11px!important;
- }
+ /* === Marketplace === */
+ /* 1) RESETA constraints dos meus polish anteriores (v01-v07) que travavam altura */
+ .pack.base{height:auto!important;min-height:0!important;max-height:none!important;grid-template-columns:none!important;grid-template-rows:none!important;display:flex!important;flex-direction:column!important;align-items:center!important;padding:14px!important;overflow:visible!important;position:relative!important;gap:8px!important}
+ .pack.base>img,.pack.base>picture,.pack.base>[class*=img],.pack.base>[class*=fig]{width:auto!important;height:auto!important;max-width:160px!important;max-height:none!important;object-fit:contain!important;grid-column:auto!important;grid-row:auto!important;margin:0 auto!important;display:block!important;align-self:center!important}
+ .pack.base>*:not(img):not(picture):not([class*=img]):not([class*=fig]){grid-column:auto!important;grid-row:auto!important;max-height:none!important;padding:0!important;align-self:auto!important;width:100%!important;max-width:100%!important;display:block!important;text-align:center!important}
 
- /* === HEADER escudo (impede vazar burger) === */
+ /* 2) .pkflag (tarja amarela grande) vira PILULA pequena top-right */
+ .pack.base .pkflag,.pack.base [class*=pkflag]{position:absolute!important;top:8px!important;right:8px!important;left:auto!important;bottom:auto!important;width:auto!important;max-width:none!important;height:auto!important;min-height:0!important;max-height:none!important;padding:3px 10px!important;border-radius:999px!important;grid-column:auto!important;z-index:3!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:4px!important;font-size:11px!important;line-height:1!important;white-space:nowrap!important;background:linear-gradient(135deg,#ffe23a,#ffba00)!important}
+ .pack.base .pkflag svg,.pack.base .pkflag img,.pack.base [class*=pkflag] svg,.pack.base [class*=pkflag] img{width:13px!important;height:13px!important;display:inline!important}
+
+ /* 3) Encolhe tarjas de preco genericas */
+ .pack.base [class*=preco],.pack.base [class*=price],.pack.base [class*=pkprice]{font-size:10px!important;padding:2px 7px!important;line-height:1!important;display:inline-flex!important;align-items:center!important;gap:3px!important;border-radius:999px!important;white-space:nowrap!important}
+
+ /* === HEADER escudo === */
  .top .brand{flex:0 0 auto!important;max-width:42px!important;overflow:hidden!important}
  .top .brand .blogo,.top .brand img{max-height:32px!important;max-width:32px!important;width:auto!important;height:auto!important}
  .top .burger{flex:0 0 auto!important}

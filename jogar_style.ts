@@ -914,5 +914,42 @@ body.light .ob-box{background:linear-gradient(180deg,#fff 0%,#fafcff 100%);color
  .tmleft .tmbadge:nth-child(1),[class*=tmleft] .tmbadge:nth-child(1){display:none!important}
  .tmleft{align-items:center!important;justify-content:center!important}
 }
+
+
+/* POLISH-RUNNING-CSS 2026-06-13-09 */
+@media(max-width:600px){
+ /* === Marketplace === */
+ /* 1) RESETA constraints dos meus polish anteriores (v01-v07) que travavam altura */
+ .pack.base{height:auto!important;min-height:0!important;max-height:none!important;grid-template-columns:none!important;grid-template-rows:none!important;display:flex!important;flex-direction:column!important;align-items:center!important;padding:14px!important;overflow:visible!important;position:relative!important;gap:8px!important}
+ .pack.base>img,.pack.base>picture,.pack.base>[class*=img],.pack.base>[class*=fig]{width:auto!important;height:auto!important;max-width:160px!important;max-height:none!important;object-fit:contain!important;grid-column:auto!important;grid-row:auto!important;margin:0 auto!important;display:block!important;align-self:center!important}
+ .pack.base>*:not(img):not(picture):not([class*=img]):not([class*=fig]){grid-column:auto!important;grid-row:auto!important;max-height:none!important;padding:0!important;align-self:auto!important;width:100%!important;max-width:100%!important;display:block!important;text-align:center!important}
+
+ /* 2) .pkflag (tarja amarela grande) vira PILULA pequena top-right */
+ .pack.base .pkflag,.pack.base [class*=pkflag]{position:absolute!important;top:8px!important;right:8px!important;left:auto!important;bottom:auto!important;width:auto!important;max-width:none!important;height:auto!important;min-height:0!important;max-height:none!important;padding:3px 10px!important;border-radius:999px!important;grid-column:auto!important;z-index:3!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:4px!important;font-size:11px!important;line-height:1!important;white-space:nowrap!important;background:linear-gradient(135deg,#ffe23a,#ffba00)!important}
+ .pack.base .pkflag svg,.pack.base .pkflag img,.pack.base [class*=pkflag] svg,.pack.base [class*=pkflag] img{width:13px!important;height:13px!important;display:inline!important}
+
+ /* 3) Encolhe tarjas de preco genericas */
+ .pack.base [class*=preco],.pack.base [class*=price],.pack.base [class*=pkprice]{font-size:10px!important;padding:2px 7px!important;line-height:1!important;display:inline-flex!important;align-items:center!important;gap:3px!important;border-radius:999px!important;white-space:nowrap!important}
+
+ /* === HEADER escudo === */
+ .top .brand{flex:0 0 auto!important;max-width:42px!important;overflow:hidden!important}
+ .top .brand .blogo,.top .brand img{max-height:32px!important;max-width:32px!important;width:auto!important;height:auto!important}
+ .top .burger{flex:0 0 auto!important}
+
+ /* === IA panel NUCLEAR hide === */
+ div#autobar.actpanel:not([data-user-opened="1"]),
+ .actpanel:not([data-user-opened="1"]){display:none!important;visibility:hidden!important}
+ div#autobar.actpanel[data-user-opened="1"],
+ .actpanel[data-user-opened="1"]{display:flex!important;visibility:visible!important}
+
+ /* === Tabs sem fade === */
+ .tabs,#copa-tabs,#bolao-tabs,#rank-tabs,.copa-tabs,.bolao-tabs,.rank-tabs{mask-image:none!important;-webkit-mask-image:none!important;padding-right:0!important;margin-right:0!important}
+ #copa-tabs .tab,.copa-tabs .tab,#bolao-tabs .tab,#rank-tabs .tab{font-size:11px!important;padding:6px 9px!important;letter-spacing:-.2px!important}
+
+ [class*=ia-conec]{order:-1!important;margin:0 0 12px!important;width:100%!important}
+
+ .tmleft .tmbadge:nth-child(1),[class*=tmleft] .tmbadge:nth-child(1){display:none!important}
+ .tmleft{align-items:center!important;justify-content:center!important}
+}
 .ob-emoji{font-size:46px}}
 `;
