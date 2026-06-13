@@ -1,8 +1,8 @@
 // PATCHES DE BOOT (2026-06-13) — roda no boot, idempotente.
 // A) LANDING: v25 + CENTER-FIX + GOOGLE-FIT.
 // B) JOGAR autocomplete Artilheiro: jogadores.id e BIGINT (string no JSON); compara como string.
-// C) JOGAR actpanel ("Conecte sua IA") no tema claro: toggle Auto e X de fechar somem (cores
-//    dependem de --rc/--surface2 que ficam claros). Forca cores solidas de alto contraste.
+// C) JOGAR actpanel ("Conecte sua IA") SO no tema claro (body.light): toggle Auto e X de fechar
+//    somem no fundo branco. Override APENAS em body.light; tema escuro fica intocado.
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -108,23 +108,25 @@ try {
   else console.log("[ac-art-fix] ja aplicado");
 } catch (e) { console.error("[ac-art-fix] ERRO", e); }
 
-// ---- C) JOGAR: actpanel visivel no tema claro (toggle Auto + X de fechar) ----
+// ---- C) JOGAR: actpanel visivel SO no tema claro (reverte mudanca global + override body.light) ----
 try {
   const JS = join(__dir, "jogar_style.ts");
   let z = readFileSync(JS, "utf8");
   let ch = 0;
-  // toggle OFF: --surface2 (quase branco) -> cinza visivel
-  const o1 = '.sl{position:absolute;inset:0;background:var(--surface2);border:1px solid var(--bd);';
-  const n1 = '.sl{position:absolute;inset:0;background:#9aa3b5;border:1px solid #9aa3b5;';
-  if (z.indexOf(n1) === -1 && z.indexOf(o1) !== -1) { z = z.replace(o1, n1); ch++; }
-  // toggle ON: forca verde solido
-  const o2 = '.sw input:checked+.sl{background:var(--rc,var(--pri));border-color:var(--rc,var(--pri))}';
-  const n2 = '.sw input:checked+.sl{background:#14a06a;border-color:#14a06a}';
-  if (z.indexOf(n2) === -1 && z.indexOf(o2) !== -1) { z = z.replace(o2, n2); ch++; }
-  // X de fechar: fundo escuro + anel branco + X branco
-  const o3 = 'background:var(--rc,#14a06a);border:1.5px solid var(--surface);color:#fff;';
-  const n3 = 'background:#2b3340;border:1.5px solid #fff;color:#fff;';
-  if (z.indexOf(n3) === -1 && z.indexOf(o3) !== -1) { z = z.replace(o3, n3); ch++; }
-  if (ch) { writeFileSync(JS, z, "utf8"); console.log("[actpanel-fix] aplicado", ch, "patch(es) — toggle/X visiveis"); }
-  else console.log("[actpanel-fix] ja aplicado");
-} catch (e) { console.error("[actpanel-fix] ERRO", e); }
+  // 1) reverter as mudancas incondicionais anteriores (se presentes) -> volta ao original
+  const r1n = '.sl{position:absolute;inset:0;background:#9aa3b5;border:1px solid #9aa3b5;';
+  const r1o = '.sl{position:absolute;inset:0;background:var(--surface2);border:1px solid var(--bd);';
+  if (z.indexOf(r1n) !== -1) { z = z.replace(r1n, r1o); ch++; }
+  const r2n = '.sw input:checked+.sl{background:#14a06a;border-color:#14a06a}';
+  const r2o = '.sw input:checked+.sl{background:var(--rc,var(--pri));border-color:var(--rc,var(--pri))}';
+  if (z.indexOf(r2n) !== -1) { z = z.replace(r2n, r2o); ch++; }
+  const r3n = 'background:#2b3340;border:1.5px solid #fff;color:#fff;font-size:10px;font-weight:800;line-height:1;display:inline-flex';
+  const r3o = 'background:var(--rc,#14a06a);border:1.5px solid var(--surface);color:#fff;font-size:10px;font-weight:800;line-height:1;display:inline-flex';
+  if (z.indexOf(r3n) !== -1) { z = z.replace(r3n, r3o); ch++; }
+  // 2) overrides APENAS no tema claro (anchor: .actcol:hover)
+  const anchor = '.actcol:hover{transform:scale(1.1)}';
+  const lightCss = anchor + 'body.light .sl{background:#9aa3b5;border-color:#9aa3b5}body.light .sw input:checked+.sl{background:#14a06a;border-color:#14a06a}body.light .actcol{background:#2b3340;border-color:#fff;color:#fff}';
+  if (z.indexOf('body.light .actcol{background:#2b3340') === -1 && z.indexOf(anchor) !== -1) { z = z.replace(anchor, lightCss); ch++; }
+  if (ch) { writeFileSync(JS, z, "utf8"); console.log("[actpanel-light] aplicado", ch, "(revert global + override body.light)"); }
+  else console.log("[actpanel-light] ja ok");
+} catch (e) { console.error("[actpanel-light] ERRO", e); }
