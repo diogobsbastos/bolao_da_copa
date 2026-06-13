@@ -5,34 +5,14 @@ import { dirname, join } from "node:path";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
-const VERSION = "2026-06-13-20";
+const VERSION = "2026-06-13-21";
 const CSS_MARKER = `/* POLISH-RUNNING-CSS ${VERSION} */`;
 const JS_MARKER = `<!-- [polish-running-js ${VERSION}] -->`;
 
 const CSS_BLOCK = `
 ${CSS_MARKER}
 @media(max-width:600px){
- /* pack.base: igual desktop */
  .pack.base{overflow:visible!important;position:relative!important}
-
- /* pkflag: valores EXATOS do desktop (top:0 right:0 border-radius:0 14px row) */
- .pack.base .pkflag,.pack.base [class*=pkflag]{
-  position:absolute!important;top:0!important;right:0!important;left:auto!important;bottom:auto!important;
-  width:auto!important;max-width:none!important;height:auto!important;min-height:0!important;max-height:none!important;
-  padding:5px 13px!important;
-  border-radius:0 14px!important;
-  background:linear-gradient(135deg,rgb(255,224,122),rgb(224,160,8))!important;
-  z-index:3!important;
-  display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:4px!important;
-  margin:0!important;transform:none!important;
-  color:#000!important;font-weight:700!important;font-size:12px!important;line-height:1!important;
-  white-space:nowrap!important;
- }
- .pack.base .pkflag svg,.pack.base .pkflag img,.pack.base [class*=pkflag] svg,.pack.base [class*=pkflag] img{
-  width:14px!important;height:14px!important;display:inline-block!important;flex:0 0 auto!important
- }
-
- /* botão pack menor */
  .pack.base button,.pack.base .btn{padding:8px 14px!important;font-size:13px!important;min-height:0!important;height:auto!important;line-height:1.2!important}
 
  .top .brand{flex:0 0 auto!important;max-width:42px!important;overflow:hidden!important}
@@ -51,18 +31,53 @@ ${CSS_MARKER}
 }
 `;
 
-// JS limpa inline antigos do v12 + bloqueia
+// JS v21: aplica TODOS os valores EXATOS do desktop via setProperty inline !important
+// (verificados com Claude in Chrome no viewport 911: top:0 right:0 br:0 14px etc)
 const JS_BLOCK = `${JS_MARKER}<script>(function(){if(window.innerWidth>600)return;
-function clearOldInlines(){
+function applyDesktopPkflag(){
  document.querySelectorAll('.pack.base .pkflag, .pack.base [class*=pkflag]').forEach(function(el){
-  if(el.style.cssText)el.style.cssText='';
-  el.dataset.pillFixed='1';
+  var s=el.style;
+  s.setProperty('position','absolute','important');
+  s.setProperty('top','0','important');
+  s.setProperty('right','0','important');
+  s.setProperty('left','auto','important');
+  s.setProperty('bottom','auto','important');
+  s.setProperty('width','auto','important');
+  s.setProperty('max-width','none','important');
+  s.setProperty('height','auto','important');
+  s.setProperty('min-height','0','important');
+  s.setProperty('max-height','none','important');
+  s.setProperty('padding','5px 13px','important');
+  s.setProperty('border-radius','0 14px','important');
+  s.setProperty('background','linear-gradient(135deg,#ffe07a,#e0a008)','important');
+  s.setProperty('z-index','3','important');
+  s.setProperty('display','flex','important');
+  s.setProperty('flex-direction','row','important');
+  s.setProperty('align-items','center','important');
+  s.setProperty('justify-content','center','important');
+  s.setProperty('gap','4px','important');
+  s.setProperty('margin','0','important');
+  s.setProperty('transform','none','important');
+  s.setProperty('color','#000','important');
+  s.setProperty('font-weight','700','important');
+  s.setProperty('font-size','12px','important');
+  s.setProperty('line-height','1','important');
+  s.setProperty('white-space','nowrap','important');
+  el.dataset.pillFixed='1'; // bloqueia v12
+  // SVG/IMG dentro
+  Array.from(el.querySelectorAll('svg, img')).forEach(function(c){
+   c.style.setProperty('width','14px','important');
+   c.style.setProperty('height','14px','important');
+   c.style.setProperty('display','inline-block','important');
+   c.style.setProperty('flex','0 0 auto','important');
+  });
  });
  document.querySelectorAll('.pack.base').forEach(function(el){
-  el.style.cssText='';
+  el.style.setProperty('overflow','visible','important');
+  el.style.setProperty('position','relative','important');
  });
 }
-clearOldInlines();setInterval(clearOldInlines,200);
+applyDesktopPkflag();setInterval(applyDesktopPkflag,150);
 
 function getPanel(){return document.querySelector('#autobar.actpanel, .actpanel');}
 function ensureClosed(){var a=getPanel();if(!a)return;if(a.getAttribute('data-user-opened')!=='1'){if(a.style.display){a.style.removeProperty('display');}}}
