@@ -5,15 +5,32 @@ import { dirname, join } from "node:path";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
-const VERSION = "2026-06-13-19";
+const VERSION = "2026-06-13-20";
 const CSS_MARKER = `/* POLISH-RUNNING-CSS ${VERSION} */`;
 const JS_MARKER = `<!-- [polish-running-js ${VERSION}] -->`;
 
 const CSS_BLOCK = `
 ${CSS_MARKER}
 @media(max-width:600px){
- /* Marketplace card: deixa CSS desktop fluir, so garante overflow visivel pra flag sair */
+ /* pack.base: igual desktop */
  .pack.base{overflow:visible!important;position:relative!important}
+
+ /* pkflag: valores EXATOS do desktop (top:0 right:0 border-radius:0 14px row) */
+ .pack.base .pkflag,.pack.base [class*=pkflag]{
+  position:absolute!important;top:0!important;right:0!important;left:auto!important;bottom:auto!important;
+  width:auto!important;max-width:none!important;height:auto!important;min-height:0!important;max-height:none!important;
+  padding:5px 13px!important;
+  border-radius:0 14px!important;
+  background:linear-gradient(135deg,rgb(255,224,122),rgb(224,160,8))!important;
+  z-index:3!important;
+  display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:4px!important;
+  margin:0!important;transform:none!important;
+  color:#000!important;font-weight:700!important;font-size:12px!important;line-height:1!important;
+  white-space:nowrap!important;
+ }
+ .pack.base .pkflag svg,.pack.base .pkflag img,.pack.base [class*=pkflag] svg,.pack.base [class*=pkflag] img{
+  width:14px!important;height:14px!important;display:inline-block!important;flex:0 0 auto!important
+ }
 
  /* botão pack menor */
  .pack.base button,.pack.base .btn{padding:8px 14px!important;font-size:13px!important;min-height:0!important;height:auto!important;line-height:1.2!important}
@@ -34,21 +51,15 @@ ${CSS_MARKER}
 }
 `;
 
-// JS v19: LIMPA inline styles de versoes antigas (v12 que setou right:8/top:8) e bloqueia
-// novas escritas via dataset. Deixa o CSS desktop natural fluir pra pkflag.
+// JS limpa inline antigos do v12 + bloqueia
 const JS_BLOCK = `${JS_MARKER}<script>(function(){if(window.innerWidth>600)return;
 function clearOldInlines(){
- // Limpa qualquer inline style q v12/13/etc setou em pkflag
  document.querySelectorAll('.pack.base .pkflag, .pack.base [class*=pkflag]').forEach(function(el){
   if(el.style.cssText)el.style.cssText='';
-  el.dataset.pillFixed='1';  // bloqueia o setInterval do v12 de rodar de novo
+  el.dataset.pillFixed='1';
  });
- // Limpa inline do pack.base tb
  document.querySelectorAll('.pack.base').forEach(function(el){
-  // preserva apenas overflow:visible + position:relative q a gente quer
   el.style.cssText='';
-  el.style.setProperty('overflow','visible','important');
-  el.style.setProperty('position','relative','important');
  });
 }
 clearOldInlines();setInterval(clearOldInlines,200);
