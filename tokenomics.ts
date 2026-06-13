@@ -35,12 +35,41 @@ export async function rotasTokenomics(app: FastifyInstance) {
     } catch {}
     try { out.dolar = N((await pool.query("SELECT valor FROM custos_meta WHERE chave='dolar_brl'")).rows[0]?.valor) || 5.2; } catch {}
     try {
-      const has = (await pool.query("SELECT to_regclass('public.pagamentos') t")).rows[0] as any;
-      if (has?.t) {
-        const p = (await pool.query("SELECT COALESCE(sum(CASE WHEN tipo='entrada' THEN valor ELSE 0 END),0) ent, COALESCE(sum(CASE WHEN tipo='saque' THEN valor ELSE 0 END),0) sai FROM pagamentos WHERE status='ok'")).rows[0] as any;
-        out.real.arrecadado = N(p.ent); out.real.sacado = N(p.sai); out.real.saldo = N(p.ent) - N(p.sai);
-      }
+      const dep = N((await pool.query("SELECT COALESCE(sum(valor),0) v FROM depositos WHERE creditado=true")).rows[0]?.v);
+      const pat = N((await pool.query("SELECT COALESCE(sum(valor),0) v FROM patrocinadores WHERE status='ativo'")).rows[0]?.v);
+      out.real.arrecadado = dep + pat;
+      out.real.sacado = 0; // sem saque (lei 14.790)
+      out.real.saldo = dep + pat;
+      (out.real as any).depositos = dep; (out.real as any).patrocinio = pat;
     } catch {}
     return out;
+  });
+
+  app.get("/admin/tokenomics/usuarios", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    const rows = (await pool.query(`
+      SELECT u.id, COALESCE(u.nome,'') AS nome, u.email,
+             COALESCE(u.pagou,false) AS pagou, COALESCE(u.acesso_full,false) AS full,
+             u.tipo_entrada, u.papel, u.referido_por,
+             r.nome AS conv_nome, r.email AS conv_email, r.papel AS conv_papel,
+             COALESCE(u.full_usado,false) AS full_usado,
+             (SELECT count(*)::int FROM usuarios z WHERE z.referido_por = u.id) AS convidou_qtd,
+             (SELECT string_agg(COALESCE(NULLIF(z.nome,''), z.email), ', ' ORDER BY z.id) FROM usuarios z WHERE z.referido_por = u.id) AS convidados,
+             COALESCE(c.saldo,0) AS saldo,
+             to_char(u.criado_em AT TIME ZONE 'America/Sao_Paulo','DD/MM HH24:MI') AS criado
+        FROM usuarios u
+        LEFT JOIN usuarios r ON r.id = u.referido_por
+        LEFT JOIN usuarios_carteiras c ON c.usuario_id = u.id
+       ORDER BY u.id`)).rows as any[];
+    const jog = rows.filter((u) => u.papel !== "admin");
+    const resumo = {
+      total: jog.length,
+      pagantes: jog.filter((u) => u.pagou).length,
+      gratis_full: jog.filter((u) => u.tipo_entrada === "full_gift").length,
+      indicacao: jog.filter((u) => u.tipo_entrada === "indicacao" && !u.pagou).length,
+      direto: jog.filter((u) => !u.pagou && !u.tipo_entrada).length,
+      convidaram: jog.filter((u) => u.convidou_qtd > 0).length,
+    };
+    return { ok: true, lista: rows, resumo };
   });
 }

@@ -42,6 +42,7 @@ ${NAV_CSS}
   <div class="top"><h2>&#128176; Tokenomics &mdash; economia do jogo</h2><span id="conn" class="muted">conectando...</span></div>
   <div class="tabs">
    <div class="tab on" data-t="resumo" onclick="aba('resumo')">&#128202; Resumo</div>
+   <div class="tab" data-t="usuarios" onclick="aba('usuarios')">&#128101; Usu&aacute;rios &times; Pagamentos</div>
    <div class="tab" data-t="logs" onclick="aba('logs')">&#128220; Logs de Gasto (IA)</div>
   </div>
   <div class="pad">
@@ -63,6 +64,18 @@ ${NAV_CSS}
      <div class="sub" style="margin-top:10px">Editar precos e dolar: <b>Configuracoes &rarr; Custos / LLM</b>.</div></div>
    </section>
 
+   <section id="pg-usuarios" class="hide">
+    <div class="card"><h3>&#128101; Engajamento dos jogadores</h3><div class="sub">Quem pagou, quem entrou de gra&ccedil;a, por qual convite, e quem convidou.</div>
+     <div class="grid">
+      <div class="kpi"><div class="lab">Jogadores</div><div class="val" id="u-tot">0</div></div>
+      <div class="kpi real"><div class="lab">Pagantes</div><div class="val" id="u-pag">0</div></div>
+      <div class="kpi tok"><div class="lab">Gr&aacute;tis (convite FULL)</div><div class="val" id="u-full">0</div></div>
+      <div class="kpi"><div class="lab">Por indica&ccedil;&atilde;o</div><div class="val" id="u-ind">0</div></div>
+      <div class="kpi"><div class="lab">Convidaram algu&eacute;m</div><div class="val" id="u-conv">0</div></div>
+     </div>
+     <div class="scroll"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Pagou?</th><th>Como entrou</th><th>Convidou (quem usou)</th><th class="num">Saldo</th></tr></thead><tbody id="u-body"><tr><td colspan="6" class="muted">carregando...</td></tr></tbody></table></div>
+    </div>
+   </section>
    <section id="pg-logs" class="hide">
     <div class="card"><div class="cardhead"><div><h3>&#128202; Resumo de consumo de IA</h3><div class="sub">Cada chamada de LLM e registrada com tokens, custo e tempo.</div></div>
      <button class="sm dg" onclick="zerar()">&#128465;&#65039; Zerar historico</button></div>
@@ -83,7 +96,30 @@ function toast(m,t){var c=document.getElementById("toast");var d=document.create
 function nInt(v){return (Math.round(N(v))).toLocaleString("pt-BR");}
 function N(v){return v==null||v===""?0:Number(v);}
 function brl(v,c){c=c==null?2:c;return "R$ "+N(v).toLocaleString("pt-BR",{minimumFractionDigits:c,maximumFractionDigits:c});}
-function aba(t){document.querySelectorAll("section").forEach(function(s){s.classList.add("hide");});document.getElementById("pg-"+t).classList.remove("hide");document.querySelectorAll(".tab").forEach(function(a){a.classList.toggle("on",a.getAttribute("data-t")===t);});if(t==="logs")loadLogs();}
+function aba(t){document.querySelectorAll("section").forEach(function(s){s.classList.add("hide");});document.getElementById("pg-"+t).classList.remove("hide");document.querySelectorAll(".tab").forEach(function(a){a.classList.toggle("on",a.getAttribute("data-t")===t);});if(t==="logs")loadLogs();if(t==="usuarios")loadUsuarios();}
+async function loadUsuarios(){
+ var tb=document.getElementById("u-body");
+ var r=await fetch(_b()+"/admin/tokenomics/usuarios",{headers:H()});
+ if(!r.ok){tb.innerHTML='<tr><td colspan="6" class="muted">conecte (token/login)</td></tr>';return;}
+ var d=await r.json();var R=d.resumo||{};
+ document.getElementById("u-tot").textContent=R.total||0;
+ document.getElementById("u-pag").textContent=R.pagantes||0;
+ document.getElementById("u-full").textContent=R.gratis_full||0;
+ document.getElementById("u-ind").textContent=R.indicacao||0;
+ document.getElementById("u-conv").textContent=R.convidaram||0;
+ var L=d.lista||[];var h="";
+ for(var i=0;i<L.length;i++){var u=L[i];if(u.papel==="admin")continue;
+  var pagou=u.pagou?'<b style="color:#1faa59">SIM</b>':'<span style="color:#e23744">n&atilde;o</span>';
+  var entrou;
+  if(u.pagou){entrou='&#128179; Pagou (R$10)';}
+  else if(u.tipo_entrada==="full_gift"){entrou=(u.conv_papel==="admin")?'&#127915; Gr&aacute;tis &mdash; link do ADMIN':('&#127873; Gr&aacute;tis &mdash; convite de <b>'+esc(u.conv_nome||u.conv_email||"?")+'</b>');}
+  else if(u.tipo_entrada==="indicacao"){entrou='&#128279; Indica&ccedil;&atilde;o de <b>'+esc(u.conv_nome||u.conv_email||"?")+'</b> <span class="muted">(n&atilde;o pagou)</span>';}
+  else{entrou='<span class="muted">direto</span>';}
+  var convidou=(u.convidou_qtd>0)?('<b>'+u.convidou_qtd+'</b> &middot; '+esc(u.convidados||"")):'<span class="muted">&mdash;</span>';
+  h+='<tr><td>'+esc(u.nome||"&mdash;")+'</td><td>'+esc(u.email)+'</td><td>'+pagou+'</td><td>'+entrou+'</td><td style="font-size:12px">'+convidou+'</td><td class="num">'+u.saldo+'</td></tr>';
+ }
+ tb.innerHTML=h||'<tr><td colspan="6" class="muted">nenhum jogador ainda</td></tr>';
+}
 async function start(){
  var c=document.getElementById("conn");
  var r=await fetch(_b()+"/admin/tokenomics/resumo",{headers:H()});
