@@ -1,50 +1,61 @@
-// REVERT (2026-06-13) — removedor puro. Restaura landing.ts ao CSS ORIGINAL (baseline d22c84f).
-// Tira QUALQUER bloco HERO-CENTER-LANDING (v1..v5) e NAO adiciona nada.
-// Junto com _fix_landing_undo.ts (que remove POLISH-LANDING-CSS), a landing volta ao original:
-// header intacto, login empilhado embaixo do hero. (Centralizacao do login fica pra depois, com calma.)
+// RESTORE v25 (2026-06-13) — recoloca os 3 blocos POLISH-LANDING-CSS (v23/v24/v25)
+// que existiam no commit 6cb07c8 (polish v25) e foram removidos pelo _fix_landing_undo.
+// Insere via ancora, idempotente (marca pelo comentario v25). NAO mexe em mais nada.
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
+const ANCHOR = "@media(max-width:560px){.cdlab{display:none}.cdval{min-width:0}}";
+const MARK = "/* POLISH-LANDING-CSS 2026-06-13-25 */";
+
+const BLOCKS = `
+
+/* POLISH-LANDING-CSS 2026-06-13-25 */
+@media(max-width:560px){
+ /* CENTRALIZA brand + tarja Beta inline */
+ .brand{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:8px!important;flex-wrap:wrap!important;width:100%!important;margin-left:auto!important;margin-right:auto!important;text-align:center!important}
+ .brand .blogo{max-height:64px!important;width:auto!important;height:auto!important}
+ .brand .bbeta{display:inline-flex!important;font-size:10px!important;padding:2px 7px!important;border-radius:4px!important;align-self:center!important;margin:0!important}
+ .hlogo,.hero,[class*=hero],[class*=login],[class*=form]{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:8px!important;flex-wrap:wrap!important;text-align:center!important;margin-left:auto!important;margin-right:auto!important}
+ .nav{flex-wrap:wrap!important;justify-content:center!important}
+ .cdmini{position:static!important;transform:none!important;order:99!important;flex:1 1 100%!important;justify-content:center!important;left:auto!important;top:auto!important;margin:6px auto 0!important}
+}
+
+
+/* POLISH-LANDING-CSS 2026-06-13-24 */
+@media(max-width:560px){
+ .brand{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:8px!important;flex-wrap:wrap!important;width:100%!important}
+ .brand .blogo{max-height:54px!important;width:auto!important;height:auto!important}
+ .brand .bbeta{display:inline-flex!important;font-size:10px!important;padding:2px 7px!important;border-radius:4px!important;align-self:center!important;margin:0!important}
+ .hlogo{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:8px!important;flex-wrap:wrap!important}
+}
+
+
+/* POLISH-LANDING-CSS 2026-06-13-23 */
+@media(max-width:560px){
+ .brand{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:8px!important;flex-wrap:wrap!important;width:100%!important}
+ .brand .blogo{max-height:54px!important;width:auto!important;height:auto!important}
+ .brand .bbeta{display:inline-flex!important;font-size:10px!important;padding:2px 7px!important;border-radius:4px!important;align-self:center!important;margin:0!important}
+ .hlogo{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:8px!important;flex-wrap:wrap!important}
+}`;
+
 try {
   const LDP = join(__dir, "landing.ts");
   let s = readFileSync(LDP, "utf8");
-  const before = s.length;
 
-  let removed = 0;
-  while (true) {
-    const startIdx = s.indexOf("/* HERO-CENTER-LANDING");
-    if (startIdx < 0) break;
-    const endComment = s.indexOf("*/", startIdx);
-    if (endComment < 0) break;
-    let pos = endComment + 2;
-    while (pos < s.length && /\s/.test(s[pos])) pos++;
-    if (!s.substring(pos).startsWith("@media")) {
-      s = s.substring(0, startIdx) + s.substring(endComment + 2);
-      removed++;
-      continue;
-    }
-    const openIdx = s.indexOf("{", pos);
-    let depth = 1, endIdx = -1;
-    for (let i = openIdx + 1; i < s.length; i++) {
-      if (s[i] === "{") depth++;
-      else if (s[i] === "}") { depth--; if (depth === 0) { endIdx = i + 1; break; } }
-    }
-    if (endIdx < 0) break;
-    let trim = endIdx;
-    while (trim < s.length && /[\s\n]/.test(s[trim])) trim++;
-    s = s.substring(0, startIdx) + s.substring(trim);
-    removed++;
-  }
-
-  if (s.length !== before) {
-    writeFileSync(LDP, s, "utf8");
-    console.log("[landing revert] removidos", removed, "blocos HERO-CENTER; landing volta ao original");
+  if (s.indexOf(MARK) !== -1) {
+    console.log("[restore v25] blocos POLISH-LANDING-CSS ja presentes, skip");
+  } else if (s.indexOf(ANCHOR) === -1) {
+    console.error("[restore v25] ancora .cdlab NAO encontrada — nada inserido");
+  } else if (s.split(ANCHOR).length - 1 !== 1) {
+    console.error("[restore v25] ancora aparece mais de 1x — abortado por seguranca");
   } else {
-    console.log("[landing revert] nada para remover (ja no original)");
+    s = s.replace(ANCHOR, ANCHOR + BLOCKS);
+    writeFileSync(LDP, s, "utf8");
+    console.log("[restore v25] 3 blocos POLISH-LANDING-CSS (v23/24/25) reinseridos");
   }
 } catch (e) {
-  console.error("[landing revert] ERRO", e);
+  console.error("[restore v25] ERRO", e);
 }

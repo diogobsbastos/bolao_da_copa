@@ -113,6 +113,35 @@ body::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--pri2),var(
 .cdlab{font-size:12px;color:var(--mut);font-weight:700}
 .cdval{font-weight:850;font-size:15px;color:var(--gold);font-variant-numeric:tabular-nums;letter-spacing:.5px;min-width:118px;text-align:right}
 @media(max-width:560px){.cdlab{display:none}.cdval{min-width:0}}
+
+/* POLISH-LANDING-CSS 2026-06-13-25 */
+@media(max-width:560px){
+ /* CENTRALIZA brand + tarja Beta inline */
+ .brand{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:8px!important;flex-wrap:wrap!important;width:100%!important;margin-left:auto!important;margin-right:auto!important;text-align:center!important}
+ .brand .blogo{max-height:64px!important;width:auto!important;height:auto!important}
+ .brand .bbeta{display:inline-flex!important;font-size:10px!important;padding:2px 7px!important;border-radius:4px!important;align-self:center!important;margin:0!important}
+ .hlogo,.hero,[class*=hero],[class*=login],[class*=form]{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:8px!important;flex-wrap:wrap!important;text-align:center!important;margin-left:auto!important;margin-right:auto!important}
+ .nav{flex-wrap:wrap!important;justify-content:center!important}
+ .cdmini{position:static!important;transform:none!important;order:99!important;flex:1 1 100%!important;justify-content:center!important;left:auto!important;top:auto!important;margin:6px auto 0!important}
+}
+
+
+/* POLISH-LANDING-CSS 2026-06-13-24 */
+@media(max-width:560px){
+ .brand{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:8px!important;flex-wrap:wrap!important;width:100%!important}
+ .brand .blogo{max-height:54px!important;width:auto!important;height:auto!important}
+ .brand .bbeta{display:inline-flex!important;font-size:10px!important;padding:2px 7px!important;border-radius:4px!important;align-self:center!important;margin:0!important}
+ .hlogo{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:8px!important;flex-wrap:wrap!important}
+}
+
+
+/* POLISH-LANDING-CSS 2026-06-13-23 */
+@media(max-width:560px){
+ .brand{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:8px!important;flex-wrap:wrap!important;width:100%!important}
+ .brand .blogo{max-height:54px!important;width:auto!important;height:auto!important}
+ .brand .bbeta{display:inline-flex!important;font-size:10px!important;padding:2px 7px!important;border-radius:4px!important;align-self:center!important;margin:0!important}
+ .hlogo{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:8px!important;flex-wrap:wrap!important}
+}
 @media(max-width:560px){.nav{padding:10px 14px;gap:8px}.brand .blogo{height:26px}.nav .cdmini{position:static;transform:none;order:3;flex:1 1 100%;justify-content:center;margin:2px 0 0;left:auto;top:auto}.hmpote{font-size:11px;padding:4px 9px}}
 .convbar{position:relative;overflow:hidden;display:flex;align-items:center;gap:7px;justify-content:center;flex:0 1 auto;min-width:0;max-width:560px;margin:0 6px;padding:8px 20px;border-radius:999px;font-size:13.5px;font-weight:800;line-height:1.2;color:#3a2600;background:linear-gradient(135deg,#ffe27a,#ffb300 55%,#ff8f00);border:1px solid rgba(255,255,255,.6);box-shadow:0 6px 24px rgba(255,150,0,.5);white-space:nowrap;text-overflow:ellipsis;animation:cbpop .55s cubic-bezier(.18,1.5,.4,1) both}
 .convbar b{color:#160e00}
