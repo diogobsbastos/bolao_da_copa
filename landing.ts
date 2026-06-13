@@ -242,6 +242,12 @@ input:focus{border-color:var(--pri);background:rgba(255,255,255,.09);box-shadow:
 
 
 
+
+
+
+
+
+
 /* CENTER-FIX 2026-06-13 */
 @media(max-width:560px){
  .hero{align-items:center!important;padding-left:12px!important;padding-right:12px!important}
