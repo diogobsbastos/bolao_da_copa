@@ -1,9 +1,10 @@
 // PATCHES DE BOOT (2026-06-13) — roda no boot, idempotente.
 // A) LANDING: v25 (3 blocos POLISH-LANDING-CSS) + CENTER-FIX (centraliza/aperta header)
 //    + GOOGLE-FIT (botao Google com width dinamico, cabe no card).
-// B) JOGAR (autocomplete): AC-SELECT — adiciona e.preventDefault() no mousedown do
-//    dropdown (.acopt) pra corrigir o "nao consigo clicar no mobile" (o tap perdia o
-//    foco/blur e fechava a lista antes de selecionar). Mantem o foco e seleciona no toque.
+// B) JOGAR (autocomplete Artilheiro): CAUSA RAIZ confirmada -> jogadores.id e BIGINT,
+//    o driver pg devolve como STRING no JSON. O handler fazia +data-k (number) e comparava
+//    com === contra id (string) -> sempre falso -> nunca selecionava. Campeao/vice comparam
+//    string===string, por isso funcionam. Fix: comparar como string no handler e no prefill.
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -77,40 +78,45 @@ try {
   const LDP = join(__dir, "landing.ts");
   let s = readFileSync(LDP, "utf8");
   let changed = false;
-
   if (s.indexOf(MARK25) === -1 && s.indexOf(ANCHOR) !== -1 && (s.split(ANCHOR).length - 1) === 1) {
-    s = s.replace(ANCHOR, ANCHOR + BLOCKS25);
-    changed = true;
+    s = s.replace(ANCHOR, ANCHOR + BLOCKS25); changed = true;
   }
   const semFix = removeBloco(s, MARKFIX);
   if (semFix !== s) { s = semFix; changed = true; }
   const last = s.lastIndexOf("</style>");
   if (last >= 0) { s = s.substring(0, last) + "\n" + CENTERFIX + "\n" + s.substring(last); changed = true; }
-
   const ALVO = 'width:330,logo_alignment';
   const NOVO = 'width:Math.max(200,Math.min(400,((document.getElementById("entrar")||{}).clientWidth||349)-60)),logo_alignment';
   if (s.indexOf(ALVO) !== -1) { s = s.replace(ALVO, NOVO); changed = true; }
-
   if (changed) { writeFileSync(LDP, s, "utf8"); console.log("[landing] patches aplicados"); }
   else console.log("[landing] nada a fazer");
 } catch (e) {
   console.error("[landing] ERRO", e);
 }
 
-// ---- B) JOGAR: AC-SELECT (autocomplete clicavel no mobile) ----
+// ---- B) JOGAR: Artilheiro clicavel (fix de tipo bigint/string) ----
 try {
   const JP = join(__dir, "jogar_page.ts");
   let j = readFileSync(JP, "utf8");
-  const OLD = '.addEventListener("mousedown",function(e){var o=e.target.closest(".acopt");';
-  const NEW = '.addEventListener("mousedown",function(e){e.preventDefault();var o=e.target.closest(".acopt");';
-  if (j.indexOf(NEW) === -1 && j.indexOf(OLD) !== -1) {
-    const n = j.split(OLD).length - 1;
-    j = j.split(OLD).join(NEW);
-    writeFileSync(JP, j, "utf8");
-    console.log("[ac-select] preventDefault aplicado em", n, "dropdown(s)");
-  } else {
-    console.log("[ac-select] ja aplicado ou alvo nao encontrado");
-  }
+  let ch = 0;
+
+  // (mantem) preventDefault no mousedown — inofensivo
+  const OLDpd = '.addEventListener("mousedown",function(e){var o=e.target.closest(".acopt");';
+  const NEWpd = '.addEventListener("mousedown",function(e){e.preventDefault();var o=e.target.closest(".acopt");';
+  if (j.indexOf(NEWpd) === -1 && j.indexOf(OLDpd) !== -1) { j = j.split(OLDpd).join(NEWpd); ch++; }
+
+  // (FIX RAIZ) handler do artilheiro: comparar como string
+  const OLDh = 'var k=+o.getAttribute("data-k");var j=null;for(var i=0;i<LP_JOG.length;i++){if(LP_JOG[i].id===k){';
+  const NEWh = 'var k=o.getAttribute("data-k");var j=null;for(var i=0;i<LP_JOG.length;i++){if(String(LP_JOG[i].id)===k){';
+  if (j.indexOf(NEWh) === -1 && j.indexOf(OLDh) !== -1) { j = j.replace(OLDh, NEWh); ch++; }
+
+  // (FIX) prefill do artilheiro ao reabrir: comparar como string
+  const OLDp = 'for(var i=0;i<LP_JOG.length;i++){if(LP_JOG[i].id===LP_PICK.art){jx=LP_JOG[i];break;}}';
+  const NEWp = 'for(var i=0;i<LP_JOG.length;i++){if(String(LP_JOG[i].id)===String(LP_PICK.art)){jx=LP_JOG[i];break;}}';
+  if (j.indexOf(NEWp) === -1 && j.indexOf(OLDp) !== -1) { j = j.replace(OLDp, NEWp); ch++; }
+
+  if (ch) { writeFileSync(JP, j, "utf8"); console.log("[ac-art-fix] aplicado", ch, "patch(es) — artilheiro compara como string"); }
+  else console.log("[ac-art-fix] ja aplicado");
 } catch (e) {
-  console.error("[ac-select] ERRO", e);
+  console.error("[ac-art-fix] ERRO", e);
 }
