@@ -1399,7 +1399,7 @@ body.light .ob-box{background:linear-gradient(180deg,#fff 0%,#fafcff 100%);color
 
 /* [fix-mobile-13jun] X e bola do toggle no verde da rodada (visivel no tema claro) */
 @media(max-width:600px){
- .actcol,.actpanel>.actcol{color:var(--rc,#14a06a)!important}
+ div#autobar.actpanel>.actcol,.actpanel>.actcol,.actcol{color:var(--rc,#14a06a)!important}
  .sl:before{background:var(--rc,#14a06a)!important;box-shadow:0 0 0 1.5px rgba(255,255,255,.9),0 1px 3px rgba(0,0,0,.3)!important}
 }
 `;
