@@ -56,7 +56,7 @@ export async function rotasTokenomics(app: FastifyInstance) {
              (SELECT count(*)::int FROM usuarios z WHERE z.referido_por = u.id) AS convidou_qtd,
              (SELECT string_agg(COALESCE(NULLIF(z.nome,''), z.email), ', ' ORDER BY z.id) FROM usuarios z WHERE z.referido_por = u.id) AS convidados,
              COALESCE(c.saldo,0) AS saldo,
-             (CASE WHEN jsonb_typeof(u.escalacao)='object' THEN (SELECT count(*) FROM jsonb_object_keys(u.escalacao))>=11 ELSE false END) AS tem_time,
+             (SELECT count(*)::int FROM inventario_figurinhas WHERE usuario_id=u.id) AS cartas,
              to_char(u.criado_em AT TIME ZONE 'America/Sao_Paulo','DD/MM HH24:MI') AS criado
         FROM usuarios u
         LEFT JOIN usuarios r ON r.id = u.referido_por
