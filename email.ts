@@ -115,11 +115,11 @@ export function htmlLancamento(base: string, pote: number, regra: any, pacotes: 
     <div style="font-size:13px;color:#6b4e0e;font-weight:600">Top 3 do ranking dividem: <b>50% / 30% / 20%</b> &middot; e o pote s&oacute; cresce!</div>
   </td></tr></table>
 </td></tr>
-<tr><td style="padding:6px 24px 4px">
+<tr><td style="padding:6px 24px 4px"><table role="presentation" width="100%" style="border-collapse:collapse">
   ${sec("&#127919;", "Como funciona", regras)}
   ${sec("&#129302;", "Esqueceu de palpitar? A gente te cobre", "Se voc&ecirc; n&atilde;o preencher um jogo at&eacute; o apito, nosso <b>rob&ocirc; preenche automaticamente por voc&ecirc;</b> (pela l&oacute;gica das odds e do ranking). Voc&ecirc; <b>nunca fica zerado</b> &mdash; mas palpite voc&ecirc; mesmo pra mandar no que acredita!")}
   ${sec("&#128302;", "Vem muito mais por a&iacute; (roadmap)", "&#127183; <b>Novos pacotes de figurinhas colecion&aacute;veis</b> chegando.<br>&#127937; No <b>fim da 1&ordf; rodada</b>: lan&ccedil;amento da <b>Batalha de Times</b> (PvP) &mdash; que passa a <b>valer ponto no ranking</b>!")}
-</td></tr>
+</table></td></tr>
 <tr><td style="padding:14px 24px 4px;text-align:center">
   <a href="${app}" style="display:inline-block;background:#1faa59;color:#fff;text-decoration:none;font-weight:900;padding:15px 34px;border-radius:12px;font-size:16px">&#9917; CRAVAR MEUS PALPITES</a>
 </td></tr>
