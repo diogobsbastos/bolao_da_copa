@@ -97,6 +97,10 @@ function nInt(v){return (Math.round(N(v))).toLocaleString("pt-BR");}
 function N(v){return v==null||v===""?0:Number(v);}
 function brl(v,c){c=c==null?2:c;return "R$ "+N(v).toLocaleString("pt-BR",{minimumFractionDigits:c,maximumFractionDigits:c});}
 function aba(t){document.querySelectorAll("section").forEach(function(s){s.classList.add("hide");});document.getElementById("pg-"+t).classList.remove("hide");document.querySelectorAll(".tab").forEach(function(a){a.classList.toggle("on",a.getAttribute("data-t")===t);});if(t==="logs")loadLogs();if(t==="usuarios")loadUsuarios();}
+async function ativarFull(id){
+ if(!confirm("Ativar este jogador como FULL (gr\u00e1tis, 500 tokens) e enviar o e-mail de boas-vindas?"))return;
+ fetch(_b()+"/admin/usuarios/ativar-full",{method:"POST",headers:H(),body:JSON.stringify({id:id})}).then(function(r){return r.json();}).then(function(d){if(d&&d.ok){toast("Ativado! E-mail enviado pra "+(d.email||"jogador"),"ok");loadUsuarios();}else{toast((d&&d.erro)||"erro","err");}}).catch(function(){toast("erro de rede","err");});
+}
 async function loadUsuarios(){
  var tb=document.getElementById("u-body");
  var r=await fetch(_b()+"/admin/tokenomics/usuarios",{headers:H()});
@@ -114,7 +118,7 @@ async function loadUsuarios(){
   if(u.pagou){entrou='&#128179; Pagou (R$10)';}
   else if(u.tipo_entrada==="full_gift"){entrou=(u.conv_papel==="admin")?'&#127915; Gr&aacute;tis &mdash; link do ADMIN':('&#127873; Gr&aacute;tis &mdash; convite de <b>'+esc(u.conv_nome||u.conv_email||"?")+'</b>');}
   else if(u.tipo_entrada==="indicacao"){entrou='&#128279; Indica&ccedil;&atilde;o de <b>'+esc(u.conv_nome||u.conv_email||"?")+'</b> <span class="muted">(n&atilde;o pagou)</span>';}
-  else{entrou='<span class="muted">direto</span>';}
+  else{entrou='<span class="muted">direto</span> <button onclick="ativarFull('+u.id+')" style="background:#e23744;color:#fff;border:0;border-radius:7px;padding:3px 9px;font-size:11px;font-weight:800;cursor:pointer;margin-left:6px">ATIVAR</button>';}
   var convidou=(u.convidou_qtd>0)?('<b>'+u.convidou_qtd+'</b> &middot; '+esc(u.convidados||"")):'<span class="muted">&mdash;</span>';
   h+='<tr><td>'+esc(u.nome||"&mdash;")+'</td><td>'+esc(u.email)+'</td><td>'+pagou+'</td><td>'+entrou+'</td><td style="font-size:12px">'+convidou+'</td><td class="num"><b style="color:'+((u.cartas||0)>0?'#1faa59':'var(--mut)')+'">'+(u.cartas||0)+'</b></td><td style="font-size:11px;color:var(--mut);white-space:nowrap">'+esc(u.criado||"&mdash;")+'</td><td class="num">'+u.saldo+'</td></tr>';
  }

@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 import { pool } from "./db.js";
 import { usuarioDaReq } from "./auth.js";
 import { PAGINA } from "./tokenomics_page.js";
+import { enviarEmail, htmlEmail, emailConfigurado } from "./email.js";
 
 async function admOk(req: FastifyRequest): Promise<boolean> {
   const t = req.headers["x-admin-token"];
@@ -72,5 +73,28 @@ export async function rotasTokenomics(app: FastifyInstance) {
       convidaram: jog.filter((u) => u.convidou_qtd > 0).length,
     };
     return { ok: true, lista: rows, resumo };
+  });
+
+  app.post("/admin/usuarios/ativar-full", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    const b = (req.body || {}) as any;
+    const id = Number(b.id || 0); if (!id) return reply.code(400).send({ erro: "id?" });
+    const adm = await usuarioDaReq(req); const admId = adm?.id ?? 2;
+    const r = (await pool.query("UPDATE usuarios SET acesso_full=true, tipo_entrada='full_gift', referido_por=COALESCE(referido_por,$2) WHERE id=$1 AND COALESCE(acesso_full,false)=false AND COALESCE(pagou,false)=false RETURNING email, nome", [id, admId])).rows[0] as any;
+    if (!r) return reply.code(400).send({ erro: "jogador ja e FULL/pagante ou nao existe" });
+    try {
+      const c = (await pool.query("UPDATE usuarios_carteiras SET saldo=saldo+500, atualizado_em=now() WHERE usuario_id=$1 RETURNING saldo", [id])).rows[0] as any;
+      await pool.query("INSERT INTO transacoes_tokens (usuario_id,carteira,valor,saldo_apos,tipo,referencia) VALUES ($1,'token',500,$2,'admin_ativacao',$3)", [id, N(c?.saldo), "ativar:" + admId]);
+    } catch {}
+    try {
+      if (await emailConfigurado() && r.email) {
+        const base = (await pool.query("SELECT valor FROM config WHERE chave='base_url_publica'")).rows[0] as any;
+        const url = (base?.valor || "https://oracle-vipworks.duckdns.org/bolao-copa26") + "/";
+        const nome = String(r.nome || "").split(" ")[0] || "";
+        const html = htmlEmail("Seu cadastro foi ATIVADO! 🎉", "Boas notícias" + (nome ? (", " + nome) : "") + "! O Diretor da FIFA do nosso bolão, Diogo Brandão, ativou pessoalmente o seu cadastro — agora você joga o Bolão Copa 26 de graça, com 500 tokens já na conta pra começar.\nMonte o seu time e crave os palpites. Boa sorte e bom jogo! 🇧🇷", "Entrar e jogar agora", url);
+        enviarEmail(r.email, "🎉 Cadastro ativado — jogue o Bolão Copa 26!", html).catch(() => {});
+      }
+    } catch {}
+    return { ok: true, email: r.email };
   });
 }

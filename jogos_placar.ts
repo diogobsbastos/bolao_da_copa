@@ -372,7 +372,7 @@ export async function rotasJogosPlacar(app: FastifyInstance) {
                max(COALESCE(jg.figurinha, fz.figurinha)) AS figurinha, count(*)::int AS gols
           FROM ev
           LEFT JOIN jogadores jg ON jg.id = ev.jid
-          LEFT JOIN LATERAL (SELECT figurinha FROM jogadores j3 WHERE j3.figurinha IS NOT NULL AND ev.nome IS NOT NULL AND lower(j3.nome)=lower(ev.nome) LIMIT 1) fz ON true
+          LEFT JOIN LATERAL (SELECT j3.figurinha FROM jogadores j3 WHERE j3.figurinha IS NOT NULL AND ev.nome IS NOT NULL AND (norm_nome(j3.nome)=norm_nome(ev.nome) OR regexp_replace(norm_nome(j3.nome),'^.* ','')=regexp_replace(norm_nome(ev.nome),'^.* ','')) ORDER BY (norm_nome(j3.nome)=norm_nome(ev.nome)) DESC, (j3.selecao=ev.selecao) DESC, length(j3.nome) LIMIT 1) fz ON true
          WHERE COALESCE(jg.nome, ev.nome) IS NOT NULL AND COALESCE(jg.nome, ev.nome) <> ''
          GROUP BY COALESCE(jg.nome, ev.nome), ev.selecao
          ORDER BY gols DESC, nome
