@@ -1407,4 +1407,7 @@ body.light .ob-box{background:linear-gradient(180deg,#fff 0%,#fafcff 100%);color
 .newsitem{position:relative}
 .nwx{position:absolute;top:5px;right:5px;border:0;background:none;color:var(--rc,#14a06a);font-size:16px;font-weight:800;line-height:1;cursor:pointer;padding:1px 6px;border-radius:6px}
 .nwx:hover{background:rgba(31,170,89,.14)}
+
+/* [rank-mobile 13jun] celular: so a coluna Total no ranking (libera espaco pro nome) */
+@media(max-width:560px){.rkcol:not(.tot){display:none}.rkcols{gap:0}}
 `;
