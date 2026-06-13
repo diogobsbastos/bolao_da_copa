@@ -1,10 +1,8 @@
 // PATCHES DE BOOT (2026-06-13) — roda no boot, idempotente.
-// A) LANDING: v25 (3 blocos POLISH-LANDING-CSS) + CENTER-FIX (centraliza/aperta header)
-//    + GOOGLE-FIT (botao Google com width dinamico, cabe no card).
-// B) JOGAR (autocomplete Artilheiro): CAUSA RAIZ confirmada -> jogadores.id e BIGINT,
-//    o driver pg devolve como STRING no JSON. O handler fazia +data-k (number) e comparava
-//    com === contra id (string) -> sempre falso -> nunca selecionava. Campeao/vice comparam
-//    string===string, por isso funcionam. Fix: comparar como string no handler e no prefill.
+// A) LANDING: v25 + CENTER-FIX + GOOGLE-FIT.
+// B) JOGAR autocomplete Artilheiro: jogadores.id e BIGINT (string no JSON); compara como string.
+// C) JOGAR actpanel ("Conecte sua IA") no tema claro: toggle Auto e X de fechar somem (cores
+//    dependem de --rc/--surface2 que ficam claros). Forca cores solidas de alto contraste.
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -90,33 +88,43 @@ try {
   if (s.indexOf(ALVO) !== -1) { s = s.replace(ALVO, NOVO); changed = true; }
   if (changed) { writeFileSync(LDP, s, "utf8"); console.log("[landing] patches aplicados"); }
   else console.log("[landing] nada a fazer");
-} catch (e) {
-  console.error("[landing] ERRO", e);
-}
+} catch (e) { console.error("[landing] ERRO", e); }
 
 // ---- B) JOGAR: Artilheiro clicavel (fix de tipo bigint/string) ----
 try {
   const JP = join(__dir, "jogar_page.ts");
   let j = readFileSync(JP, "utf8");
   let ch = 0;
-
-  // (mantem) preventDefault no mousedown — inofensivo
   const OLDpd = '.addEventListener("mousedown",function(e){var o=e.target.closest(".acopt");';
   const NEWpd = '.addEventListener("mousedown",function(e){e.preventDefault();var o=e.target.closest(".acopt");';
   if (j.indexOf(NEWpd) === -1 && j.indexOf(OLDpd) !== -1) { j = j.split(OLDpd).join(NEWpd); ch++; }
-
-  // (FIX RAIZ) handler do artilheiro: comparar como string
   const OLDh = 'var k=+o.getAttribute("data-k");var j=null;for(var i=0;i<LP_JOG.length;i++){if(LP_JOG[i].id===k){';
   const NEWh = 'var k=o.getAttribute("data-k");var j=null;for(var i=0;i<LP_JOG.length;i++){if(String(LP_JOG[i].id)===k){';
   if (j.indexOf(NEWh) === -1 && j.indexOf(OLDh) !== -1) { j = j.replace(OLDh, NEWh); ch++; }
-
-  // (FIX) prefill do artilheiro ao reabrir: comparar como string
   const OLDp = 'for(var i=0;i<LP_JOG.length;i++){if(LP_JOG[i].id===LP_PICK.art){jx=LP_JOG[i];break;}}';
   const NEWp = 'for(var i=0;i<LP_JOG.length;i++){if(String(LP_JOG[i].id)===String(LP_PICK.art)){jx=LP_JOG[i];break;}}';
   if (j.indexOf(NEWp) === -1 && j.indexOf(OLDp) !== -1) { j = j.replace(OLDp, NEWp); ch++; }
-
-  if (ch) { writeFileSync(JP, j, "utf8"); console.log("[ac-art-fix] aplicado", ch, "patch(es) — artilheiro compara como string"); }
+  if (ch) { writeFileSync(JP, j, "utf8"); console.log("[ac-art-fix] aplicado", ch, "patch(es)"); }
   else console.log("[ac-art-fix] ja aplicado");
-} catch (e) {
-  console.error("[ac-art-fix] ERRO", e);
-}
+} catch (e) { console.error("[ac-art-fix] ERRO", e); }
+
+// ---- C) JOGAR: actpanel visivel no tema claro (toggle Auto + X de fechar) ----
+try {
+  const JS = join(__dir, "jogar_style.ts");
+  let z = readFileSync(JS, "utf8");
+  let ch = 0;
+  // toggle OFF: --surface2 (quase branco) -> cinza visivel
+  const o1 = '.sl{position:absolute;inset:0;background:var(--surface2);border:1px solid var(--bd);';
+  const n1 = '.sl{position:absolute;inset:0;background:#9aa3b5;border:1px solid #9aa3b5;';
+  if (z.indexOf(n1) === -1 && z.indexOf(o1) !== -1) { z = z.replace(o1, n1); ch++; }
+  // toggle ON: forca verde solido
+  const o2 = '.sw input:checked+.sl{background:var(--rc,var(--pri));border-color:var(--rc,var(--pri))}';
+  const n2 = '.sw input:checked+.sl{background:#14a06a;border-color:#14a06a}';
+  if (z.indexOf(n2) === -1 && z.indexOf(o2) !== -1) { z = z.replace(o2, n2); ch++; }
+  // X de fechar: fundo escuro + anel branco + X branco
+  const o3 = 'background:var(--rc,#14a06a);border:1.5px solid var(--surface);color:#fff;';
+  const n3 = 'background:#2b3340;border:1.5px solid #fff;color:#fff;';
+  if (z.indexOf(n3) === -1 && z.indexOf(o3) !== -1) { z = z.replace(o3, n3); ch++; }
+  if (ch) { writeFileSync(JS, z, "utf8"); console.log("[actpanel-fix] aplicado", ch, "patch(es) — toggle/X visiveis"); }
+  else console.log("[actpanel-fix] ja aplicado");
+} catch (e) { console.error("[actpanel-fix] ERRO", e); }
