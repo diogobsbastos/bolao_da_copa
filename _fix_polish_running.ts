@@ -5,16 +5,18 @@ import { dirname, join } from "node:path";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
-const VERSION = "2026-06-13-16";
+const VERSION = "2026-06-13-18";
 const CSS_MARKER = `/* POLISH-RUNNING-CSS ${VERSION} */`;
 const JS_MARKER = `<!-- [polish-running-js ${VERSION}] -->`;
 
 const CSS_BLOCK = `
 ${CSS_MARKER}
 @media(max-width:600px){
- /* Marketplace pkflag protruding mais agressivo */
- .pack.base{overflow:visible!important;position:relative!important;height:auto!important;min-height:0!important;max-height:none!important}
- .pack.base .pkflag.pkflag.pkflag,.pack.base [class*=pkflag][class*=pkflag]{position:absolute!important;top:0!important;right:-12px!important;left:auto!important;bottom:auto!important;z-index:5!important;margin:0!important;transform:none!important}
+ .pack.base{overflow:visible!important;position:relative!important}
+ /* botão JÁ COMPRADO/AÇÃO menor altura */
+ .pack.base button,.pack.base .btn,.pack.base [class*=pkbuy],.pack.base [class*=pkact],.pack.base [class*=ja-compr]{
+  padding:8px 14px!important;font-size:13px!important;min-height:0!important;height:auto!important;line-height:1.2!important
+ }
 
  .top .brand{flex:0 0 auto!important;max-width:42px!important;overflow:hidden!important}
  .top .brand .blogo,.top .brand img{max-height:32px!important;max-width:32px!important;width:auto!important;height:auto!important}
@@ -33,6 +35,22 @@ ${CSS_MARKER}
 `;
 
 const JS_BLOCK = `${JS_MARKER}<script>(function(){if(window.innerWidth>600)return;
+function pinPkflag(){
+ document.querySelectorAll('.pack.base .pkflag, .pack.base [class*=pkflag]').forEach(function(el){
+  el.style.setProperty('position','absolute','important');
+  el.style.setProperty('top','0','important');
+  el.style.setProperty('right','-10px','important');
+  el.style.setProperty('left','auto','important');
+  el.style.setProperty('bottom','auto','important');
+  el.style.setProperty('z-index','10','important');
+  el.style.setProperty('margin','0','important');
+  el.style.setProperty('transform','none','important');
+  var pack=el.closest('.pack.base');
+  if(pack){pack.style.setProperty('overflow','visible','important');pack.style.setProperty('position','relative','important');}
+ });
+}
+pinPkflag();setInterval(pinPkflag,300);
+
 function getPanel(){return document.querySelector('#autobar.actpanel, .actpanel');}
 function ensureClosed(){var a=getPanel();if(!a)return;if(a.getAttribute('data-user-opened')!=='1'){if(a.style.display){a.style.removeProperty('display');}}}
 document.addEventListener('click',function(e){if(!e.target||!e.target.closest)return;var a=getPanel();if(!a)return;
