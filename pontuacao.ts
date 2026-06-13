@@ -74,7 +74,7 @@ export async function apurarJogo(jogoId: number): Promise<{ ok: boolean; jogo: n
     if (!p.creditado) {
       if (pts > 0) {
         const r = (await pool.query("UPDATE usuarios_carteiras SET saldo=saldo+$2 WHERE usuario_id=$1 RETURNING saldo", [p.usuario_id, pts])).rows[0] as any;
-        if (r) { try { await pool.query("INSERT INTO transacoes_tokens (usuario_id,carteira,valor,saldo_apos,tipo,referencia) VALUES ($1,'token',$2,$3,'premio_bolao',$4)", [p.usuario_id, pts, r.saldo, "jogo:" + jogoId]); } catch {} creditados++; tokens += pts; try { const _c = timePT(j.casa).pt, _v = timePT(j.visitante).pt; notificar(p.usuario_id, "pontos", "\u2b50 Voce pontuou!", "+" + pts + " pts e +" + pts + " tokens em " + _c + " " + j.rc + " x " + j.rv + " " + _v, { canais: ["webpush"], referencia: "pts:jogo:" + jogoId }).catch(() => {}); } catch {} }
+        if (r) { try { await pool.query("INSERT INTO transacoes_tokens (usuario_id,carteira,valor,saldo_apos,tipo,referencia) VALUES ($1,'token',$2,$3,'premio_bolao',$4)", [p.usuario_id, pts, r.saldo, "jogo:" + jogoId]); } catch {} creditados++; tokens += pts; try { const _c = timePT(j.casa).pt, _v = timePT(j.visitante).pt; notificar(p.usuario_id, "pontos", "\u2b50 Voce pontuou!", "+" + pts + " pts e +" + pts + " tokens em " + _c + " " + j.rc + " x " + j.rv + " " + _v, { canais: ["inapp", "webpush"], referencia: "pts:jogo:" + jogoId }).catch(() => {}); } catch {} }
       }
       await pool.query("UPDATE palpites_bolao SET pontos=$2, creditado=true WHERE id=$1", [p.id, pts]);
     } else {
