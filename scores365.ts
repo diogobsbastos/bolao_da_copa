@@ -202,12 +202,27 @@ export async function coletarDados365(): Promise<any> {
       base.casa.ultimas5 = await ultimas5(hcId, base.casa.recentIds, cache);
       base.visitante.ultimas5 = await ultimas5(acId, base.visitante.recentIds, cache);
       await pool.query("UPDATE jogos SET dados365=$1 WHERE id=$2", [JSON.stringify(base), j.id]); n++;
-      try { await coletarGolsDoJogo(g, j.id); } catch {}
     } catch {}
     await sleep(120);
   }
   await setCfg("dados365_em", new Date().toISOString());
   console.log("[coletar365]", n, "jogos com dados365 (com ultimas5 + golsLideres)");
+  return { ok: true, jogos: n };
+}
+
+// LEVE: pega SO os gols/artilheiros dos jogos finalizados (sem noticia/forma/odds). Usado pra montar a lista de artilheiros.
+export async function coletarArtilheiros(): Promise<any> {
+  const jogos = (await pool.query("SELECT id, odds->>'gid' AS gid FROM jogos WHERE odds->>'gid' IS NOT NULL AND resultado_casa IS NOT NULL")).rows as any[];
+  let n = 0;
+  for (const j of jogos) {
+    try {
+      const gj = await s365(`/game?appTypeId=5&langId=1&userCountryId=21&timezoneName=America/Sao_Paulo&gameId=${j.gid}`);
+      const g = gj?.game; if (!g) continue;
+      await coletarGolsDoJogo(g, j.id); n++;
+    } catch {}
+    await sleep(120);
+  }
+  console.log("[artilheiros] gols coletados de", n, "jogo(s) finalizados");
   return { ok: true, jogos: n };
 }
 
@@ -303,8 +318,9 @@ async function coletarGolsDoJogo(g: any, jogoId: number): Promise<void> {
     };
     const out: any[] = [];
     for (const e of evs) {
-      const tn = String(e?.type?.name ?? e?.eventType ?? e?.typeName ?? e?.name ?? "");
-      const sub = String(e?.subType ?? e?.type?.subTypeName ?? "");
+      const et = e?.eventType || e?.type || {};
+      const tn = String(et?.name ?? e?.typeName ?? e?.name ?? "");
+      const sub = String(et?.subTypeName ?? e?.subType ?? "");
       if (!goalRe.test(tn) || badRe.test(sub) || badRe.test(tn)) continue;
       const pid = e?.playerId ?? e?.athleteId ?? e?.player?.id ?? e?.scorerId ?? null;
       const nome = String(e?.playerName ?? e?.player?.name ?? e?.scorerName ?? "");
@@ -565,6 +581,7 @@ export async function rotasScores365(app: FastifyInstance) {
   app.get("/admin/jogadores365/status", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); let st: any = {}; try { st = JSON.parse((await cfg("jogadores365_status")) || "{}"); } catch {} const tot = Number(((await pool.query("SELECT count(*) n FROM jogadores_365")).rows[0] as any)?.n || 0); const comDet = Number(((await pool.query("SELECT count(*) n FROM jogadores_365 WHERE length(posicao_det)>0")).rows[0] as any)?.n || 0); return { ok: true, status: st, totalBanco: tot, comPosicaoDetalhada: comDet }; });
   app.post("/admin/jogadores365/limpar", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); await pool.query("DELETE FROM config WHERE chave='jogadores365_status'"); return { ok: true }; });
   app.post("/admin/scores365/coletar", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); return await coletarDados365(); });
+  app.post("/admin/artilheiros/coletar", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); return await coletarArtilheiros(); });
   app.post("/admin/scores365/odds", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); return await syncOdds(); });
   app.get("/admin/scores365/status", async (req, reply) => { if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" }); try { return { ok: true, status: JSON.parse((await cfg("scores365_status")) || "{}") }; } catch { return { ok: true, status: {} }; } });
   app.get("/admin/scores365/ping", async (req, reply) => {
