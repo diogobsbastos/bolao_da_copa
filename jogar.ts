@@ -426,6 +426,23 @@ export async function rotasJogar(app: FastifyInstance) {
     return { ok: true, ops: Number(resumo.ops || 0), tin: Number(resumo.tin || 0), tout: Number(resumo.tout || 0), gastoBrl: Number(resumo.gasto || 0), log };
   });
 
+  app.get("/jogar/artilheiros", async (req, reply) => {
+    const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    let art: any[] = [];
+    try {
+      const rows = (await pool.query(`SELECT jg.nome, jg.selecao, jg.figurinha,
+          count(*) FILTER (WHERE e->>'tipo'='gol') AS gols,
+          count(*) FILTER (WHERE e->>'tipo'='assist') AS ass
+        FROM jogos j CROSS JOIN LATERAL jsonb_array_elements(COALESCE(j.gols_evt,'[]'::jsonb)) e
+        JOIN jogadores jg ON jg.id = NULLIF(e->>'jogador_id','')::int
+        GROUP BY jg.nome, jg.selecao, jg.figurinha
+        HAVING count(*) FILTER (WHERE e->>'tipo'='gol') > 0
+        ORDER BY gols DESC, ass DESC, jg.nome LIMIT 40`)).rows as any[];
+      art = rows.map((r) => { const t = timePT(r.selecao); return { nome: r.nome, sel: t.pt, iso: t.iso, fig: r.figurinha || "", gols: Number(r.gols), ass: Number(r.ass) }; });
+    } catch {}
+    return { ok: true, artilheiros: art };
+  });
+
   app.get("/jogar/copa", async (req, reply) => {
     const u = await jogador(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
     const rows = (await pool.query("SELECT selecao_casa, selecao_visitante, inicio, rodada, resultado_casa AS placar_casa, resultado_visitante AS placar_visitante FROM jogos WHERE fase='grupos' AND selecao_casa<>'A definir' AND selecao_visitante<>'A definir' ORDER BY inicio NULLS LAST, id")).rows as any[];
