@@ -1,4 +1,4 @@
-// Polish running — acumulador unico.
+// Polish running — acumulador unico (patcha jogar_style.ts + jogar_page.ts + landing.ts).
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -9,21 +9,25 @@ const VERSION = "2026-06-13-25";
 const CSS_MARKER = `/* POLISH-RUNNING-CSS ${VERSION} */`;
 const JS_MARKER = `<!-- [polish-running-js ${VERSION}] -->`;
 const LANDING_MARKER = `/* POLISH-LANDING-CSS ${VERSION} */`;
-const LANDING_JS_MARKER = `<!-- [polish-landing-js ${VERSION}] -->`;
 
 const CSS_BLOCK = `
 ${CSS_MARKER}
 @media(max-width:600px){
  .pack.base{overflow:visible!important;position:relative!important}
  .pack.base button,.pack.base .btn{padding:8px 14px!important;font-size:13px!important;min-height:0!important;height:auto!important;line-height:1.2!important}
+
  .provcard.sel,.provcard.gem.sel{box-shadow:0 0 0 2px #1faa59 inset!important}
+
  .top .brand{flex:0 0 auto!important;max-width:42px!important;overflow:hidden!important}
  .top .brand .blogo,.top .brand img{max-height:32px!important;max-width:32px!important;width:auto!important;height:auto!important}
  .top .burger{flex:0 0 auto!important}
+
  div#autobar.actpanel:not([data-user-opened="1"]),.actpanel:not([data-user-opened="1"]){display:none!important;visibility:hidden!important}
  div#autobar.actpanel[data-user-opened="1"],.actpanel[data-user-opened="1"]{display:flex!important;visibility:visible!important}
+
  .tabs,#copa-tabs,#bolao-tabs,#rank-tabs,.copa-tabs,.bolao-tabs,.rank-tabs{mask-image:none!important;-webkit-mask-image:none!important;padding-right:0!important;margin-right:0!important}
  #copa-tabs .tab,.copa-tabs .tab,#bolao-tabs .tab,#rank-tabs .tab{font-size:11px!important;padding:6px 9px!important;letter-spacing:-.2px!important}
+
  [class*=ia-conec]{order:-1!important;margin:0 0 12px!important;width:100%!important}
  .tmleft .tmbadge:nth-child(1),[class*=tmleft] .tmbadge:nth-child(1){display:none!important}
  .tmleft{align-items:center!important;justify-content:center!important}
@@ -33,17 +37,40 @@ ${CSS_MARKER}
 const LANDING_CSS = `
 ${LANDING_MARKER}
 @media(max-width:560px){
- /* CENTRALIZA brand + tarja Beta inline */
- .brand{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:8px!important;flex-wrap:wrap!important;width:100%!important;margin-left:auto!important;margin-right:auto!important;text-align:center!important}
- .brand .blogo{max-height:64px!important;width:auto!important;height:auto!important}
- .brand .bbeta{display:inline-flex!important;font-size:10px!important;padding:2px 7px!important;border-radius:4px!important;align-self:center!important;margin:0!important}
- .hlogo,.hero,[class*=hero],[class*=login],[class*=form]{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:8px!important;flex-wrap:wrap!important;text-align:center!important;margin-left:auto!important;margin-right:auto!important}
- .nav{flex-wrap:wrap!important;justify-content:center!important}
- .cdmini{position:static!important;transform:none!important;order:99!important;flex:1 1 100%!important;justify-content:center!important;left:auto!important;top:auto!important;margin:6px auto 0!important}
+ /* === HEADER da landing: TUDO em 1 linha === */
+ .hlogo,.nav,.brand{
+  display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;
+  gap:6px!important;flex-wrap:nowrap!important;width:100%!important;overflow:hidden!important;
+  padding:8px 12px!important;
+ }
+ /* Escudo MENOR */
+ .blogo,.brand .blogo,.brand img,.hlogo img,.hlogo .blogo,[class*=blogo]{
+  max-height:30px!important;max-width:30px!important;width:auto!important;height:auto!important;
+  flex:0 0 auto!important;
+ }
+ /* Titulo BOLÃO COPA 26 compacto */
+ .brand b,.brand strong,.brand .htitle,.brand>span,.htitle{
+  font-size:15px!important;line-height:1!important;white-space:nowrap!important;
+  flex:0 0 auto!important;min-width:0!important;letter-spacing:-.3px!important;
+ }
+ /* Beta tag colado no titulo */
+ .bbeta,[class*=bbeta],[class*=beta-tag],[class*=tarja]{
+  font-size:9px!important;padding:1px 5px!important;border-radius:4px!important;
+  flex:0 0 auto!important;align-self:center!important;margin:0!important;
+  white-space:nowrap!important;
+ }
+ /* Manager pill */
+ [class*=manager],[class*=mgr]{font-size:10px!important;padding:2px 6px!important;flex:0 0 auto!important;white-space:nowrap!important}
+ /* R$ pote pill puxado pra direita */
+ .hmpote,[class*=hmpote],[class*=pote-pill],[class*=poteval]{
+  font-size:11px!important;padding:3px 8px!important;flex:0 0 auto!important;
+  white-space:nowrap!important;margin-left:auto!important;
+ }
 }
 `;
 
 const JS_BLOCK = `${JS_MARKER}<script>(function(){if(window.innerWidth>600)return;
+// pkflag desktop values
 function applyPkflag(el){var s=el.style;
  s.setProperty('position','absolute','important');s.setProperty('top','0','important');s.setProperty('right','0','important');s.setProperty('left','auto','important');s.setProperty('bottom','auto','important');
  s.setProperty('width','auto','important');s.setProperty('max-width','none','important');s.setProperty('height','auto','important');s.setProperty('min-height','0','important');s.setProperty('max-height','none','important');
@@ -62,14 +89,20 @@ function addMarketplaceBar(){
  document.querySelectorAll('h1,h2,h3,h4,[class*=title],[class*=secthd]').forEach(function(el){
   if(el.dataset.mbarFixed)return;
   var t=(el.textContent||'').trim();
-  if(t==='Marketplace' && el.children.length<=1){el.style.setProperty('border-left','4px solid #1faa59','important');el.style.setProperty('padding-left','10px','important');el.style.setProperty('line-height','1.1','important');el.dataset.mbarFixed='1';}
+  if(t==='Marketplace' && el.children.length<=1){
+   el.style.setProperty('border-left','4px solid #1faa59','important');
+   el.style.setProperty('padding-left','10px','important');
+   el.style.setProperty('line-height','1.1','important');
+   el.dataset.mbarFixed='1';
+  }
  });
 }
 addMarketplaceBar();setInterval(addMarketplaceBar,1500);
 
 document.addEventListener('click',function(e){
  if(!e.target||!e.target.closest)return;
- var card=e.target.closest('.provcard');if(!card)return;
+ var card=e.target.closest('.provcard');
+ if(!card)return;
  setTimeout(function(){
   var keys=document.querySelectorAll('input[type=password], input[name*=key], input[name*=chave], input[name*=api], textarea');
   for(var i=0;i<keys.length;i++){var k=keys[i];if(k.offsetParent===null)continue;k.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(function(){try{k.focus();}catch(_){}}, 350);return;}
@@ -93,32 +126,6 @@ function hide442(){document.querySelectorAll('.tmleft *, [class*=tmleft] *, .tmb
 hide442();setInterval(hide442,1500);
 })();</script>`;
 
-// JS pra LANDING: reforça centralizacao mesmo que JS interno mexa depois
-const LANDING_JS = `${LANDING_JS_MARKER}<script>(function(){if(window.innerWidth>600)return;
-function recenter(){
- ['.brand','.hlogo','.hero','.nav'].forEach(function(sel){
-  document.querySelectorAll(sel).forEach(function(el){
-   el.style.setProperty('display','flex','important');
-   el.style.setProperty('align-items','center','important');
-   el.style.setProperty('justify-content','center','important');
-   el.style.setProperty('margin-left','auto','important');
-   el.style.setProperty('margin-right','auto','important');
-   el.style.setProperty('text-align','center','important');
-  });
- });
- // cdmini fica embaixo (nao absolute) pra nao empurrar
- document.querySelectorAll('.cdmini').forEach(function(el){
-  el.style.setProperty('position','static','important');
-  el.style.setProperty('transform','none','important');
-  el.style.setProperty('left','auto','important');
-  el.style.setProperty('top','auto','important');
-  el.style.setProperty('order','99','important');
-  el.style.setProperty('margin','6px auto 0','important');
- });
-}
-recenter();setInterval(recenter,300);
-})();</script>`;
-
 try {
   const LP = join(__dir, "jogar_style.ts");
   const sCss = readFileSync(LP, "utf8");
@@ -134,15 +141,8 @@ try {
   }
   const LDP = join(__dir, "landing.ts");
   const sLd = readFileSync(LDP, "utf8");
-  let sLd2 = sLd;
-  if (sLd2.indexOf(LANDING_MARKER) === -1) {
+  if (sLd.indexOf(LANDING_MARKER) === -1) {
     const lAnchor = "@media(max-width:560px){.cdlab{display:none}.cdval{min-width:0}}";
-    if (sLd2.split(lAnchor).length - 1 === 1) sLd2 = sLd2.replace(lAnchor, lAnchor + "\n" + LANDING_CSS);
+    if (sLd.split(lAnchor).length - 1 === 1) writeFileSync(LDP, sLd.replace(lAnchor, lAnchor + "\n" + LANDING_CSS), "utf8");
   }
-  // Injeta JS na landing — anchor: </body> (pega o ultimo)
-  if (sLd2.indexOf(LANDING_JS_MARKER) === -1) {
-    const lastBody = sLd2.lastIndexOf("</body>");
-    if (lastBody > 0) sLd2 = sLd2.substring(0, lastBody) + LANDING_JS + sLd2.substring(lastBody);
-  }
-  if (sLd2 !== sLd) writeFileSync(LDP, sLd2, "utf8");
 } catch (e) { console.error("[polish_running] ERRO", e); }
