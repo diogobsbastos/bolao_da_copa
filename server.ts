@@ -34,6 +34,7 @@ import { rotasComando, iniciarComando } from "./comando.js";
 import { rotasTrava } from "./trava.js";
 import { rotasNotificacoes, iniciarNotificacoes } from "./notificacoes.js";
 import { rotasPwa } from "./pwa.js";
+import { rotasRecuperacao } from "./recuperacao.js";
 import { injetarMenu } from "./ui.js";
 
 const app = Fastify({ logger: true, bodyLimit: 30 * 1024 * 1024 });
@@ -76,6 +77,7 @@ app.get("/ranking", async () => {
 
 await app.register(rotasLanding);
 await app.register(rotasAuth);
+await app.register(rotasRecuperacao);
 await app.register(rotasUsuarios);
 await app.register(rotasAdmin);
 await app.register(rotasElencos);

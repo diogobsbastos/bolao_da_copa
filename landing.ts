@@ -312,6 +312,7 @@ input:focus{border-color:var(--pri);background:rgba(255,255,255,.09);box-shadow:
     <label>Senha</label><input id="l-senha" type="password" autocomplete="current-password" placeholder="sua senha">
     <button class="go" onclick="entrar()">Entrar</button>
     <div id="l-msg" class="msg"></div>
+    <div style="text-align:center;margin-top:8px"><a onclick="abaEsqueci()" style="color:#9aa3b5;font-size:13px;cursor:pointer;text-decoration:underline">Esqueci minha senha</a></div>
    </div>
    <div id="f-cad" style="display:none">
     <label>Nome</label><input id="c-nome" placeholder="Como te chamam">
@@ -320,6 +321,22 @@ input:focus{border-color:var(--pri);background:rgba(255,255,255,.09);box-shadow:
     <label>Confirmar senha</label><input id="c-senha2" type="password" placeholder="repita a senha">
     <button class="go" onclick="cadastrar()">Criar conta gr&aacute;tis</button>
     <div id="c-msg" class="msg"></div>
+   </div>
+   <div id="f-esqueci" style="display:none">
+    <div style="font-weight:800;font-size:15px;margin-bottom:4px">Recuperar senha</div>
+    <div style="color:#9aa3b5;font-size:13px;margin-bottom:8px">Digite seu e-mail. Enviaremos um link pra criar uma nova senha.</div>
+    <label>E-mail</label><input id="r-email" type="email" autocomplete="email" placeholder="voce@email.com">
+    <button class="go" onclick="pedirReset()">Enviar link de recupera&ccedil;&atilde;o</button>
+    <div id="r-msg" class="msg"></div>
+    <div style="text-align:center;margin-top:8px"><a onclick="voltarLogin()" style="color:#9aa3b5;font-size:13px;cursor:pointer;text-decoration:underline">&larr; Voltar pro login</a></div>
+   </div>
+   <div id="f-reset" style="display:none">
+    <div style="font-weight:800;font-size:15px;margin-bottom:4px">Criar nova senha</div>
+    <div id="rs-who" style="color:#9aa3b5;font-size:13px;margin-bottom:8px">Defina sua nova senha.</div>
+    <label>Nova senha</label><input id="rs-senha" type="password" placeholder="nova senha (m&iacute;n. 4)">
+    <label>Confirmar senha</label><input id="rs-senha2" type="password" placeholder="repita a nova senha">
+    <button class="go" onclick="fazerReset()">Salvar nova senha</button>
+    <div id="rs-msg" class="msg"></div>
    </div>
    <div id="g-block"><div class="ou">ou</div><div class="gbtn"><div id="g-wrap" class="gwrap"></div></div></div>
    <div class="fineprint">Regras e informa&ccedil;&otilde;es em breve.</div>
@@ -357,6 +374,30 @@ async function cadastrar(){
  if(!r.ok){m.className="msg err";m.textContent=j.erro||"falha";return;}
  m.className="msg ok";m.textContent="Conta criada! Voce ganhou 500 Tokens. Agora e so entrar.";
  aba("login");
+}
+function _hide(ids){ids.forEach(function(p){var e=document.getElementById(p);if(e)e.style.display="none";});}
+function abaEsqueci(){_hide(["f-login","f-cad","f-reset","g-block"]);var e=document.getElementById("f-esqueci");if(e)e.style.display="block";var i=document.getElementById("r-email");if(i){i.value=document.getElementById("l-email").value||"";}}
+function voltarLogin(){_hide(["f-esqueci","f-reset","f-cad"]);var e=document.getElementById("f-login");if(e)e.style.display="block";var g=document.getElementById("g-block");if(g)g.style.display="";}
+async function pedirReset(){var m=document.getElementById("r-msg");m.className="msg";m.textContent="enviando...";
+ var email=document.getElementById("r-email").value.trim();
+ if(!email||email.indexOf("@")<0){m.className="msg err";m.textContent="Digite um e-mail v\u00e1lido.";return;}
+ try{var r=await fetch(BASE+"/esqueci-senha",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({email:email})});var j=await r.json();m.className="msg ok";m.textContent=j.msg||"Se o e-mail existir, enviamos o link.";}catch(e){m.className="msg err";m.textContent="erro de rede";}}
+async function fazerReset(){var m=document.getElementById("rs-msg");m.className="msg";
+ var s1=document.getElementById("rs-senha").value,s2=document.getElementById("rs-senha2").value;
+ if((s1||"").length<4){m.className="msg err";m.textContent="A senha precisa de pelo menos 4 caracteres.";return;}
+ if(s1!==s2){m.className="msg err";m.textContent="As senhas n\u00e3o conferem.";return;}
+ m.textContent="salvando...";
+ try{var r=await fetch(BASE+"/resetar-senha",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({token:_RESET_TOKEN,senha:s1})});var j=await r.json();
+ if(!r.ok){m.className="msg err";m.textContent=j.erro||"falha";return;}
+ m.className="msg ok";m.textContent="Senha alterada! Agora \u00e9 s\u00f3 entrar.";
+ try{history.replaceState(null,"",BASE+"/");}catch(e2){}
+ setTimeout(function(){voltarLogin();},1400);
+ }catch(e){m.className="msg err";m.textContent="erro de rede";}}
+var _RESET_TOKEN=(_qp.get("reset")||"").trim();
+if(_RESET_TOKEN){
+ _hide(["f-login","f-cad","f-esqueci","g-block"]);
+ var _fr=document.getElementById("f-reset");if(_fr)_fr.style.display="block";
+ fetch(BASE+"/reset-info?token="+encodeURIComponent(_RESET_TOKEN)).then(function(r){return r.json();}).then(function(d){var w=document.getElementById("rs-who");if(!w)return;if(d&&d.ok){w.textContent="Conta: "+d.email;}else{w.textContent="";var m=document.getElementById("rs-msg");if(m){m.className="msg err";m.textContent=(d&&d.erro)||"link inv\u00e1lido ou expirado";}var b=document.querySelector("#f-reset .go");if(b)b.disabled=true;}}).catch(function(){});
 }
 function entrou(j,m){
  localStorage.setItem("sessao",j.token);localStorage.setItem("papel",j.papel);
