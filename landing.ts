@@ -121,6 +121,25 @@ body::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--pri2),var(
  .hero .feats{display:flex!important;flex-wrap:wrap!important;justify-content:center!important;align-items:center!important;gap:8px!important;margin:14px auto 0!important;width:100%!important;max-width:380px!important}
  .hero .feats>*{flex:0 1 auto!important;margin:0!important}
 }
+/* HERO-CENTER-LANDING 2026-06-13-v2 */
+@media(max-width:560px){
+ .hero{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;text-align:center!important;width:100%!important;max-width:100%!important;margin-left:auto!important;margin-right:auto!important}
+ .hero>*{margin-left:auto!important;margin-right:auto!important;align-self:center!important}
+ .hero .copy{text-align:center!important;margin:0 auto!important;width:100%!important;max-width:380px!important}
+ .hero .feats{display:flex!important;flex-wrap:wrap!important;justify-content:center!important;align-items:center!important;gap:8px!important;margin:14px auto 0!important;width:100%!important;max-width:380px!important}
+ .hero .feats>*{flex:0 1 auto!important;margin:0!important}
+ /* Login card / form / continuar com Google — centralizado */
+ .lform,.login-card,.auth-card,.lcard,form.auth,form.login,
+ [class*=lform],[class*=auth-card],[class*=login-card],[class*=login-form]{
+  margin-left:auto!important;margin-right:auto!important;
+  width:100%!important;max-width:380px!important;
+  text-align:center!important;
+ }
+ .gsi-material-button,[class*=continuar],[class*=gsi-material]{
+  margin-left:auto!important;margin-right:auto!important;display:block!important;
+ }
+}
+
 
 
 @media(max-width:560px){.nav{padding:10px 14px;gap:8px}.brand .blogo{height:26px}.nav .cdmini{position:static;transform:none;order:3;flex:1 1 100%;justify-content:center;margin:2px 0 0;left:auto;top:auto}.hmpote{font-size:11px;padding:4px 9px}}
