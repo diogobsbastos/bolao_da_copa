@@ -4,6 +4,8 @@
 import tls from "node:tls";
 import { pool } from "./db.js";
 
+const HEADER_IMG = "https://oracle-vipworks.duckdns.org/bolao-copa26/email-header.jpg";
+
 async function cfg(k: string): Promise<string> {
   try { const { rows } = await pool.query("SELECT valor FROM config WHERE chave=$1", [k]); return (rows as any[])[0]?.valor ?? ""; } catch { return ""; }
 }
@@ -76,7 +78,7 @@ export function htmlEmail(titulo: string, texto: string, linkTxt?: string, linkU
     : "";
   return `<!doctype html><html><body style="margin:0;background:#0a1228;padding:22px 12px;font-family:Arial,Helvetica,sans-serif">
 <table role="presentation" align="center" width="100%" style="max-width:540px;margin:0 auto;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.4)">
-<tr><td style="background:linear-gradient(135deg,#1faa59,#0f7a45);padding:16px 22px"><span style="color:#fff;font-weight:900;font-size:18px;letter-spacing:.4px">&#9917; BOL&Atilde;O <span style="color:#ffe07a">COPA 26</span></span></td></tr>
+<tr><td style="padding:0;background:#0a3d2a;line-height:0"><img src="${HEADER_IMG}" alt="Bol&atilde;o Copa 26 Manager" width="560" style="width:100%;max-width:560px;display:block;border:0"></td></tr>
 <tr><td style="padding:24px 24px 8px;color:#1f2430">
 <table role="presentation" width="100%"><tr><td style="font-size:20px;font-weight:800;padding-bottom:10px;color:#0f7a45">${esc(titulo)}</td></tr>
 <tr><td style="font-size:15px;line-height:1.6;color:#3a4151">${esc(texto).replace(/\n/g, "<br>")}</td></tr>
@@ -100,10 +102,7 @@ export function htmlLancamento(base: string, pote: number, regra: any, pacotes: 
   const regras = `Placar <b>exato</b> = <b>${regra.exato}</b> pts &middot; acertou o <b>vencedor + saldo de gols</b> = <b>${regra.vencedor_saldo}</b> &middot; só o <b>vencedor</b> = <b>${regra.vencedor}</b> &middot; acertou os <b>gols de um time</b> = <b>${regra.gol_time}</b>.<br>E o melhor: <b>cada ponto vira token</b> tamb&eacute;m. Errar n&atilde;o tira nada &mdash; <b>risco zero</b>.`;
   return `<!doctype html><html><body style="margin:0;background:#0a1228;padding:20px 10px;font-family:Arial,Helvetica,sans-serif">
 <table role="presentation" align="center" width="100%" style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 22px 64px rgba(0,0,0,.45)">
-<tr><td style="background:linear-gradient(135deg,#1faa59,#0f7a45);padding:20px 22px;text-align:center">
-  <div style="color:#fff;font-weight:900;font-size:24px;letter-spacing:.5px;line-height:1">&#9917; BOL&Atilde;O <span style="color:#ffe07a">COPA 26</span></div>
-  <div style="color:#d9f5e6;font-size:12px;font-weight:700;letter-spacing:2px;margin-top:4px">MANAGER &middot; COPA DO MUNDO 2026</div>
-</td></tr>
+<tr><td style="padding:0;background:#0a3d2a;line-height:0"><img src="${HEADER_IMG}" alt="Bol&atilde;o Copa 26 Manager" width="560" style="width:100%;max-width:560px;display:block;border:0"></td></tr>
 <tr><td style="padding:22px 24px 6px;color:#1f2430">
   <div style="font-size:23px;font-weight:900;line-height:1.2;color:#0a1228">A Copa come&ccedil;ou &mdash; e o Bol&atilde;o est&aacute; <span style="color:#1faa59">VALENDO!</span></div>
   <div style="font-size:15px;line-height:1.6;color:#3a4151;margin-top:8px">Os jogos j&aacute; pontuam. Bora garantir seus palpites e subir no ranking. Te explico tudo, rapidinho:</div>

@@ -6,6 +6,7 @@ import { dirname, join } from "node:path";
 
 const __dirname_local = dirname(fileURLToPath(import.meta.url));
 const OG_SQUARE = readFileSync(join(__dirname_local, "og-square.jpg"));
+const EMAIL_HEADER = readFileSync(join(__dirname_local, "email-header.jpg"));
 const UA_SQUARE = /whatsapp|facebookexternalhit|facebot|instagram|twitterbot|telegram|linkedin|discord|slack/i;
 
 export async function rotasLanding(app: FastifyInstance) {
@@ -38,6 +39,7 @@ export async function rotasLanding(app: FastifyInstance) {
     return reply.header("cache-control","public, max-age=86400").type("image/png").send(Buffer.from(OG_B64, "base64"));
   });
   app.get("/og-square.jpg", async (_req, reply) => reply.header("cache-control","public, max-age=86400").type("image/jpeg").send(OG_SQUARE));
+  app.get("/email-header.jpg", async (_req, reply) => reply.header("cache-control","public, max-age=86400").type("image/jpeg").send(EMAIL_HEADER));
   app.get("/inicio", async (_req, reply) => {
     try {
       const r = await pool.query("SELECT valor FROM config WHERE chave='bolao_inicio_oficial'");
