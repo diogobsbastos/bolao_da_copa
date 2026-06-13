@@ -42,26 +42,47 @@ function palpiteAuto1(o: any, enC: string, enV: string): { pc: number; pv: numbe
   return p;
 }
 // Cron: 1h antes do jogo, preenche os FALTANTES de quem ligou o auto (odds do banco + sorteio). Nao sobrescreve manual.
+// Palpite por IA (do proprio jogador) pro auto-preencher. Retorna {pc,pv} ou null (ai falhou/limite -> caller cai na logica).
+async function palpiteIAauto(ctx: any, prov: any): Promise<{ pc: number; pv: number } | null> {
+  try {
+    const prompt = "Voce e um analista de futebol. Com base no CONTEXTO (JSON) do jogo da Copa, preveja o placar final mais provavel (considere odds, probabilidade, escalacao, forma e noticias). IMPORTANTE: e Copa do Mundo em sedes neutras (EUA/Canada/Mexico) — NAO existe mando de campo. Responda SOMENTE com JSON valido {\"pc\":N,\"pv\":N} onde pc=gols " + ctx.jogo.casa.pt + ", pv=gols " + ctx.jogo.visitante.pt + ". Nada fora do JSON. CONTEXTO: " + JSON.stringify(ctx);
+    const t0 = Date.now();
+    const r: any = await invocarTexto({ provedor: prov.provedor, modelo: prov.modelo, api_key: prov.api_key, base_url: prov.base_url } as any, prompt);
+    try { await registrarGasto({ modelo: prov.modelo, tokens_in: r.usage.in, tokens_out: r.usage.out, tokens_cache: r.usage.cache, processo: String(prov.usuario_id || ""), origem: "jogador", tempo: (Date.now() - t0) / 1000 } as any); } catch {}
+    const m = String(r.texto).match(/\{[\s\S]*\}/);
+    if (m) { const o = JSON.parse(m[0]); const pc = Math.max(0, Math.min(20, Math.round(+o.pc))), pv = Math.max(0, Math.min(20, Math.round(+o.pv))); if (!isNaN(pc) && !isNaN(pv)) return { pc, pv }; }
+  } catch {}
+  return null;
+}
+
+// Auto-preencher: pra quem ligou o auto e nao cravou. Quem tem IA conectada -> tenta a IA dele; falhou/limite -> logica. Sem IA -> logica. 1x por jogo.
 export async function autoPreencherTick(): Promise<void> {
   let jogos: any[] = [], users: any[] = [];
   try {
     jogos = (await pool.query("SELECT id, selecao_casa, selecao_visitante, odds FROM jogos WHERE selecao_casa<>'A definir' AND selecao_visitante<>'A definir' AND inicio > now() AND inicio <= now() + interval '60 minutes'")).rows as any[];
     if (!jogos.length) return;
-    users = (await pool.query("SELECT id FROM usuarios WHERE auto_preencher=true")).rows as any[];
+    users = (await pool.query("SELECT u.id, l.provedor, l.modelo, l.api_key, l.base_url FROM usuarios u LEFT JOIN usuarios_llm l ON l.usuario_id = u.id WHERE u.auto_preencher=true")).rows as any[];
     if (!users.length) return;
   } catch { return; }
-  let n = 0;
+  let n = 0, nia = 0;
   for (const j of jogos) {
+    let ctx: any = null, ctxTried = false;
     for (const u of users) {
       try {
         const ex = await pool.query("SELECT 1 FROM palpites_bolao WHERE usuario_id=$1 AND jogo_id=$2", [u.id, j.id]);
         if (ex.rowCount) continue;
-        const p = palpiteAuto1(j.odds, j.selecao_casa, j.selecao_visitante);
-        await pool.query("INSERT INTO palpites_bolao (usuario_id, jogo_id, placar_casa, placar_visitante, auto) VALUES ($1,$2,$3,$4,true) ON CONFLICT (usuario_id, jogo_id) DO NOTHING", [u.id, j.id, p.pc, p.pv]); n++;
+        let pc = 0, pv = 0, ia = false;
+        if (u.api_key) {
+          if (!ctxTried) { ctxTried = true; try { ctx = await montarContexto(j.id); } catch {} }
+          if (ctx) { const r = await palpiteIAauto(ctx, { ...u, usuario_id: u.id }); if (r) { pc = r.pc; pv = r.pv; ia = true; nia++; } }
+        }
+        if (!ia) { const p = palpiteAuto1(j.odds, j.selecao_casa, j.selecao_visitante); pc = p.pc; pv = p.pv; }
+        await pool.query("INSERT INTO palpites_bolao (usuario_id, jogo_id, placar_casa, placar_visitante, auto, ia) VALUES ($1,$2,$3,$4,true,$5) ON CONFLICT (usuario_id, jogo_id) DO NOTHING", [u.id, j.id, pc, pv, ia]); n++;
+        if (ia) await new Promise((rr) => setTimeout(rr, 300));
       } catch {}
     }
   }
-  if (n) console.log("[auto-preencher]", n, "palpites em", jogos.length, "jogo(s)");
+  if (n) console.log("[auto-preencher]", n, "palpites (" + nia + " por IA) em", jogos.length, "jogo(s)");
 }
 
 
