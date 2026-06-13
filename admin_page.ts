@@ -261,7 +261,20 @@ async function loadUsers(){
  var b=document.getElementById("users-box");b.textContent="carregando...";
  var r=await fetch(BASE+"/admin/usuarios",{headers:H()});
  if(!r.ok){b.textContent="conecte para ver.";return;}
- b.innerHTML=tabela(await r.json(),["id","email","nome","papel","col","apo","are"],["ID","E-mail","Nome","Papel","Colec.","Apostas","Arena"]);
+ var rows=await r.json();
+ var h='<table><thead><tr><th>ID</th><th>E-mail</th><th>Nome</th><th>Papel</th><th>A&ccedil;&atilde;o</th></tr></thead><tbody>';
+ for(var i=0;i<rows.length;i++){var u=rows[i];
+  h+='<tr><td>'+u.id+'</td><td>'+esc(u.email)+'</td><td>'+esc(u.nome||"")+'</td><td>'+esc(u.papel||"jogador")+'</td><td><button onclick="resetSenha('+u.id+',\''+esc(String(u.email||"")).replace(/'/g,"")+'\')" style="padding:4px 9px;font-size:12px;border:0;border-radius:7px;background:#4361ee;color:#fff;font-weight:700;cursor:pointer">&#128273; Redefinir senha</button></td></tr>';
+ }
+ h+='</tbody></table>';b.innerHTML=h;
+}
+async function resetSenha(id,email){
+ var nova=prompt("Nova senha para "+email+"\n(deixe vazio para gerar uma tempor\u00e1ria):","");
+ if(nova===null)return;
+ var r=await fetch(BASE+"/admin/usuarios/reset-senha",{method:"POST",headers:H(),body:JSON.stringify({id:id,senha:String(nova).trim()})});
+ var j=await r.json();
+ if(!r.ok){alert("Falhou: "+(j.erro||"erro"));return;}
+ alert("Senha de "+j.email+" redefinida para:\n\n   "+j.senha+"\n\nPasse essa senha para a pessoa (ela pode trocar depois).");
 }
 async function loadRank(){
  var b=document.getElementById("rank-box");b.textContent="carregando...";

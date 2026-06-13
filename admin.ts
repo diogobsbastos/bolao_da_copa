@@ -1,5 +1,6 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { pool } from "./db.js";
+import { randomBytes, scryptSync } from "node:crypto";
 import { usuarioDaReq } from "./auth.js";
 import { PAGINA } from "./admin_page.js";
 
@@ -172,6 +173,24 @@ export async function rotasAdmin(app: FastifyInstance) {
         ORDER BY u.id`
     );
     return rows;
+  });
+
+  app.post("/admin/usuarios/reset-senha", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "token invalido" });
+    const b = (req.body ?? {}) as any;
+    const id = b.id != null && b.id !== "" ? Number(b.id) : null;
+    const email = b.email ? String(b.email).trim().toLowerCase() : null;
+    if (!id && !email) return reply.code(400).send({ erro: "informe id ou email" });
+    let senha = String(b.senha || "").trim();
+    if (!senha) senha = "bc" + Math.random().toString(36).slice(2, 8);
+    if (senha.length < 4) return reply.code(400).send({ erro: "senha muito curta (minimo 4)" });
+    const salt = randomBytes(16).toString("hex");
+    const stored = salt + ":" + scryptSync(senha, salt, 64).toString("hex");
+    const q = id ? "UPDATE usuarios SET senha_hash=$2 WHERE id=$1 RETURNING email"
+                 : "UPDATE usuarios SET senha_hash=$2 WHERE lower(email)=$1 RETURNING email";
+    const { rows } = await pool.query(q, [id || email, stored]);
+    if (!rows[0]) return reply.code(404).send({ erro: "usuario nao encontrado" });
+    return { ok: true, email: (rows[0] as any).email, senha };
   });
 
   app.get("/admin/ranking", async (req, reply) => {
