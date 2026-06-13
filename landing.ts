@@ -212,12 +212,20 @@ input:focus{border-color:var(--pri);background:rgba(255,255,255,.09);box-shadow:
 
 
 
+
+
+
+
+
+
 /* CENTER-FIX 2026-06-13 */
 @media(max-width:560px){
  .hero{align-items:center!important;padding-left:12px!important;padding-right:12px!important}
  .hero>.copy,.hero>.card{width:100%!important;max-width:360px!important;margin-left:auto!important;margin-right:auto!important;align-self:center!important}
  .copy,.feats{text-align:center!important}
  .feats{justify-content:center!important}
+ .nav{row-gap:0px!important}
+ .w.hmpote,.hmpote{margin-top:-10px!important}
 }
 
 </style></head><body>
@@ -317,7 +325,7 @@ async function initGoogle(){
   if(window.google&&google.accounts&&google.accounts.id){
    clearInterval(t);
    google.accounts.id.initialize({client_id:GCID,callback:gcb});
-   google.accounts.id.renderButton(document.getElementById("g-wrap"),{theme:"outline",shape:"pill",size:"large",width:330,logo_alignment:"center",text:"continue_with"});
+   google.accounts.id.renderButton(document.getElementById("g-wrap"),{theme:"outline",shape:"pill",size:"large",width:Math.max(200,Math.min(400,((document.getElementById("entrar")||{}).clientWidth||349)-60)),logo_alignment:"center",text:"continue_with"});
   }else if(n>50){clearInterval(t);}
  },200);
 }

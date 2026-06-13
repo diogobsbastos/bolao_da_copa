@@ -1,9 +1,11 @@
-// LANDING v25 + CENTER-FIX (2026-06-13)
+// LANDING v25 + CENTER-FIX + HEADER-FIX + GOOGLE-FIT (2026-06-13)
 // 1) Garante os 3 blocos POLISH-LANDING-CSS (v23/24/25) — estado v25 que o dono pediu.
-// 2) CENTER-FIX: limita a largura de .copy/.card/.feats no mobile pra eles NAO transbordarem
-//    pra direita (causa real do "empurrao": filho mais largo que o .hero flex-column encosta
-//    na esquerda e vaza pra direita). Com max-width + margin auto, ficam centralizados.
-// Tudo idempotente (marca por comentario). NAO mexe no header nem no JS recenter.
+// 2) CENTER-FIX: limita largura de .copy/.card/.feats (nao transbordar pra direita) +
+//    aperta o header (row-gap:0 e R$ margin-top:-10) pra tirar a linha em branco entre
+//    o brand e a regiao amarela do R$.
+// 3) GOOGLE-FIT: troca o width:330 fixo do botao Google por largura dinamica que cabe
+//    dentro do card (#entrar) em qualquer tela — antes vazava pra fora.
+// Tudo idempotente. NAO mexe no header HTML nem no resto do JS.
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -51,8 +53,27 @@ const CENTERFIX = `
  .hero>.copy,.hero>.card{width:100%!important;max-width:360px!important;margin-left:auto!important;margin-right:auto!important;align-self:center!important}
  .copy,.feats{text-align:center!important}
  .feats{justify-content:center!important}
+ .nav{row-gap:0px!important}
+ .w.hmpote,.hmpote{margin-top:-10px!important}
 }
 `;
+
+// remove um bloco "marker + @media{...}" via brace-matching; devolve a string sem ele
+function removeBloco(s: string, marker: string): string {
+  const start = s.indexOf(marker);
+  if (start < 0) return s;
+  const at = s.indexOf("@media", start);
+  if (at < 0) return s.substring(0, start) + s.substring(start + marker.length);
+  const open = s.indexOf("{", at);
+  let depth = 1, end = -1;
+  for (let i = open + 1; i < s.length; i++) {
+    if (s[i] === "{") depth++;
+    else if (s[i] === "}") { depth--; if (depth === 0) { end = i + 1; break; } }
+  }
+  if (end < 0) return s;
+  let trim = end; while (trim < s.length && /\s/.test(s[trim])) trim++;
+  return s.substring(0, start) + s.substring(trim);
+}
 
 try {
   const LDP = join(__dir, "landing.ts");
@@ -63,23 +84,25 @@ try {
   if (s.indexOf(MARK25) === -1 && s.indexOf(ANCHOR) !== -1 && (s.split(ANCHOR).length - 1) === 1) {
     s = s.replace(ANCHOR, ANCHOR + BLOCKS25);
     changed = true;
-    console.log("[landing] blocos v25 reinseridos");
   }
 
-  // 2) CENTER-FIX (se faltar) — antes do ultimo </style> pra vencer o cascade
-  if (s.indexOf(MARKFIX) === -1) {
-    const last = s.lastIndexOf("</style>");
-    if (last >= 0) {
-      s = s.substring(0, last) + "\n" + CENTERFIX + "\n" + s.substring(last);
-      changed = true;
-      console.log("[landing] CENTER-FIX inserido");
-    } else {
-      console.error("[landing] </style> nao encontrado p/ CENTER-FIX");
-    }
+  // 2) CENTER-FIX: remove versao antiga e reinsere a atual (antes do ultimo </style>)
+  const semFix = removeBloco(s, MARKFIX);
+  if (semFix !== s) { s = semFix; changed = true; } // tinha versao antiga -> removida
+  const last = s.lastIndexOf("</style>");
+  if (last >= 0) { s = s.substring(0, last) + "\n" + CENTERFIX + "\n" + s.substring(last); changed = true; }
+
+  // 3) GOOGLE-FIT: width:330 fixo -> dinamico que cabe no card (#entrar)
+  const ALVO = 'width:330,logo_alignment';
+  const NOVO = 'width:Math.max(200,Math.min(400,((document.getElementById("entrar")||{}).clientWidth||349)-60)),logo_alignment';
+  if (s.indexOf(ALVO) !== -1) {
+    s = s.replace(ALVO, NOVO);
+    changed = true;
+    console.log("[google-fit] width dinamico aplicado");
   }
 
-  if (changed) writeFileSync(LDP, s, "utf8");
-  else console.log("[landing] nada a fazer (v25 + center-fix ja presentes)");
+  if (changed) { writeFileSync(LDP, s, "utf8"); console.log("[landing] patches aplicados"); }
+  else console.log("[landing] nada a fazer");
 } catch (e) {
   console.error("[landing] ERRO", e);
 }
