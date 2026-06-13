@@ -5,35 +5,26 @@ import { dirname, join } from "node:path";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
-const VERSION = "2026-06-13-07";
+const VERSION = "2026-06-13-08";
 const CSS_MARKER = `/* POLISH-RUNNING-CSS ${VERSION} */`;
 const JS_MARKER = `<!-- [polish-running-js ${VERSION}] -->`;
 
 const CSS_BLOCK = `
 ${CSS_MARKER}
 @media(max-width:600px){
- /* === Marketplace: CARD ALTURA = IMAGEM (195px) === */
- .grid:has(> .pack){grid-template-columns:1fr!important;gap:14px!important;padding-left:12px!important;padding-right:12px!important}
- .pack.base{display:grid!important;grid-template-columns:130px 1fr!important;grid-template-rows:195px!important;width:100%!important;max-width:100%!important;height:195px!important;min-height:195px!important;max-height:195px!important;padding:0!important;overflow:hidden!important;align-items:stretch!important;gap:0!important;position:relative!important}
- .pack.base>img,.pack.base>picture,.pack.base>[class*=img],.pack.base>[class*=fig]{width:130px!important;height:195px!important;max-width:130px!important;max-height:195px!important;object-fit:cover!important;align-self:stretch!important;margin:0!important;border-radius:0!important;display:block!important;grid-column:1!important;grid-row:1!important}
- .pack.base>*:not(img):not(picture):not([class*=img]):not([class*=fig]){padding:10px 12px!important;align-self:stretch!important;grid-column:2!important;min-width:0!important;max-height:195px!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;justify-content:flex-start!important;gap:5px!important;position:relative!important}
-
- /* Tarja amarela 300 — pequena top right */
- .pack.base [class*=preco],.pack.base [class*=price],.pack.base [class*=pktag],.pack.base [class*=pkprice],.pack.base [class*=pksoon],.pack.base [class*=tag-amar],.pack.base [class*=amarel]{
-  display:inline-flex!important;flex-direction:row!important;align-items:center!important;gap:4px!important;
-  padding:2px 7px!important;font-size:10px!important;line-height:1!important;
-  height:auto!important;width:auto!important;max-width:none!important;
-  position:absolute!important;top:6px!important;right:6px!important;
-  white-space:nowrap!important;border-radius:999px!important;z-index:2;
+ /* === Marketplace: layout ORIGINAL preservado, so encolhe tarja do preco === */
+ .pack.base [class*=preco],.pack.base [class*=price],.pack.base [class*=pkprice],.pack.base [class*=pksoon]{
+  font-size:10px!important;padding:2px 7px!important;line-height:1!important;
+  height:auto!important;display:inline-flex!important;align-items:center!important;gap:3px!important;
+  border-radius:999px!important;white-space:nowrap!important;
  }
- .pack.base [class*=preco] img,.pack.base [class*=preco] svg,.pack.base [class*=price] img,.pack.base [class*=price] svg{width:11px!important;height:11px!important;display:inline!important}
+ .pack.base [class*=preco] img,.pack.base [class*=preco] svg,
+ .pack.base [class*=price] img,.pack.base [class*=price] svg,
+ .pack.base [class*=pkprice] img,.pack.base [class*=pkprice] svg{
+  width:11px!important;height:11px!important;
+ }
 
- .pack.base h3,.pack.base [class*=title],.pack.base [class*=pktitle]{font-size:15px!important;margin:26px 0 2px!important;line-height:1.15!important;font-weight:700;padding-right:0!important}
- .pack.base p,.pack.base [class*=desc],.pack.base [class*=sub]{font-size:12px!important;line-height:1.3!important;margin:0!important}
- .pack.base [class*=embreve]{font-size:10px!important;padding:3px 8px!important;display:inline-flex!important}
- .pack.base button,.pack.base [class*=btn]{padding:6px 12px!important;font-size:11px!important;width:100%!important;margin-top:auto!important}
-
- /* === HEADER escudo === */
+ /* === HEADER escudo (impede vazar burger) === */
  .top .brand{flex:0 0 auto!important;max-width:42px!important;overflow:hidden!important}
  .top .brand .blogo,.top .brand img{max-height:32px!important;max-width:32px!important;width:auto!important;height:auto!important}
  .top .burger{flex:0 0 auto!important}
@@ -44,6 +35,7 @@ ${CSS_MARKER}
  div#autobar.actpanel[data-user-opened="1"],
  .actpanel[data-user-opened="1"]{display:flex!important;visibility:visible!important}
 
+ /* === Tabs sem fade === */
  .tabs,#copa-tabs,#bolao-tabs,#rank-tabs,.copa-tabs,.bolao-tabs,.rank-tabs{mask-image:none!important;-webkit-mask-image:none!important;padding-right:0!important;margin-right:0!important}
  #copa-tabs .tab,.copa-tabs .tab,#bolao-tabs .tab,#rank-tabs .tab{font-size:11px!important;padding:6px 9px!important;letter-spacing:-.2px!important}
 
