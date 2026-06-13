@@ -114,6 +114,18 @@ body::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--pri2),var(
 .cdval{font-weight:850;font-size:15px;color:var(--gold);font-variant-numeric:tabular-nums;letter-spacing:.5px;min-width:118px;text-align:right}
 @media(max-width:560px){.cdlab{display:none}.cdval{min-width:0}}
 
+/* POLISH-LANDING-CSS 2026-06-13-25 */
+@media(max-width:560px){
+ /* CENTRALIZA brand + tarja Beta inline */
+ .brand{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:8px!important;flex-wrap:wrap!important;width:100%!important;margin-left:auto!important;margin-right:auto!important;text-align:center!important}
+ .brand .blogo{max-height:64px!important;width:auto!important;height:auto!important}
+ .brand .bbeta{display:inline-flex!important;font-size:10px!important;padding:2px 7px!important;border-radius:4px!important;align-self:center!important;margin:0!important}
+ .hlogo,.hero,[class*=hero],[class*=login],[class*=form]{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:8px!important;flex-wrap:wrap!important;text-align:center!important;margin-left:auto!important;margin-right:auto!important}
+ .nav{flex-wrap:wrap!important;justify-content:center!important}
+ .cdmini{position:static!important;transform:none!important;order:99!important;flex:1 1 100%!important;justify-content:center!important;left:auto!important;top:auto!important;margin:6px auto 0!important}
+}
+
+
 /* POLISH-LANDING-CSS 2026-06-13-24 */
 @media(max-width:560px){
  .brand{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:8px!important;flex-wrap:wrap!important;width:100%!important}
@@ -324,4 +336,27 @@ function esc(v){return String(v==null?"":v).replace(/[&<>]/g,function(c){return 
 mostraConvite();
 setInterval(tickCd,1000);loadPote();setInterval(loadPote,30000);tickCd();
 window.addEventListener("load",initGoogle);
-</script></body></html>`;
+</script><!-- [polish-landing-js 2026-06-13-25] --><script>(function(){if(window.innerWidth>600)return;
+function recenter(){
+ ['.brand','.hlogo','.hero','.nav'].forEach(function(sel){
+  document.querySelectorAll(sel).forEach(function(el){
+   el.style.setProperty('display','flex','important');
+   el.style.setProperty('align-items','center','important');
+   el.style.setProperty('justify-content','center','important');
+   el.style.setProperty('margin-left','auto','important');
+   el.style.setProperty('margin-right','auto','important');
+   el.style.setProperty('text-align','center','important');
+  });
+ });
+ // cdmini fica embaixo (nao absolute) pra nao empurrar
+ document.querySelectorAll('.cdmini').forEach(function(el){
+  el.style.setProperty('position','static','important');
+  el.style.setProperty('transform','none','important');
+  el.style.setProperty('left','auto','important');
+  el.style.setProperty('top','auto','important');
+  el.style.setProperty('order','99','important');
+  el.style.setProperty('margin','6px auto 0','important');
+ });
+}
+recenter();setInterval(recenter,300);
+})();</script></body></html>`;
