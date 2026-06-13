@@ -148,6 +148,61 @@ export async function notificarSegmento(segmento: string, titulo: string, texto:
   return { mensagemId: m.id, usuarios: ids.length };
 }
 
+// ===== Agendamentos de envio =====
+async function emailsDoSegmento(seg: string): Promise<string[]> {
+  const sql = SEGMENTOS[seg] || SEGMENTOS["todos"];
+  const ids = ((await pool.query(sql)).rows as any[]).map((r) => r.id);
+  if (!ids.length) return [];
+  const rows = (await pool.query("SELECT email FROM usuarios WHERE id = ANY($1) AND email LIKE '%@%'", [ids])).rows as any[];
+  return rows.map((r) => r.email);
+}
+async function montarLancamento(): Promise<{ assunto: string; html: string }> {
+  const base = (await getCfg("base_url_publica")) || "https://oracle-vipworks.duckdns.org/bolao-copa26";
+  let regra: any = { exato: 10, vencedor_saldo: 7, vencedor: 5, gol_time: 1 };
+  try { const rv = await getCfg("pontos_regra"); if (rv) regra = { ...regra, ...JSON.parse(rv) }; } catch {}
+  let pacotes: any = {}; try { pacotes = JSON.parse((await getCfg("pacotes")) || "{}"); } catch {}
+  let pote = 0;
+  try { pote = Number(((await pool.query("SELECT (SELECT COALESCE(SUM(valor),0) FROM depositos WHERE creditado=true) + (SELECT COALESCE(SUM(valor),0) FROM patrocinadores WHERE status='ativo') AS p")).rows[0] as any)?.p || 0); } catch {}
+  return { assunto: "⚽ A Copa começou — o Bolão Copa 26 está valendo!", html: htmlLancamento(base, pote, regra, pacotes) };
+}
+async function enviarLancamentoBroadcast(seg: string): Promise<number> {
+  const { assunto, html } = await montarLancamento();
+  const emails = await emailsDoSegmento(seg || "todos");
+  let ok = 0;
+  for (const em of emails) { try { const r = await enviarEmail(em, assunto, html); if (r.ok) ok++; } catch {} await new Promise((rr) => setTimeout(rr, 700)); }
+  console.log("[email] lancamento broadcast:", ok, "/", emails.length);
+  return ok;
+}
+async function ensureAgend(): Promise<void> {
+  await pool.query(`CREATE TABLE IF NOT EXISTS notif_agendamentos (
+    id BIGSERIAL PRIMARY KEY,
+    tipo TEXT NOT NULL DEFAULT 'broadcast',
+    titulo TEXT, texto TEXT, segmento TEXT DEFAULT 'todos',
+    ch_inapp BOOLEAN DEFAULT true, ch_webpush BOOLEAN DEFAULT true, ch_email BOOLEAN DEFAULT false,
+    agendado_para TIMESTAMPTZ NOT NULL,
+    status TEXT NOT NULL DEFAULT 'agendado',
+    resultado TEXT, criado_em TIMESTAMPTZ DEFAULT now(), enviado_em TIMESTAMPTZ, criado_por BIGINT
+  )`);
+}
+async function dispararAgendamento(ag: any): Promise<void> {
+  try {
+    if (ag.tipo === "lancamento") {
+      const n = await enviarLancamentoBroadcast(ag.segmento || "todos");
+      await pool.query("UPDATE notif_agendamentos SET status='enviado', enviado_em=now(), resultado=$2 WHERE id=$1", [ag.id, "lancamento: " + n + " e-mails"]);
+    } else {
+      const canais: string[] = []; if (ag.ch_inapp) canais.push("inapp"); if (ag.ch_webpush) canais.push("webpush"); if (ag.ch_email) canais.push("email");
+      const r = await notificarSegmento(ag.segmento || "todos", ag.titulo || "Bolão Copa 26", ag.texto || "", ag.criado_por || null, canais.length ? canais : ["inapp"]);
+      if (ag.ch_email) enviarPendentesEmail().catch(() => {});
+      await pool.query("UPDATE notif_agendamentos SET status='enviado', enviado_em=now(), resultado=$2 WHERE id=$1", [ag.id, r.usuarios + " usuarios"]);
+    }
+  } catch (e) { try { await pool.query("UPDATE notif_agendamentos SET status='erro', resultado=$2 WHERE id=$1", [ag.id, String((e as any)?.message || e).slice(0, 180)]); } catch {} }
+}
+export async function processarAgendamentos(): Promise<void> {
+  let due: any[] = [];
+  try { due = (await pool.query("UPDATE notif_agendamentos SET status='enviando' WHERE id IN (SELECT id FROM notif_agendamentos WHERE status='agendado' AND agendado_para <= now() ORDER BY agendado_para LIMIT 3) RETURNING *")).rows as any[]; } catch { return; }
+  for (const ag of due) await dispararAgendamento(ag);
+}
+
 // inbox do sino: ultimas notifs inapp do usuario; marca pendente->enviado
 export async function notifsDoUsuario(uid: number): Promise<any[]> {
   const rows = (await pool.query("SELECT id, tipo, titulo, texto, criado_em FROM notif_envios WHERE usuario_id=$1 AND canal='inapp' ORDER BY id DESC LIMIT 10", [uid])).rows as any[];
@@ -218,6 +273,8 @@ export function iniciarNotificacoes(): void {
   setInterval(() => { enviarPendentesWebpush().catch(() => {}); }, 60 * 1000);
   setTimeout(() => { enviarPendentesEmail().catch(() => {}); }, 20 * 1000);
   setInterval(() => { enviarPendentesEmail().catch(() => {}); }, 60 * 1000);
+  ensureAgend().catch(() => {});
+  setInterval(() => { processarAgendamentos().catch(() => {}); }, 30 * 1000);
   setTimeout(() => { lembretePalpites().catch(() => {}); }, 30 * 1000);
   setInterval(() => { lembretePalpites().catch(() => {}); }, 10 * 60 * 1000);
   console.log("[notif] modulo de notificacoes iniciado (webpush 60s, lembretes 10min)");
@@ -310,22 +367,51 @@ export async function rotasNotificacoes(app: FastifyInstance) {
     let pacotes: any = {}; try { pacotes = JSON.parse(await getCfg("pacotes") || "{}"); } catch {}
     let pote = 0;
     try { pote = Number(((await pool.query("SELECT (SELECT COALESCE(SUM(valor),0) FROM depositos WHERE creditado=true) + (SELECT COALESCE(SUM(valor),0) FROM patrocinadores WHERE status='ativo') AS p")).rows[0] as any)?.p || 0); } catch {}
-    const html = htmlLancamento(base, pote, regra, pacotes);
-    const assunto = "⚽ A Copa começou — o Bolão Copa 26 está valendo!";
-    // modo teste: envia para 1 endereço
+    const { assunto, html } = await montarLancamento();
     if (b.to) {
       const res = await enviarEmail(String(b.to).trim(), assunto, html);
       return res.ok ? { ok: true, modo: "teste", to: b.to } : reply.code(502).send({ ok: false, erro: res.erro });
     }
-    // broadcast: todos os jogadores com email (em segundo plano, com throttle)
-    let emails: string[] = [];
-    try { emails = ((await pool.query("SELECT email FROM usuarios WHERE email LIKE '%@%' AND papel IS DISTINCT FROM 'admin'")).rows as any[]).map((r) => r.email); } catch {}
-    (async () => {
-      let ok = 0;
-      for (const em of emails) { try { const r = await enviarEmail(em, assunto, html); if (r.ok) ok++; } catch {} await new Promise((rr) => setTimeout(rr, 700)); }
-      console.log("[email] lancamento enviado:", ok, "/", emails.length);
-    })();
+    const seg = String(b.segmento || "todos");
+    enviarLancamentoBroadcast(seg).catch(() => {});
+    const emails = await emailsDoSegmento(seg);
     return { ok: true, modo: "broadcast", enviando: emails.length };
+  });
+
+  // ----- Agendamentos -----
+  app.get("/admin/agendamentos", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "nao autorizado" });
+    await ensureAgend();
+    const rows = (await pool.query("SELECT * FROM notif_agendamentos ORDER BY agendado_para DESC LIMIT 100")).rows;
+    return { ok: true, lista: rows };
+  });
+  app.post("/admin/agendamentos", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "nao autorizado" });
+    await ensureAgend();
+    const b = (req.body || {}) as any;
+    const tipo = b.tipo === "lancamento" ? "lancamento" : "broadcast";
+    const segmento = String(b.segmento || "todos");
+    const quando = b.agendado_para ? new Date(b.agendado_para) : null;
+    if (!quando || isNaN(quando.getTime())) return reply.code(400).send({ erro: "data/hora invalida" });
+    const titulo = String(b.titulo || "").slice(0, 90);
+    const texto = String(b.texto || "").slice(0, 400);
+    if (tipo === "broadcast" && (!titulo || !texto)) return reply.code(400).send({ erro: "titulo e texto obrigatorios" });
+    const ci = b.ch_inapp !== false, cw = b.ch_webpush !== false, ce = b.ch_email === true;
+    const u = await usuarioDaReq(req);
+    if (b.id) {
+      await pool.query("UPDATE notif_agendamentos SET tipo=$2,titulo=$3,texto=$4,segmento=$5,ch_inapp=$6,ch_webpush=$7,ch_email=$8,agendado_para=$9,status='agendado',resultado=NULL WHERE id=$1 AND status IN ('agendado','erro','cancelado')",
+        [Number(b.id), tipo, titulo, texto, segmento, ci, cw, ce, quando.toISOString()]);
+      return { ok: true, id: Number(b.id), editado: true };
+    }
+    const r = (await pool.query("INSERT INTO notif_agendamentos (tipo,titulo,texto,segmento,ch_inapp,ch_webpush,ch_email,agendado_para,criado_por) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id",
+      [tipo, titulo, texto, segmento, ci, cw, ce, quando.toISOString(), u?.id ?? null])).rows[0] as any;
+    return { ok: true, id: r.id };
+  });
+  app.post("/admin/agendamentos/cancelar", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "nao autorizado" });
+    const b = (req.body || {}) as any;
+    await pool.query("UPDATE notif_agendamentos SET status='cancelado' WHERE id=$1 AND status='agendado'", [Number(b.id)]);
+    return { ok: true };
   });
 
   app.post("/admin/email/teste", async (req, reply) => {
@@ -443,6 +529,45 @@ ${NAV_CSS}
    </div>
 
    <div class="card">
+    <h3>&#128197; Agendamentos</h3>
+    <div class="muted">Programe envios pra disparar sozinho na hora marcada.</div>
+    <div id="ag-form" style="background:#f7f8fc;border-radius:10px;padding:12px;margin:12px 0">
+     <label>Tipo</label>
+     <select id="ag-tipo" onchange="agTipoMudou()">
+      <option value="broadcast">Mensagem personalizada</option>
+      <option value="lancamento">E-mail de Lan&ccedil;amento (completo)</option>
+     </select>
+     <div id="ag-campos">
+      <label>Titulo</label><input type="text" id="ag-tit" maxlength="90" placeholder="Titulo da mensagem">
+      <label>Texto</label><textarea id="ag-txt" maxlength="400" placeholder="Texto da mensagem"></textarea>
+     </div>
+     <label>Segmento</label>
+     <select id="ag-seg">
+      <option value="todos">Todos os jogadores</option>
+      <option value="full">Somente FULL</option>
+      <option value="nao-full">Somente NAO-full</option>
+      <option value="top50">Top 50 do ranking</option>
+      <option value="inativos">Inativos ha 3+ dias</option>
+     </select>
+     <div id="ag-canais" style="margin-top:8px">
+      <label class="chk" style="text-transform:none"><input type="checkbox" id="ag-inapp" checked> Sino (in-app)</label>
+      <label class="chk" style="text-transform:none"><input type="checkbox" id="ag-push" checked> Web Push</label>
+      <label class="chk" style="text-transform:none"><input type="checkbox" id="ag-email"> E-mail</label>
+     </div>
+     <label>Data e hora do envio</label><input type="datetime-local" id="ag-quando">
+     <input type="hidden" id="ag-id" value="">
+     <div class="row">
+      <button id="ag-save" onclick="salvarAgend()">Agendar</button>
+      <button class="sec" onclick="limparAgendForm()">Limpar</button>
+     </div>
+    </div>
+    <table>
+     <thead><tr><th>Quando</th><th>Tipo</th><th>Mensagem / Segmento</th><th>Canais</th><th>Status</th><th>A&ccedil;&atilde;o</th></tr></thead>
+     <tbody id="ag-list"><tr><td colspan="6" class="muted">carregando...</td></tr></tbody>
+    </table>
+   </div>
+
+   <div class="card">
     <h3>&#128340; Historico</h3>
     <table>
      <thead><tr><th>Quando</th><th>Titulo</th><th>Segmento</th><th>Envios</th><th>Lidos</th><th>Push ok</th></tr></thead>
@@ -486,6 +611,14 @@ function enviar(){var tit=document.getElementById("f-tit").value.trim(),txt=docu
  }).catch(function(){b.disabled=false;toast("erro de rede",1);});}
 function teste(){var email=document.getElementById("f-email")&&document.getElementById("f-email").checked;fetch(nb()+"/admin/notificacoes/teste",{method:"POST",headers:H(),body:JSON.stringify({email:email})}).then(function(r){return r.json();}).then(function(d){
  if(d&&d.ok){var ex=(d.email===true)?" E-mail enviado pra voce tambem!":(d.email===false?" (e-mail falhou)":"");toast("Teste enviado! Confira o sino"+(email?", o push e o e-mail.":" e o push.")+ex);}else toast((d&&d.erro)||"erro",1);}).catch(function(){toast("erro de rede",1);});}
+function agTipoMudou(){var t=document.getElementById("ag-tipo").value;var c=document.getElementById("ag-campos"),cn=document.getElementById("ag-canais");if(t==="lancamento"){c.style.display="none";cn.style.display="none";}else{c.style.display="";cn.style.display="";}}
+function limparAgendForm(){document.getElementById("ag-id").value="";document.getElementById("ag-tit").value="";document.getElementById("ag-txt").value="";document.getElementById("ag-quando").value="";document.getElementById("ag-tipo").value="broadcast";document.getElementById("ag-save").textContent="Agendar";agTipoMudou();}
+function salvarAgend(){var tipo=document.getElementById("ag-tipo").value;var quando=document.getElementById("ag-quando").value;if(!quando){toast("Escolha data e hora",1);return;}var body={tipo:tipo,segmento:document.getElementById("ag-seg").value,agendado_para:new Date(quando).toISOString(),titulo:document.getElementById("ag-tit").value,texto:document.getElementById("ag-txt").value,ch_inapp:document.getElementById("ag-inapp").checked,ch_webpush:document.getElementById("ag-push").checked,ch_email:document.getElementById("ag-email").checked};var id=document.getElementById("ag-id").value;if(id)body.id=id;fetch(nb()+"/admin/agendamentos",{method:"POST",headers:H(),body:JSON.stringify(body)}).then(function(r){return r.json();}).then(function(d){if(d&&d.ok){toast(d.editado?"Agendamento atualizado!":"Agendado!");limparAgendForm();loadAgend();}else toast((d&&d.erro)||"erro",1);}).catch(function(){toast("erro de rede",1);});}
+function cancelarAgend(id){if(!confirm("Cancelar este agendamento?"))return;fetch(nb()+"/admin/agendamentos/cancelar",{method:"POST",headers:H(),body:JSON.stringify({id:id})}).then(function(r){return r.json();}).then(function(){loadAgend();}).catch(function(){});}
+var AGCACHE=[];
+function editarAgend(id){var a=null;for(var i=0;i<AGCACHE.length;i++){if(Number(AGCACHE[i].id)===Number(id))a=AGCACHE[i];}if(!a)return;document.getElementById("ag-id").value=a.id;document.getElementById("ag-tipo").value=a.tipo;document.getElementById("ag-tit").value=a.titulo||"";document.getElementById("ag-txt").value=a.texto||"";document.getElementById("ag-seg").value=a.segmento||"todos";document.getElementById("ag-inapp").checked=!!a.ch_inapp;document.getElementById("ag-push").checked=!!a.ch_webpush;document.getElementById("ag-email").checked=!!a.ch_email;var d=new Date(a.agendado_para);function P(x){return(x<10?"0":"")+x;}document.getElementById("ag-quando").value=d.getFullYear()+"-"+P(d.getMonth()+1)+"-"+P(d.getDate())+"T"+P(d.getHours())+":"+P(d.getMinutes());document.getElementById("ag-save").textContent="Salvar edicao";agTipoMudou();document.getElementById("ag-form").scrollIntoView({behavior:"smooth",block:"center"});}
+function loadAgend(){fetch(nb()+"/admin/agendamentos",{headers:H()}).then(function(r){return r.json();}).then(function(d){var tb=document.getElementById("ag-list");if(!tb)return;if(!d||!d.ok){tb.innerHTML='<tr><td colspan="6" class="muted">sem acesso</td></tr>';return;}AGCACHE=d.lista||[];if(!AGCACHE.length){tb.innerHTML='<tr><td colspan="6" class="muted">nenhum agendamento ainda</td></tr>';return;}var STAT={agendado:["#e0a008","futuro"],enviado:["#1faa59","enviado"],cancelado:["#7a8194","cancelado"],erro:["#e23744","erro"],enviando:["#4361ee","enviando"]};var h="";for(var i=0;i<AGCACHE.length;i++){var a=AGCACHE[i];var dt=new Date(a.agendado_para);function P(x){return(x<10?"0":"")+x;}var quando=P(dt.getDate())+"/"+P(dt.getMonth()+1)+" "+P(dt.getHours())+":"+P(dt.getMinutes());var cn=[];if(a.ch_inapp)cn.push("sino");if(a.ch_webpush)cn.push("push");if(a.ch_email)cn.push("email");var st=STAT[a.status]||["#7a8194",a.status];var tlbl=(a.tipo==="lancamento")?"E-mail de Lan\u00e7amento":esc(a.titulo||"-");var acao=(a.status==="agendado")?('<a onclick="editarAgend('+a.id+')" style="color:#4361ee;cursor:pointer;margin-right:10px">editar</a><a onclick="cancelarAgend('+a.id+')" style="color:#e23744;cursor:pointer">cancelar</a>'):"";h+='<tr><td>'+quando+'</td><td>'+(a.tipo==="lancamento"?"&#128226;":"&#9993;")+'</td><td>'+tlbl+'<br><span class="tag">'+esc(a.segmento)+'</span></td><td style="font-size:11px">'+cn.join(" &middot; ")+'</td><td><b style="color:'+st[0]+'">'+st[1]+'</b></td><td>'+acao+'</td></tr>';}tb.innerHTML=h;}).catch(function(){});}
 carregar();setInterval(carregar,30000);
+loadAgend();setInterval(loadAgend,30000);agTipoMudou();
 </script>
 </body></html>`;
