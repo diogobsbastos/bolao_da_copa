@@ -345,9 +345,9 @@ ${NAV_CSS}
     <h3>&#128221; Enviar mensagem</h3>
     <div class="muted">Chega no <b>sino do app</b> (in-app) e como <b>notificacao push</b> pra quem ativou os alertas no celular/navegador.</div>
     <label>Titulo</label>
-    <input type="text" id="f-tit" maxlength="90" placeholder="Ex.: A pontuacao comeca hoje 19h!">
+    <input type="text" id="f-tit" maxlength="90" placeholder="Ex.: A pontuacao comeca hoje 19h!" value="⚽ O Bolão começa HOJE às 19h!">
     <label>Texto</label>
-    <textarea id="f-txt" maxlength="400" placeholder="Ex.: Hoje tem Brasil x Marrocos valendo. Confira seus palpites antes do apito!"></textarea>
+    <textarea id="f-txt" maxlength="400" placeholder="Ex.: Hoje tem Brasil x Marrocos valendo. Confira seus palpites antes do apito!">Brasil x Marrocos abre a pontuação. Cadastre seus palpites antes do apito — a partir das 19h vale ponto e token!</textarea>
     <label>Segmento</label>
     <select id="f-seg">
      <option value="todos">Todos os jogadores</option>

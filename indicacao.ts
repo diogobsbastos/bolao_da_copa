@@ -25,9 +25,10 @@ async function grantPacoteBase(uid: number): Promise<void> {
 export async function aplicarEntrada(novoId: number, codigo: string | null | undefined): Promise<void> {
   const cod = String(codigo || "").trim().toUpperCase(); if (!cod) return;
   try {
-    const full = (await pool.query("SELECT id, nome, full_usado, pagou FROM usuarios WHERE full_code=$1", [cod])).rows[0] as any;
-    if (full && !full.full_usado && full.pagou) {
-      await pool.query("UPDATE usuarios SET full_usado=true WHERE id=$1", [full.id]);
+    const full = (await pool.query("SELECT id, nome, full_usado, pagou, papel FROM usuarios WHERE full_code=$1", [cod])).rows[0] as any;
+    const fullAdmin = !!full && full.papel === "admin"; // admin = convite FULL ilimitado (nao consome, nao exige pagamento)
+    if (full && (fullAdmin || (!full.full_usado && full.pagou))) {
+      if (!fullAdmin) await pool.query("UPDATE usuarios SET full_usado=true WHERE id=$1", [full.id]);
       await pool.query("UPDATE usuarios SET acesso_full=true, tipo_entrada='full_gift', referido_por=$2 WHERE id=$1", [novoId, full.id]);
       await creditarTokens(novoId, 500, 'referral'); // ganha 500 tokens por entrar via convite FULL
       await pool.query("INSERT INTO indicacoes (referrer_id, indicado_id, tipo, status) VALUES ($1,$2,'full','entrou')", [full.id, novoId]);
@@ -60,8 +61,8 @@ export async function rotasIndicacao(app: FastifyInstance) {
   // info publica do convite (pra tela "Fulano te convidou")
   app.get("/convite/info", async (req, reply) => {
     const cod = String((req.query as any)?.code || "").trim().toUpperCase(); if (!cod) return { ok: false };
-    const full = (await pool.query("SELECT nome, full_usado FROM usuarios WHERE full_code=$1 AND pagou=true", [cod])).rows[0] as any;
-    if (full) return { ok: true, nome: full.nome || "Um amigo", tipo: "full", disponivel: !full.full_usado };
+    const full = (await pool.query("SELECT nome, full_usado, (papel='admin') AS adm FROM usuarios WHERE full_code=$1 AND (pagou=true OR papel='admin')", [cod])).rows[0] as any;
+    if (full) return { ok: true, nome: full.nome || "Um amigo", tipo: "full", disponivel: full.adm ? true : !full.full_usado };
     const ref = (await pool.query("SELECT nome FROM usuarios WHERE codigo_referral=$1", [cod])).rows[0] as any;
     if (ref) return { ok: true, nome: ref.nome || "Um amigo", tipo: "normal", disponivel: true };
     return { ok: false };
@@ -70,7 +71,7 @@ export async function rotasIndicacao(app: FastifyInstance) {
   // dados de indicacao do jogador (tela Convidar)
   app.get("/jogar/indicacao", async (req, reply) => {
     const u = await usuarioDaReq(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
-    const me = (await pool.query("SELECT codigo_referral, full_code, full_usado, pagou, acesso_full FROM usuarios WHERE id=$1", [u.id])).rows[0] as any;
+    const me = (await pool.query("SELECT codigo_referral, full_code, full_usado, pagou, acesso_full, papel FROM usuarios WHERE id=$1", [u.id])).rows[0] as any;
     const base = await baseUrl();
     const ind = (await pool.query("SELECT count(*) tot, count(*) FILTER (WHERE status='pago') pagos FROM indicacoes WHERE referrer_id=$1 AND tipo='normal'", [u.id])).rows[0] as any;
     let fullUsadoPor = ""; let fullUsadoEm: any = null;
@@ -78,7 +79,8 @@ export async function rotasIndicacao(app: FastifyInstance) {
     return {
       ok: true, pagou: !!me?.pagou, acessoFull: !!me?.acesso_full,
       refLink: base + "/?ref=" + (me?.codigo_referral || ""),
-      fullLink: (me?.pagou && me?.full_code && !me?.full_usado) ? (base + "/?full=" + me.full_code) : null,
+      fullLink: (me?.full_code && (me?.papel === "admin" || (me?.pagou && !me?.full_usado))) ? (base + "/?full=" + me.full_code) : null,
+      fullIlimitado: me?.papel === "admin",
       fullUsado: !!me?.full_usado, fullUsadoPor, fullUsadoEm,
       indicados: Number(ind?.tot || 0), convertidos: Number(ind?.pagos || 0), tokensGanhos: Number(ind?.pagos || 0) * 50,
     };
@@ -88,11 +90,12 @@ export async function rotasIndicacao(app: FastifyInstance) {
   app.post("/jogar/resgatar-full", async (req, reply) => {
     const u = await usuarioDaReq(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
     const cod = String((req.body as any)?.code || "").trim().toUpperCase(); if (!cod) return { ok: false, erro: "informe o código" };
-    const full = (await pool.query("SELECT id, full_usado, pagou FROM usuarios WHERE full_code=$1", [cod])).rows[0] as any;
-    if (!full || !full.pagou) return { ok: false, erro: "convite inválido" };
-    if (full.full_usado) return { ok: false, erro: "convite já utilizado" };
+    const full = (await pool.query("SELECT id, full_usado, pagou, papel FROM usuarios WHERE full_code=$1", [cod])).rows[0] as any;
+    const rAdmin = !!full && full.papel === "admin";
+    if (!full || (!full.pagou && !rAdmin)) return { ok: false, erro: "convite inválido" };
+    if (!rAdmin && full.full_usado) return { ok: false, erro: "convite já utilizado" };
     if (full.id === u.id) return { ok: false, erro: "você não pode usar o próprio convite" };
-    await pool.query("UPDATE usuarios SET full_usado=true WHERE id=$1", [full.id]);
+    if (!rAdmin) await pool.query("UPDATE usuarios SET full_usado=true WHERE id=$1", [full.id]);
     await pool.query("UPDATE usuarios SET acesso_full=true, tipo_entrada='full_gift', referido_por=COALESCE(referido_por,$2) WHERE id=$1", [u.id, full.id]);
     await creditarTokens(u.id, 500, 'referral'); // ganha 500 tokens por resgatar convite FULL
     await pool.query("INSERT INTO indicacoes (referrer_id, indicado_id, tipo, status) VALUES ($1,$2,'full','entrou')", [full.id, u.id]);
