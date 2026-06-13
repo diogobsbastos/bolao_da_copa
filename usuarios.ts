@@ -22,6 +22,7 @@ export async function rotasUsuarios(app: FastifyInstance) {
   app.post("/usuarios", async (req, reply) => {
     const b = (req.body ?? {}) as CadastroBody;
     if (!b.email || !b.senha) return reply.code(400).send({ erro: "email e senha são obrigatórios" });
+    if (String(b.senha).length < 4) return reply.code(400).send({ erro: "senha muito curta (mínimo 4 caracteres)" });
     const client = await pool.connect();
     try {
       await client.query("BEGIN");

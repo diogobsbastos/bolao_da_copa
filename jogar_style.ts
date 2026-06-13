@@ -1402,4 +1402,9 @@ body.light .ob-box{background:linear-gradient(180deg,#fff 0%,#fafcff 100%);color
  div#autobar.actpanel>.actcol,.actpanel>.actcol,.actcol{color:var(--rc,#14a06a)!important}
  .sl:before{background:var(--rc,#14a06a)!important;box-shadow:0 0 0 1.5px rgba(255,255,255,.9),0 1px 3px rgba(0,0,0,.3)!important}
 }
+
+/* [news-x 13jun] X verde pra dispensar cada noticia */
+.newsitem{position:relative}
+.nwx{position:absolute;top:5px;right:5px;border:0;background:none;color:var(--rc,#14a06a);font-size:16px;font-weight:800;line-height:1;cursor:pointer;padding:1px 6px;border-radius:6px}
+.nwx:hover{background:rgba(31,170,89,.14)}
 `;

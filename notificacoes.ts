@@ -130,7 +130,7 @@ export async function notificarSegmento(segmento: string, titulo: string, texto:
 export async function notifsDoUsuario(uid: number): Promise<any[]> {
   const rows = (await pool.query("SELECT id, tipo, titulo, texto, criado_em FROM notif_envios WHERE usuario_id=$1 AND canal='inapp' ORDER BY id DESC LIMIT 10", [uid])).rows as any[];
   try { await pool.query("UPDATE notif_envios SET status='enviado', enviado_em=now() WHERE usuario_id=$1 AND canal='inapp' AND status='pendente'", [uid]); } catch {}
-  return rows.map((r: any) => ({ tipo: "notif", tit: r.titulo || "Aviso", txt: r.texto || "", ts: r.criado_em, past: false }));
+  return rows.map((r: any) => ({ id: r.id, tipo: "notif", tit: r.titulo || "Aviso", txt: r.texto || "", ts: r.criado_em, past: false }));
 }
 
 // ---------- fila webpush ----------
@@ -229,6 +229,13 @@ export async function rotasNotificacoes(app: FastifyInstance) {
   app.post("/jogar/notifs/lidas", async (req, reply) => {
     const u = await usuarioDaReq(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
     await pool.query("UPDATE notif_envios SET status='lido', lido_em=now() WHERE usuario_id=$1 AND canal='inapp' AND status<>'lido'", [u.id]);
+    return { ok: true };
+  });
+
+  app.post("/jogar/notifs/hide", async (req, reply) => {
+    const u = await usuarioDaReq(req); if (!u) return reply.code(401).send({ erro: "nao autenticado" });
+    const id = Number((req.body as any)?.id || 0); if (!id) return { ok: false };
+    await pool.query("DELETE FROM notif_envios WHERE id=$1 AND usuario_id=$2 AND canal='inapp'", [id, u.id]);
     return { ok: true };
   });
 

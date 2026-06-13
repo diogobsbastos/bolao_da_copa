@@ -304,7 +304,8 @@ input:focus{border-color:var(--pri);background:rgba(255,255,255,.09);box-shadow:
    <div id="f-cad" style="display:none">
     <label>Nome</label><input id="c-nome" placeholder="Como te chamam">
     <label>E-mail</label><input id="c-email" type="email" placeholder="voce@email.com">
-    <label>Senha</label><input id="c-senha" type="password" placeholder="crie uma senha">
+    <label>Senha</label><input id="c-senha" type="password" placeholder="crie uma senha (mín. 4)">
+    <label>Confirmar senha</label><input id="c-senha2" type="password" placeholder="repita a senha">
     <button class="go" onclick="cadastrar()">Criar conta gr&aacute;tis</button>
     <div id="c-msg" class="msg"></div>
    </div>
@@ -334,8 +335,12 @@ async function entrar(){
  entrou(j,m);
 }
 async function cadastrar(){
- var m=document.getElementById("c-msg");m.className="msg";m.textContent="criando...";
- var r=await fetch(BASE+"/usuarios",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({nome:document.getElementById("c-nome").value,email:document.getElementById("c-email").value,senha:document.getElementById("c-senha").value,codigo:CONVITE})});
+ var m=document.getElementById("c-msg");m.className="msg";
+ var _s=document.getElementById("c-senha").value,_s2=document.getElementById("c-senha2").value;
+ if((_s||"").length<4){m.className="msg err";m.textContent="A senha precisa de pelo menos 4 caracteres.";return;}
+ if(_s!==_s2){m.className="msg err";m.textContent="As senhas não conferem — digite a mesma senha nos dois campos.";return;}
+ m.textContent="criando...";
+ var r=await fetch(BASE+"/usuarios",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({nome:document.getElementById("c-nome").value,email:document.getElementById("c-email").value,senha:_s,codigo:CONVITE})});
  var j=await r.json();
  if(!r.ok){m.className="msg err";m.textContent=j.erro||"falha";return;}
  m.className="msg ok";m.textContent="Conta criada! Voce ganhou 500 Tokens. Agora e so entrar.";
