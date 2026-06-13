@@ -195,6 +195,34 @@ body::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--pri2),var(
  .hero .feats>*{flex:0 1 auto!important;margin:0!important}
 }
 
+/* POLISH-LANDING-CSS 2026-06-13-28 */
+@media(max-width:560px){
+ /* REVERT do header — volta TUDO ao CSS original do landing.ts */
+ .hlogo,.nav,.brand,.blogo,.brand .blogo,.brand img,.hlogo img,[class*=blogo],
+ .brand b,.brand strong,.brand>span,.htitle,
+ .bbeta,[class*=bbeta],[class*=beta-tag],[class*=tarja],
+ [class*=manager],[class*=mgr],.hmpote,[class*=hmpote]{
+  all:revert!important;
+ }
+
+ /* Centraliza APENAS .hero (conteudo abaixo do header) */
+ .hero{
+  display:flex!important;flex-direction:column!important;
+  align-items:center!important;justify-content:flex-start!important;
+  text-align:center!important;
+  margin-left:auto!important;margin-right:auto!important;
+  width:100%!important;max-width:100%!important;
+ }
+ .hero>*{margin-left:auto!important;margin-right:auto!important;align-self:center!important}
+ .hero .copy{text-align:center!important;margin:0 auto!important;width:100%!important;max-width:380px!important}
+ .hero .feats{
+  display:flex!important;flex-wrap:wrap!important;justify-content:center!important;align-items:center!important;
+  gap:8px!important;margin:14px auto 0!important;width:100%!important;max-width:380px!important;
+ }
+ .hero .feats>*{flex:0 1 auto!important;margin:0!important}
+}
+
+
 
 @media(max-width:560px){.nav{padding:10px 14px;gap:8px}.brand .blogo{height:26px}.nav .cdmini{position:static;transform:none;order:3;flex:1 1 100%;justify-content:center;margin:2px 0 0;left:auto;top:auto}.hmpote{font-size:11px;padding:4px 9px}}
 .convbar{position:relative;overflow:hidden;display:flex;align-items:center;gap:7px;justify-content:center;flex:0 1 auto;min-width:0;max-width:560px;margin:0 6px;padding:8px 20px;border-radius:999px;font-size:13.5px;font-weight:800;line-height:1.2;color:#3a2600;background:linear-gradient(135deg,#ffe27a,#ffb300 55%,#ff8f00);border:1px solid rgba(255,255,255,.6);box-shadow:0 6px 24px rgba(255,150,0,.5);white-space:nowrap;text-overflow:ellipsis;animation:cbpop .55s cubic-bezier(.18,1.5,.4,1) both}

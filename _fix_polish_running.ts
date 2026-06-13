@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
-const VERSION = "2026-06-13-27";
+const VERSION = "2026-06-13-28";
 const CSS_MARKER = `/* POLISH-RUNNING-CSS ${VERSION} */`;
 const JS_MARKER = `<!-- [polish-running-js ${VERSION}] -->`;
 const LANDING_MARKER = `/* POLISH-LANDING-CSS ${VERSION} */`;
@@ -29,19 +29,20 @@ ${CSS_MARKER}
 }
 `;
 
-// v27 LANDING: SO mexe em .hero/.copy/.feats (conteudo abaixo do header). NUNCA mexe no header.
+// v28: usa "all:revert" pra desfazer TODAS minhas regras antigas no header
+// (revert volta pro CSS original do landing.ts, nao pro browser default como initial faria).
 const LANDING_CSS = `
 ${LANDING_MARKER}
 @media(max-width:560px){
- /* RESETA tudo do v26 que era amplo demais (.lcontent/.lmain/[class*=container] etc) */
- .hsec,.hbody,.lbody,.lcontainer,.lcontent,.lmain,
- [class*=lcontent],[class*=lmain],[class*=hsection],[class*=container]{
-  text-align:initial!important;margin-left:initial!important;margin-right:initial!important;
-  display:initial!important;flex-direction:initial!important;align-items:initial!important;justify-content:initial!important;
-  width:initial!important;max-width:initial!important;
+ /* REVERT do header — volta TUDO ao CSS original do landing.ts */
+ .hlogo,.nav,.brand,.blogo,.brand .blogo,.brand img,.hlogo img,[class*=blogo],
+ .brand b,.brand strong,.brand>span,.htitle,
+ .bbeta,[class*=bbeta],[class*=beta-tag],[class*=tarja],
+ [class*=manager],[class*=mgr],.hmpote,[class*=hmpote]{
+  all:revert!important;
  }
 
- /* === CENTRALIZAR APENAS o .hero (conteudo abaixo do header) === */
+ /* Centraliza APENAS .hero (conteudo abaixo do header) */
  .hero{
   display:flex!important;flex-direction:column!important;
   align-items:center!important;justify-content:flex-start!important;
@@ -117,7 +118,6 @@ try {
     const anchor = "<!-- [mobile-polish-v2-script] -->";
     if (sJs.split(anchor).length - 1 === 1) writeFileSync(JP, sJs.replace(anchor, JS_BLOCK + anchor), "utf8");
   }
-  // landing.ts: anchor encadeado pra vencer cascade
   const LDP = join(__dir, "landing.ts");
   const sLd = readFileSync(LDP, "utf8");
   if (sLd.indexOf(LANDING_MARKER) === -1) {
