@@ -5,18 +5,18 @@ import { dirname, join } from "node:path";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
-const VERSION = "2026-06-13-18";
+const VERSION = "2026-06-13-19";
 const CSS_MARKER = `/* POLISH-RUNNING-CSS ${VERSION} */`;
 const JS_MARKER = `<!-- [polish-running-js ${VERSION}] -->`;
 
 const CSS_BLOCK = `
 ${CSS_MARKER}
 @media(max-width:600px){
+ /* Marketplace card: deixa CSS desktop fluir, so garante overflow visivel pra flag sair */
  .pack.base{overflow:visible!important;position:relative!important}
- /* botão JÁ COMPRADO/AÇÃO menor altura */
- .pack.base button,.pack.base .btn,.pack.base [class*=pkbuy],.pack.base [class*=pkact],.pack.base [class*=ja-compr]{
-  padding:8px 14px!important;font-size:13px!important;min-height:0!important;height:auto!important;line-height:1.2!important
- }
+
+ /* botão pack menor */
+ .pack.base button,.pack.base .btn{padding:8px 14px!important;font-size:13px!important;min-height:0!important;height:auto!important;line-height:1.2!important}
 
  .top .brand{flex:0 0 auto!important;max-width:42px!important;overflow:hidden!important}
  .top .brand .blogo,.top .brand img{max-height:32px!important;max-width:32px!important;width:auto!important;height:auto!important}
@@ -34,22 +34,24 @@ ${CSS_MARKER}
 }
 `;
 
+// JS v19: LIMPA inline styles de versoes antigas (v12 que setou right:8/top:8) e bloqueia
+// novas escritas via dataset. Deixa o CSS desktop natural fluir pra pkflag.
 const JS_BLOCK = `${JS_MARKER}<script>(function(){if(window.innerWidth>600)return;
-function pinPkflag(){
+function clearOldInlines(){
+ // Limpa qualquer inline style q v12/13/etc setou em pkflag
  document.querySelectorAll('.pack.base .pkflag, .pack.base [class*=pkflag]').forEach(function(el){
-  el.style.setProperty('position','absolute','important');
-  el.style.setProperty('top','0','important');
-  el.style.setProperty('right','-10px','important');
-  el.style.setProperty('left','auto','important');
-  el.style.setProperty('bottom','auto','important');
-  el.style.setProperty('z-index','10','important');
-  el.style.setProperty('margin','0','important');
-  el.style.setProperty('transform','none','important');
-  var pack=el.closest('.pack.base');
-  if(pack){pack.style.setProperty('overflow','visible','important');pack.style.setProperty('position','relative','important');}
+  if(el.style.cssText)el.style.cssText='';
+  el.dataset.pillFixed='1';  // bloqueia o setInterval do v12 de rodar de novo
+ });
+ // Limpa inline do pack.base tb
+ document.querySelectorAll('.pack.base').forEach(function(el){
+  // preserva apenas overflow:visible + position:relative q a gente quer
+  el.style.cssText='';
+  el.style.setProperty('overflow','visible','important');
+  el.style.setProperty('position','relative','important');
  });
 }
-pinPkflag();setInterval(pinPkflag,300);
+clearOldInlines();setInterval(clearOldInlines,200);
 
 function getPanel(){return document.querySelector('#autobar.actpanel, .actpanel');}
 function ensureClosed(){var a=getPanel();if(!a)return;if(a.getAttribute('data-user-opened')!=='1'){if(a.style.display){a.style.removeProperty('display');}}}
