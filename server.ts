@@ -1,21 +1,6 @@
-// MOBILE UX patches (auto-aplica no boot, idempotente via flags .done).
-// Os patches modificam .ts em disco; eles surtem efeito no PROXIMO restart porque
-// tsx ja compilou os modulos antigos no link phase deste boot. Padrao _fix_*.ts.
-import "./_fix_mobile_jogar_style.js";
-import "./_fix_mobile_landing.js";
-import "./_fix_mobile_b.js";
-import "./_fix_mobile_c.js";
-import "./_fix_mobile_c2.js";
-import "./_fix_pwa.js";
-import "./_fix_mobile_polish.js";
-import "./_fix_mobile_polish_v2.js";
-import "./_fix_mobile_polish_v3.js";
-import "./_fix_mobile_polish_v5.js";
-import "./_fix_mobile_polish_v6.js";
-import "./_fix_mobile_polish_v7.js";
-import "./_fix_mobile_polish_v8.js";
-import "./_fix_mobile_polish_v9.js";
-import "./_fix_mobile_polish_v10.js";
+// MOBILE UX — patches baked nos blocos A/B/C/D e polish v1-v10 (ja no source).
+// _fix_polish_running.ts e o acumulador unico daqui pra frente.
+import "./_fix_polish_running.js";
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";

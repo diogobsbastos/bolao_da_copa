@@ -653,11 +653,5 @@ body.light .ob-box{background:linear-gradient(180deg,#fff 0%,#fafcff 100%);color
  div#autobar.actpanel:not([data-user-opened="1"]){display:none!important}
  div#autobar.actpanel[data-user-opened="1"]{display:flex!important}
 }
-
-
-/* POLISH-RUNNING 2026-06-13-01 */
-@media(max-width:600px){
- /* (vazio por enquanto — pronto pra receber proximos ajustes) */
-}
 .ob-emoji{font-size:46px}}
 `;
