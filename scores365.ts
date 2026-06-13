@@ -377,7 +377,7 @@ const armados = new Set<number>();
 
 async function checarJogoAgendado(id: number, tentativa: number): Promise<void> {
   let j: any = null;
-  try { j = (await pool.query("SELECT id, selecao_casa, selecao_visitante, odds->>'gid' AS gid, inicio FROM jogos WHERE id=$1 AND resultado_casa IS NULL AND odds->>'gid' IS NOT NULL", [id])).rows[0]; } catch {}
+  try { j = (await pool.query("SELECT id, selecao_casa, selecao_visitante, odds->>'gid' AS gid, inicio FROM jogos WHERE id=$1 AND apurado=false AND odds->>'gid' IS NOT NULL AND (resultado_casa IS NULL OR resultado_pendente IS NOT NULL)", [id])).rows[0]; } catch {}
   if (!j) { armados.delete(id); return; } // ja capturado / sem gid
   try {
     const r = await processarResultadoJogo(j);
@@ -390,7 +390,7 @@ async function checarJogoAgendado(id: number, tentativa: number): Promise<void> 
 // Arma os timers dos jogos que terminam nas proximas ~26h (evita overflow do setTimeout). Boot faz catch-up dos que ja passaram.
 export async function agendarResultados(): Promise<void> {
   let jogos: any[] = [];
-  try { jogos = (await pool.query("SELECT id, inicio FROM jogos WHERE odds->>'gid' IS NOT NULL AND resultado_casa IS NULL AND apurado=false AND inicio IS NOT NULL AND inicio < now() + interval '26 hours' ORDER BY inicio")).rows as any[]; } catch { return; }
+  try { jogos = (await pool.query("SELECT id, inicio FROM jogos WHERE odds->>'gid' IS NOT NULL AND (resultado_casa IS NULL OR resultado_pendente IS NOT NULL) AND apurado=false AND inicio IS NOT NULL AND inicio < now() + interval '26 hours' ORDER BY inicio")).rows as any[]; } catch { return; }
   const agora = Date.now(); let n = 0;
   for (const j of jogos) {
     if (armados.has(j.id)) continue;
