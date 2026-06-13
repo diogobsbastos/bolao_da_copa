@@ -1,19 +1,23 @@
-// Polish running — acumulador unico.
+// Polish running — acumulador unico (patcha jogar_style.ts + jogar_page.ts + landing.ts).
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
-const VERSION = "2026-06-13-22";
+const VERSION = "2026-06-13-23";
 const CSS_MARKER = `/* POLISH-RUNNING-CSS ${VERSION} */`;
 const JS_MARKER = `<!-- [polish-running-js ${VERSION}] -->`;
+const LANDING_MARKER = `/* POLISH-LANDING-CSS ${VERSION} */`;
 
 const CSS_BLOCK = `
 ${CSS_MARKER}
 @media(max-width:600px){
  .pack.base{overflow:visible!important;position:relative!important}
  .pack.base button,.pack.base .btn{padding:8px 14px!important;font-size:13px!important;min-height:0!important;height:auto!important;line-height:1.2!important}
+
+ /* Conectar IA: provedor selecionado scrolla pra input chave (CSS + JS) */
+ .provcard.sel,.provcard.gem.sel{box-shadow:0 0 0 2px #1faa59 inset!important}
 
  .top .brand{flex:0 0 auto!important;max-width:42px!important;overflow:hidden!important}
  .top .brand .blogo,.top .brand img{max-height:32px!important;max-width:32px!important;width:auto!important;height:auto!important}
@@ -31,68 +35,49 @@ ${CSS_MARKER}
 }
 `;
 
-// JS v22: MutationObserver detecta qq mudança no style do pkflag e RE-APLICA desktop values
-const JS_BLOCK = `${JS_MARKER}<script>(function(){if(window.innerWidth>600)return;
-var applying=false;
-function applyPkflag(el){
- if(applying)return;applying=true;
- var s=el.style;
- s.setProperty('position','absolute','important');
- s.setProperty('top','0','important');
- s.setProperty('right','0','important');
- s.setProperty('left','auto','important');
- s.setProperty('bottom','auto','important');
- s.setProperty('width','auto','important');
- s.setProperty('max-width','none','important');
- s.setProperty('height','auto','important');
- s.setProperty('min-height','0','important');
- s.setProperty('max-height','none','important');
- s.setProperty('padding','5px 13px','important');
- s.setProperty('border-radius','0 14px','important');
- s.setProperty('background','linear-gradient(135deg,#ffe07a,#e0a008)','important');
- s.setProperty('z-index','3','important');
- s.setProperty('display','flex','important');
- s.setProperty('flex-direction','row','important');
- s.setProperty('align-items','center','important');
- s.setProperty('justify-content','center','important');
- s.setProperty('gap','4px','important');
- s.setProperty('margin','0','important');
- s.setProperty('transform','none','important');
- s.setProperty('color','#000','important');
- s.setProperty('font-weight','700','important');
- s.setProperty('font-size','12px','important');
- s.setProperty('line-height','1','important');
- s.setProperty('white-space','nowrap','important');
- el.dataset.pillFixed='1';
- Array.from(el.querySelectorAll('svg, img')).forEach(function(c){
-  c.style.setProperty('width','14px','important');
-  c.style.setProperty('height','14px','important');
-  c.style.setProperty('display','inline-block','important');
-  c.style.setProperty('flex','0 0 auto','important');
- });
- applying=false;
+// CSS para LANDING — classes reais: .brand .blogo .bbeta
+const LANDING_CSS = `
+${LANDING_MARKER}
+@media(max-width:560px){
+ .brand{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:8px!important;flex-wrap:wrap!important;width:100%!important}
+ .brand .blogo{max-height:54px!important;width:auto!important;height:auto!important}
+ .brand .bbeta{display:inline-flex!important;font-size:10px!important;padding:2px 7px!important;border-radius:4px!important;align-self:center!important;margin:0!important}
+ .hlogo{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:8px!important;flex-wrap:wrap!important}
 }
+`;
+
+const JS_BLOCK = `${JS_MARKER}<script>(function(){if(window.innerWidth>600)return;
+// pkflag desktop values (mantido do v22)
+function applyPkflag(el){var s=el.style;
+ s.setProperty('position','absolute','important');s.setProperty('top','0','important');s.setProperty('right','0','important');s.setProperty('left','auto','important');s.setProperty('bottom','auto','important');
+ s.setProperty('width','auto','important');s.setProperty('max-width','none','important');s.setProperty('height','auto','important');s.setProperty('min-height','0','important');s.setProperty('max-height','none','important');
+ s.setProperty('padding','5px 13px','important');s.setProperty('border-radius','0 14px','important');s.setProperty('background','linear-gradient(135deg,#ffe07a,#e0a008)','important');s.setProperty('z-index','3','important');
+ s.setProperty('display','flex','important');s.setProperty('flex-direction','row','important');s.setProperty('align-items','center','important');s.setProperty('justify-content','center','important');s.setProperty('gap','4px','important');
+ s.setProperty('margin','0','important');s.setProperty('transform','none','important');s.setProperty('color','#000','important');s.setProperty('font-weight','700','important');s.setProperty('font-size','12px','important');s.setProperty('line-height','1','important');s.setProperty('white-space','nowrap','important');
+ el.dataset.pillFixed='1';
+ Array.from(el.querySelectorAll('svg, img')).forEach(function(c){c.style.setProperty('width','14px','important');c.style.setProperty('height','14px','important');c.style.setProperty('display','inline-block','important');c.style.setProperty('flex','0 0 auto','important');});}
 function processPacks(){
- document.querySelectorAll('.pack.base').forEach(function(p){
-  p.style.setProperty('overflow','visible','important');
-  p.style.setProperty('position','relative','important');
- });
- document.querySelectorAll('.pack.base .pkflag, .pack.base [class*=pkflag]').forEach(function(el){
-  applyPkflag(el);
-  if(!el.dataset.observed){
-   el.dataset.observed='1';
-   var obs=new MutationObserver(function(){applyPkflag(el);});
-   obs.observe(el,{attributes:true,attributeFilter:['style']});
-  }
- });
+ document.querySelectorAll('.pack.base').forEach(function(p){p.style.setProperty('overflow','visible','important');p.style.setProperty('position','relative','important');});
+ document.querySelectorAll('.pack.base .pkflag, .pack.base [class*=pkflag]').forEach(function(el){applyPkflag(el);if(!el.dataset.observed){el.dataset.observed='1';var obs=new MutationObserver(function(){applyPkflag(el);});obs.observe(el,{attributes:true,attributeFilter:['style']});}});
 }
 processPacks();setInterval(processPacks,500);
-// Tb observa o body pra novos packs renderizados
-if(typeof MutationObserver!=='undefined'){
- var bodyObs=new MutationObserver(function(){processPacks();});
- if(document.body)bodyObs.observe(document.body,{childList:true,subtree:true});
- else document.addEventListener('DOMContentLoaded',function(){bodyObs.observe(document.body,{childList:true,subtree:true});});
-}
+
+// Conectar IA: clique em .provcard scrolla pra input/textarea de chave
+document.addEventListener('click',function(e){
+ if(!e.target||!e.target.closest)return;
+ var card=e.target.closest('.provcard');
+ if(!card)return;
+ setTimeout(function(){
+  // Procura primeiro input/textarea de chave visivel
+  var keys=document.querySelectorAll('input[type=password], input[name*=key], input[name*=chave], input[name*=api], textarea');
+  for(var i=0;i<keys.length;i++){
+   var k=keys[i];if(k.offsetParent===null)continue;
+   k.scrollIntoView({behavior:'smooth',block:'center'});
+   setTimeout(function(){try{k.focus();}catch(_){}}, 350);
+   return;
+  }
+ },300);
+},true);
 
 function getPanel(){return document.querySelector('#autobar.actpanel, .actpanel');}
 function ensureClosed(){var a=getPanel();if(!a)return;if(a.getAttribute('data-user-opened')!=='1'){if(a.style.display){a.style.removeProperty('display');}}}
@@ -112,16 +97,27 @@ hide442();setInterval(hide442,1500);
 })();</script>`;
 
 try {
+  // jogar_style.ts
   const LP = join(__dir, "jogar_style.ts");
   const sCss = readFileSync(LP, "utf8");
   if (sCss.indexOf(CSS_MARKER) === -1) {
     const anchor = ".ob-emoji{font-size:46px}}\n`;";
     if (sCss.split(anchor).length - 1 === 1) writeFileSync(LP, sCss.replace(anchor, "\n" + CSS_BLOCK + anchor), "utf8");
   }
+  // jogar_page.ts
   const JP = join(__dir, "jogar_page.ts");
   const sJs = readFileSync(JP, "utf8");
   if (sJs.indexOf(JS_MARKER) === -1) {
     const anchor = "<!-- [mobile-polish-v2-script] -->";
     if (sJs.split(anchor).length - 1 === 1) writeFileSync(JP, sJs.replace(anchor, JS_BLOCK + anchor), "utf8");
+  }
+  // landing.ts — anchor: o @media(max-width:560px){.cdlab/.cdval} top-level
+  const LDP = join(__dir, "landing.ts");
+  const sLd = readFileSync(LDP, "utf8");
+  if (sLd.indexOf(LANDING_MARKER) === -1) {
+    const lAnchor = "@media(max-width:560px){.cdlab{display:none}.cdval{min-width:0}}";
+    if (sLd.split(lAnchor).length - 1 === 1) {
+      writeFileSync(LDP, sLd.replace(lAnchor, lAnchor + "\n" + LANDING_CSS), "utf8");
+    }
   }
 } catch (e) { console.error("[polish_running] ERRO", e); }
