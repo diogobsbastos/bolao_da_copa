@@ -10,6 +10,7 @@ import { pool } from "./db.js";
 import { usuarioDaReq } from "./auth.js";
 import { NAV_CSS, NAV_JS, sideHtml } from "./ui.js";
 import { timePT } from "./jogos_placar.js";
+import { enviarEmail, htmlEmail, emailConfigurado } from "./email.js";
 
 async function admOk(req: FastifyRequest): Promise<boolean> {
   const t = req.headers["x-admin-token"];
@@ -107,7 +108,28 @@ export async function notificar(uid: number, tipo: string, titulo: string, texto
         else await pool.query("INSERT INTO notif_envios (mensagem_id,usuario_id,canal,canal_id,tipo,titulo,texto) VALUES ($1,$2,'webpush',$3,$4,$5,$6)", [mid, uid, s.id, tipo, titulo, texto]);
       }
     }
+    if (canais.includes("email")) {
+      if (ref) await pool.query("INSERT INTO notif_envios (mensagem_id,usuario_id,canal,tipo,titulo,texto,referencia) VALUES ($1,$2,'email',$3,$4,$5,$6) ON CONFLICT (usuario_id,canal,referencia) WHERE referencia IS NOT NULL DO NOTHING", [mid, uid, tipo, titulo, texto, ref]);
+      else await pool.query("INSERT INTO notif_envios (mensagem_id,usuario_id,canal,tipo,titulo,texto) VALUES ($1,$2,'email',$3,$4,$5)", [mid, uid, tipo, titulo, texto]);
+    }
   } catch (e) { console.error("[notif] erro notificar:", (e as any)?.message || e); }
+}
+
+// fila de e-mail: pega pendentes do canal 'email', envia pelo Gmail (throttle gentil)
+export async function enviarPendentesEmail(): Promise<number> {
+  if (!(await emailConfigurado())) return 0;
+  let rows: any[] = [];
+  try { rows = (await pool.query("SELECT e.id, e.titulo, e.texto, u.email FROM notif_envios e JOIN usuarios u ON u.id=e.usuario_id WHERE e.canal='email' AND e.status='pendente' AND u.email LIKE '%@%' ORDER BY e.id LIMIT 40")).rows as any[]; } catch { return 0; }
+  if (!rows.length) return 0;
+  let ok = 0;
+  for (const r of rows) {
+    const res = await enviarEmail(r.email, r.titulo || "Bolão Copa 26", htmlEmail(r.titulo || "Bolão Copa 26", r.texto || ""));
+    if (res.ok) { ok++; await pool.query("UPDATE notif_envios SET status='enviado', enviado_em=now() WHERE id=$1", [r.id]); }
+    else { await pool.query("UPDATE notif_envios SET status='falhou', resposta=$2 WHERE id=$1", [r.id, String(res.erro || "").slice(0, 180)]); }
+    await new Promise((rr) => setTimeout(rr, 500));
+  }
+  if (ok) console.log("[notif] emails enviados:", ok, "/", rows.length);
+  return ok;
 }
 
 const SEGMENTOS: Record<string, string> = {
@@ -194,6 +216,8 @@ export function iniciarNotificacoes(): void {
   ensureVapid().catch(() => {});
   setTimeout(() => { enviarPendentesWebpush().catch(() => {}); }, 15 * 1000);
   setInterval(() => { enviarPendentesWebpush().catch(() => {}); }, 60 * 1000);
+  setTimeout(() => { enviarPendentesEmail().catch(() => {}); }, 20 * 1000);
+  setInterval(() => { enviarPendentesEmail().catch(() => {}); }, 60 * 1000);
   setTimeout(() => { lembretePalpites().catch(() => {}); }, 30 * 1000);
   setInterval(() => { lembretePalpites().catch(() => {}); }, 10 * 60 * 1000);
   console.log("[notif] modulo de notificacoes iniciado (webpush 60s, lembretes 10min)");
@@ -267,10 +291,24 @@ export async function rotasNotificacoes(app: FastifyInstance) {
     const texto = String(b.texto || "").trim().slice(0, 400);
     const segmento = String(b.segmento || "todos");
     if (!titulo || !texto) return reply.code(400).send({ erro: "titulo e texto obrigatorios" });
-    const canais = b.push === false ? ["inapp"] : ["inapp", "webpush"];
+    const canais: string[] = ["inapp"];
+    if (b.push !== false) canais.push("webpush");
+    if (b.email === true) canais.push("email");
     const u = await usuarioDaReq(req);
     const r = await notificarSegmento(segmento, titulo, texto, u?.id ?? null, canais);
+    if (canais.includes("email")) { enviarPendentesEmail().catch(() => {}); }
     return { ok: true, ...r };
+  });
+
+  app.post("/admin/email/teste", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "nao autorizado" });
+    if (!(await emailConfigurado())) return reply.code(400).send({ erro: "gmail nao configurado (config gmail_user/gmail_app_pass)" });
+    const b = (req.body || {}) as any;
+    const u = await usuarioDaReq(req);
+    const to = String(b.to || u?.email || "").trim();
+    if (!to) return reply.code(400).send({ erro: "informe um e-mail de destino" });
+    const res = await enviarEmail(to, "✅ Teste de e-mail — Bolão Copa 26", htmlEmail("Funcionou!", "Se você está lendo isso, o envio de e-mail do Bolão Copa 26 está no ar. " + new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })));
+    return res.ok ? { ok: true, to } : reply.code(502).send({ ok: false, erro: res.erro });
   });
 
   app.post("/admin/notificacoes/teste", async (req, reply) => {
@@ -363,7 +401,8 @@ ${NAV_CSS}
      <option value="top50">Top 50 do ranking</option>
      <option value="inativos">Inativos ha 3+ dias</option>
     </select>
-    <label class="chk" style="text-transform:none"><input type="checkbox" id="f-push" checked> Enviar tambem como Web Push</label>
+    <label class="chk" style="text-transform:none"><input type="checkbox" id="f-push" checked> Enviar tamb&eacute;m como Web Push</label>
+    <label class="chk" style="text-transform:none"><input type="checkbox" id="f-email"> Enviar tamb&eacute;m por <b>e-mail</b></label>
     <div class="row">
      <button id="b-env" onclick="enviar()">&#128640; Enviar agora</button>
      <button class="sec" onclick="teste()">&#128276; Testar comigo</button>
@@ -403,11 +442,11 @@ function carregar(){fetch(nb()+"/admin/notificacoes/dados",{headers:H()}).then(f
 }).catch(function(){document.getElementById("conn").textContent="erro";});}
 function enviar(){var tit=document.getElementById("f-tit").value.trim(),txt=document.getElementById("f-txt").value.trim();
  if(!tit||!txt){toast("Preencha titulo e texto",1);return;}
- var seg=document.getElementById("f-seg").value;var push=document.getElementById("f-push").checked;
+ var seg=document.getElementById("f-seg").value;var push=document.getElementById("f-push").checked;var email=document.getElementById("f-email").checked;
  var segLbl=document.getElementById("f-seg").selectedOptions[0].textContent;
  if(!confirm("Enviar para: "+segLbl+"?"))return;
  var b=document.getElementById("b-env");b.disabled=true;
- fetch(nb()+"/admin/notificacoes/enviar",{method:"POST",headers:H(),body:JSON.stringify({titulo:tit,texto:txt,segmento:seg,push:push})})
+ fetch(nb()+"/admin/notificacoes/enviar",{method:"POST",headers:H(),body:JSON.stringify({titulo:tit,texto:txt,segmento:seg,push:push,email:email})})
  .then(function(r){return r.json();}).then(function(d){b.disabled=false;
   if(d&&d.ok){toast("Enviado pra "+d.usuarios+" jogador(es)!");document.getElementById("f-tit").value="";document.getElementById("f-txt").value="";carregar();}
   else toast((d&&d.erro)||"erro ao enviar",1);
