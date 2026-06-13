@@ -375,8 +375,8 @@ ${NAV_CSS}
  </main>
 </div>
 <div class="toast" id="toast"></div>
-${NAV_JS}
 <script>
+${NAV_JS}
 function H(){var h={"content-type":"application/json"};var s=localStorage.getItem("sessao");if(s)h["authorization"]="Bearer "+s;return h;}
 function nb(){var p=location.pathname;var i=p.indexOf("/admin");return i>0?p.slice(0,i):"";}
 function toast(m,rd){var t=document.getElementById("toast");t.textContent=m;t.className="toast show"+(rd?" rd":"");setTimeout(function(){t.className="toast";},2600);}
