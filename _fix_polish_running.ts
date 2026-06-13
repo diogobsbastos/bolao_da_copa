@@ -5,18 +5,17 @@ import { dirname, join } from "node:path";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
-const VERSION = "2026-06-13-15";
+const VERSION = "2026-06-13-16";
 const CSS_MARKER = `/* POLISH-RUNNING-CSS ${VERSION} */`;
 const JS_MARKER = `<!-- [polish-running-js ${VERSION}] -->`;
 
 const CSS_BLOCK = `
 ${CSS_MARKER}
 @media(max-width:600px){
- /* Marketplace: overflow visible pra flag poder sair da borda + pkflag protruding */
+ /* Marketplace pkflag protruding mais agressivo */
  .pack.base{overflow:visible!important;position:relative!important;height:auto!important;min-height:0!important;max-height:none!important}
- .pack.base .pkflag.pkflag.pkflag,.pack.base [class*=pkflag][class*=pkflag]{position:absolute!important;top:6px!important;right:-6px!important;left:auto!important;bottom:auto!important;z-index:5!important;margin:0!important}
+ .pack.base .pkflag.pkflag.pkflag,.pack.base [class*=pkflag][class*=pkflag]{position:absolute!important;top:0!important;right:-12px!important;left:auto!important;bottom:auto!important;z-index:5!important;margin:0!important;transform:none!important}
 
- /* HEADER escudo */
  .top .brand{flex:0 0 auto!important;max-width:42px!important;overflow:hidden!important}
  .top .brand .blogo,.top .brand img{max-height:32px!important;max-width:32px!important;width:auto!important;height:auto!important}
  .top .burger{flex:0 0 auto!important}
