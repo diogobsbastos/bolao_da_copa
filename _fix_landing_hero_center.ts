@@ -1,16 +1,19 @@
-// RESTORE v25 (2026-06-13) — recoloca os 3 blocos POLISH-LANDING-CSS (v23/v24/v25)
-// que existiam no commit 6cb07c8 (polish v25) e foram removidos pelo _fix_landing_undo.
-// Insere via ancora, idempotente (marca pelo comentario v25). NAO mexe em mais nada.
+// LANDING v25 + CENTER-FIX (2026-06-13)
+// 1) Garante os 3 blocos POLISH-LANDING-CSS (v23/24/25) — estado v25 que o dono pediu.
+// 2) CENTER-FIX: limita a largura de .copy/.card/.feats no mobile pra eles NAO transbordarem
+//    pra direita (causa real do "empurrao": filho mais largo que o .hero flex-column encosta
+//    na esquerda e vaza pra direita). Com max-width + margin auto, ficam centralizados.
+// Tudo idempotente (marca por comentario). NAO mexe no header nem no JS recenter.
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
-
 const ANCHOR = "@media(max-width:560px){.cdlab{display:none}.cdval{min-width:0}}";
-const MARK = "/* POLISH-LANDING-CSS 2026-06-13-25 */";
+const MARK25 = "/* POLISH-LANDING-CSS 2026-06-13-25 */";
+const MARKFIX = "/* CENTER-FIX 2026-06-13 */";
 
-const BLOCKS = `
+const BLOCKS25 = `
 
 /* POLISH-LANDING-CSS 2026-06-13-25 */
 @media(max-width:560px){
@@ -41,21 +44,42 @@ const BLOCKS = `
  .hlogo{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:8px!important;flex-wrap:wrap!important}
 }`;
 
+const CENTERFIX = `
+/* CENTER-FIX 2026-06-13 */
+@media(max-width:560px){
+ .hero{align-items:center!important;padding-left:12px!important;padding-right:12px!important}
+ .hero>.copy,.hero>.card{width:100%!important;max-width:360px!important;margin-left:auto!important;margin-right:auto!important;align-self:center!important}
+ .copy,.feats{text-align:center!important}
+ .feats{justify-content:center!important}
+}
+`;
+
 try {
   const LDP = join(__dir, "landing.ts");
   let s = readFileSync(LDP, "utf8");
+  let changed = false;
 
-  if (s.indexOf(MARK) !== -1) {
-    console.log("[restore v25] blocos POLISH-LANDING-CSS ja presentes, skip");
-  } else if (s.indexOf(ANCHOR) === -1) {
-    console.error("[restore v25] ancora .cdlab NAO encontrada — nada inserido");
-  } else if (s.split(ANCHOR).length - 1 !== 1) {
-    console.error("[restore v25] ancora aparece mais de 1x — abortado por seguranca");
-  } else {
-    s = s.replace(ANCHOR, ANCHOR + BLOCKS);
-    writeFileSync(LDP, s, "utf8");
-    console.log("[restore v25] 3 blocos POLISH-LANDING-CSS (v23/24/25) reinseridos");
+  // 1) blocos v25 (se faltarem)
+  if (s.indexOf(MARK25) === -1 && s.indexOf(ANCHOR) !== -1 && (s.split(ANCHOR).length - 1) === 1) {
+    s = s.replace(ANCHOR, ANCHOR + BLOCKS25);
+    changed = true;
+    console.log("[landing] blocos v25 reinseridos");
   }
+
+  // 2) CENTER-FIX (se faltar) — antes do ultimo </style> pra vencer o cascade
+  if (s.indexOf(MARKFIX) === -1) {
+    const last = s.lastIndexOf("</style>");
+    if (last >= 0) {
+      s = s.substring(0, last) + "\n" + CENTERFIX + "\n" + s.substring(last);
+      changed = true;
+      console.log("[landing] CENTER-FIX inserido");
+    } else {
+      console.error("[landing] </style> nao encontrado p/ CENTER-FIX");
+    }
+  }
+
+  if (changed) writeFileSync(LDP, s, "utf8");
+  else console.log("[landing] nada a fazer (v25 + center-fix ja presentes)");
 } catch (e) {
-  console.error("[restore v25] ERRO", e);
+  console.error("[landing] ERRO", e);
 }
