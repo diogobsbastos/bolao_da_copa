@@ -1,6 +1,7 @@
 // MOBILE UX — patches baked nos blocos A/B/C/D e polish v1-v10 (ja no source).
 // _fix_polish_running.ts e o acumulador unico daqui pra frente.
 import "./_fix_landing_undo.js";
+import "./_fix_landing_hero_center.js";
 import "./_fix_polish_running.js";
 import "./_fix_resultados_doublecheck.js";
 import "./_fix_doublecheck_v2.js";
