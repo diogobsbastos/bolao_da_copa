@@ -357,6 +357,14 @@ export async function rotasNotificacoes(app: FastifyInstance) {
     return { ok: true, ...r };
   });
 
+  app.get("/admin/email/status", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "nao autorizado" });
+    const user = await getCfg("gmail_user");
+    const conf = await emailConfigurado();
+    const masc = user ? (user.split("@")[1] ? user.slice(0, 2) + "***@" + user.split("@")[1] : user) : null;
+    return { ok: true, configurado: conf, servidor: "Gmail SMTP (porta 465 / TLS)", conta: masc };
+  });
+
   app.post("/admin/email/lancamento", async (req, reply) => {
     if (!(await admOk(req))) return reply.code(401).send({ erro: "nao autorizado" });
     if (!(await emailConfigurado())) return reply.code(400).send({ erro: "gmail nao configurado" });

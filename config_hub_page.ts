@@ -213,6 +213,20 @@ ${NAV_CSS}
      <div id="pay-stats" class="muted" style="margin-top:12px;border-top:1px solid #e6e8f0;padding-top:10px"></div>
      <div class="muted" style="margin-top:8px;font-size:12px">&#128274; Token guardado no servidor (config), nunca no front. Sandbox move s&oacute; dinheiro de teste &mdash; troque pelo token de produ&ccedil;&atilde;o no lan&ccedil;amento.</div>
     </div>
+    <div class="card" style="border-left:4px solid #1faa59"><div class="cardhead"><div><h3>&#9993;&#65039; Servidor de E-mail <span id="em-pill" class="pill">&hellip;</span></h3>
+      <div class="sub">Usado por: <b>recupera&ccedil;&atilde;o de senha</b>, <b>confirma&ccedil;&otilde;es</b> e o <b>canal e-mail das Notifica&ccedil;&otilde;es</b>.</div></div>
+      <a style="text-decoration:none;background:#eef1fb;color:#4361ee;padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;white-space:nowrap;align-self:flex-start;cursor:pointer" onclick="location.href=BASE+'/admin/notificacoes'">Ir pras Notifica&ccedil;&otilde;es &#8599;</a></div>
+     <div id="em-conta" class="muted" style="margin:4px 0 10px">carregando&hellip;</div>
+     <div class="save"><button class="sm gh" onclick="testEmailServ()">&#128268; Testar envio (pra mim)</button><span id="em-msg" class="muted"></span></div>
+     <table style="margin-top:10px;width:100%"><thead><tr><th style="text-align:left">Servidor poss&iacute;vel</th><th style="text-align:left">Status</th></tr></thead><tbody>
+       <tr><td>Gmail SMTP (atual)</td><td><b style="color:#1faa59">EM USO</b></td></tr>
+       <tr><td>Resend (dom&iacute;nio pr&oacute;prio)</td><td><span class="muted">recomendado &mdash; planejado</span></td></tr>
+       <tr><td>SendGrid / Mailgun</td><td><span class="muted">planejado</span></td></tr>
+       <tr><td>Amazon SES</td><td><span class="muted">planejado</span></td></tr>
+       <tr><td>WhatsApp Business</td><td><span class="muted">futuro</span></td></tr>
+     </tbody></table>
+     <div class="muted" style="margin-top:8px;font-size:12px">&#128274; Credenciais em <code>config.gmail_user / gmail_app_pass</code> (VPS). Arquitetura pronta pra <b>trocar/renovar o servidor</b> no futuro sem mexer no resto do sistema.</div>
+    </div>
    </section>
 
   </div>
@@ -230,7 +244,7 @@ function N(v){return v==null||v===""?0:Number(v);}
 function num(v,c){c=c==null?4:c;return N(v).toLocaleString("pt-BR",{minimumFractionDigits:c,maximumFractionDigits:c});}
 var DOLAR=5.2;
 function ehImg(m){return (m.papel==="imagem")||/image|imagen|nano[- ]?banana/i.test(m.modelo);}
-function aba(t){document.querySelectorAll("section").forEach(function(s){s.classList.add("hide");});document.getElementById("pg-"+t).classList.remove("hide");document.querySelectorAll(".tab").forEach(function(a){a.classList.toggle("on",a.getAttribute("data-t")===t);});if(t==="banco"){loadBanco();loadJ365();}if(t==="llms"){loadLLM("texto");loadNoticiasLLM();loadHorNoticias();}if(t==="img"){loadLLM("imagem");loadFinalidades();}if(t==="custos")loadCustos();if(t==="pay")loadPay();}
+function aba(t){document.querySelectorAll("section").forEach(function(s){s.classList.add("hide");});document.getElementById("pg-"+t).classList.remove("hide");document.querySelectorAll(".tab").forEach(function(a){a.classList.toggle("on",a.getAttribute("data-t")===t);});if(t==="banco"){loadBanco();loadJ365();}if(t==="llms"){loadLLM("texto");loadNoticiasLLM();loadHorNoticias();}if(t==="img"){loadLLM("imagem");loadFinalidades();}if(t==="custos")loadCustos();if(t==="pay"){loadPay();loadEmailServ();}}
 function togManual(){var b=document.getElementById("man-body");var oculto=b.classList.toggle("hide");document.getElementById("man-tog").textContent=oculto?"abrir":"fechar";}
 async function init(){
  var r=await fetch(BASE+"/admin/config",{headers:H()});
@@ -298,6 +312,8 @@ async function loadPay(){
  else{ct.textContent="Sem token. Cole o Access Token do Mercado Pago abaixo e salve.";}
  document.getElementById("pay-stats").innerHTML='Dep\u00f3sitos pagos: <b>'+d.depositosPagos+'</b> &middot; Arrecadado: <b>R$ '+Number(d.arrecadado||0).toFixed(2).replace(".",",")+'</b>';
 }
+async function loadEmailServ(){var pill=document.getElementById("em-pill");var conta=document.getElementById("em-conta");if(!pill)return;try{var r=await fetch(BASE+"/admin/email/status",{headers:H()});var d=await r.json();if(d&&d.ok&&d.configurado){pill.textContent="online";pill.className="pill uso";conta.innerHTML="Enviando por <b>"+esc(d.servidor)+"</b> &middot; conta <b>"+esc(d.conta||"?")+"</b>";}else{pill.textContent="nao configurado";pill.className="pill local";conta.textContent="Gmail nao configurado (config.gmail_user / gmail_app_pass).";}}catch(e){pill.textContent="erro";pill.className="pill local";}}
+async function testEmailServ(){var m=document.getElementById("em-msg");m.textContent="enviando...";try{var r=await fetch(BASE+"/admin/email/teste",{method:"POST",headers:H(),body:JSON.stringify({email:true})});var d=await r.json();m.innerHTML=(d&&d.email===true)?("\u2705 enviado pra "+esc(d.to||"voce")):("\u274c "+esc((d&&d.erro)||"falhou"));}catch(e){m.textContent="erro de rede";}}
 async function savePay(){var t=document.getElementById("pay-token").value;var p=document.getElementById("pay-precoin").value;var r=await fetch(BASE+"/admin/pagamento",{method:"POST",headers:H(),body:JSON.stringify({token:t,preco:p})});var d=await r.json().catch(function(){return{};});toast(d.ok?"Salvo":"erro",d.ok?"ok":"err");document.getElementById("pay-token").value="";loadPay();}
 async function testPay(){var m=document.getElementById("pay-msg");m.textContent="testando...";var r=await fetch(BASE+"/admin/pagamento/testar",{method:"POST",headers:H()});var d=await r.json().catch(function(){return{};});m.innerHTML=d.ok?('\u2705 '+esc(d.conta.nick||d.conta.email||d.conta.id)):('\u274c '+esc(d.erro||"falhou"));loadPay();}
 var J365TIMER=null;
