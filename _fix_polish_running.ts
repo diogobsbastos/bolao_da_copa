@@ -5,19 +5,17 @@ import { dirname, join } from "node:path";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
-const VERSION = "2026-06-13-12";
+const VERSION = "2026-06-13-14";
 const CSS_MARKER = `/* POLISH-RUNNING-CSS ${VERSION} */`;
 const JS_MARKER = `<!-- [polish-running-js ${VERSION}] -->`;
 
 const CSS_BLOCK = `
 ${CSS_MARKER}
 @media(max-width:600px){
- /* HEADER escudo */
  .top .brand{flex:0 0 auto!important;max-width:42px!important;overflow:hidden!important}
  .top .brand .blogo,.top .brand img{max-height:32px!important;max-width:32px!important;width:auto!important;height:auto!important}
  .top .burger{flex:0 0 auto!important}
 
- /* IA panel NUCLEAR hide */
  div#autobar.actpanel:not([data-user-opened="1"]),.actpanel:not([data-user-opened="1"]){display:none!important;visibility:hidden!important}
  div#autobar.actpanel[data-user-opened="1"],.actpanel[data-user-opened="1"]{display:flex!important;visibility:visible!important}
 
@@ -30,82 +28,8 @@ ${CSS_MARKER}
 }
 `;
 
-// JS aplica estilos inline (importance maxima) na .pkflag pra forçar pílula horizontal top-right
+// JS sem mexer no pkflag — usuario disse pra deixar o modelo como esta
 const JS_BLOCK = `${JS_MARKER}<script>(function(){if(window.innerWidth>600)return;
-
-// Marketplace pkflag: força pílula horizontal absolute top-right via inline style !important
-function fixPkflags(){
- document.querySelectorAll('.pack.base .pkflag, .pack.base [class*=pkflag]').forEach(function(el){
-  if(el.dataset.pillFixed)return;
-  // Container pai precisa ser relative
-  var pack=el.closest('.pack.base'); if(pack)pack.style.setProperty('position','relative','important');
-  // Pílula
-  var s=el.style;
-  s.setProperty('position','absolute','important');
-  s.setProperty('top','8px','important');
-  s.setProperty('right','8px','important');
-  s.setProperty('left','auto','important');
-  s.setProperty('bottom','auto','important');
-  s.setProperty('width','auto','important');
-  s.setProperty('max-width','none','important');
-  s.setProperty('height','auto','important');
-  s.setProperty('min-height','0','important');
-  s.setProperty('max-height','none','important');
-  s.setProperty('padding','3px 10px','important');
-  s.setProperty('border-radius','999px','important');
-  s.setProperty('display','inline-flex','important');
-  s.setProperty('flex-direction','row','important');
-  s.setProperty('flex-wrap','nowrap','important');
-  s.setProperty('align-items','center','important');
-  s.setProperty('justify-content','center','important');
-  s.setProperty('gap','5px','important');
-  s.setProperty('font-size','12px','important');
-  s.setProperty('font-weight','700','important');
-  s.setProperty('line-height','1','important');
-  s.setProperty('white-space','nowrap','important');
-  s.setProperty('background','linear-gradient(135deg,#ffe23a,#ffba00)','important');
-  s.setProperty('color','#000','important');
-  s.setProperty('text-align','center','important');
-  s.setProperty('margin','0','important');
-  s.setProperty('z-index','5','important');
-  s.setProperty('grid-column','auto','important');
-  s.setProperty('float','none','important');
-  // Filhos inline
-  Array.from(el.children).forEach(function(c){
-   var cs=c.style;
-   cs.setProperty('display','inline-flex','important');
-   cs.setProperty('flex-direction','row','important');
-   cs.setProperty('align-items','center','important');
-   cs.setProperty('margin','0','important');
-   cs.setProperty('padding','0','important');
-   cs.setProperty('line-height','1','important');
-   cs.setProperty('width','auto','important');
-   cs.setProperty('max-width','none','important');
-   if(c.tagName==='SVG'||c.tagName==='IMG'){
-    cs.setProperty('width','14px','important');
-    cs.setProperty('height','14px','important');
-   }
-  });
-  // Tudo descendente inline
-  Array.from(el.querySelectorAll('*')).forEach(function(c){
-   var cs=c.style;
-   if(c.tagName==='SVG'||c.tagName==='IMG'){
-    cs.setProperty('width','14px','important');
-    cs.setProperty('height','14px','important');
-    cs.setProperty('display','inline-block','important');
-    cs.setProperty('vertical-align','middle','important');
-   }else{
-    cs.setProperty('display','inline','important');
-    cs.setProperty('margin','0','important');
-    cs.setProperty('padding','0','important');
-   }
-  });
-  el.dataset.pillFixed='1';
- });
-}
-function runPkflag(){fixPkflags();var t=setInterval(fixPkflags,600);setTimeout(function(){clearInterval(t);},20000);}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',runPkflag);else runPkflag();
-
 // IA panel handler
 function getPanel(){return document.querySelector('#autobar.actpanel, .actpanel');}
 function ensureClosed(){var a=getPanel();if(!a)return;if(a.getAttribute('data-user-opened')!=='1'){if(a.style.display){a.style.removeProperty('display');}}}
