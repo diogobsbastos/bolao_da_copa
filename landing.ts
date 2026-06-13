@@ -113,14 +113,6 @@ body::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--pri2),var(
 .cdlab{font-size:12px;color:var(--mut);font-weight:700}
 .cdval{font-weight:850;font-size:15px;color:var(--gold);font-variant-numeric:tabular-nums;letter-spacing:.5px;min-width:118px;text-align:right}
 @media(max-width:560px){.cdlab{display:none}.cdval{min-width:0}}
-/* HERO-CENTER-LANDING 2026-06-13-v4 */
-@media(max-width:560px){
- .feats>.card,.feats .card{
-  margin-left:auto!important;margin-right:auto!important;
-  width:100%!important;max-width:380px!important;
- }
-}
-
 @media(max-width:560px){.nav{padding:10px 14px;gap:8px}.brand .blogo{height:26px}.nav .cdmini{position:static;transform:none;order:3;flex:1 1 100%;justify-content:center;margin:2px 0 0;left:auto;top:auto}.hmpote{font-size:11px;padding:4px 9px}}
 .convbar{position:relative;overflow:hidden;display:flex;align-items:center;gap:7px;justify-content:center;flex:0 1 auto;min-width:0;max-width:560px;margin:0 6px;padding:8px 20px;border-radius:999px;font-size:13.5px;font-weight:800;line-height:1.2;color:#3a2600;background:linear-gradient(135deg,#ffe27a,#ffb300 55%,#ff8f00);border:1px solid rgba(255,255,255,.6);box-shadow:0 6px 24px rgba(255,150,0,.5);white-space:nowrap;text-overflow:ellipsis;animation:cbpop .55s cubic-bezier(.18,1.5,.4,1) both}
 .convbar b{color:#160e00}
@@ -186,7 +178,19 @@ input:focus{border-color:var(--pri);background:rgba(255,255,255,.09);box-shadow:
 .brand .bmgr{font-size:10px;font-weight:800;letter-spacing:.5px;color:rgba(255,255,255,.85);background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.22);border-radius:8px;padding:3px 9px;white-space:nowrap;align-self:center;text-transform:none}
 .brand .blogo{height:32px;width:auto;display:block;flex:none;filter:drop-shadow(0 3px 8px rgba(0,0,0,.4))}
 .w.hmpote,.hmpote{border-radius:999px !important;padding:6px 14px !important}
-.cdmini{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:800;color:#fff;background:linear-gradient(135deg,rgba(31,170,89,.25),rgba(20,121,74,.35));border:1px solid rgba(31,170,89,.55);border-radius:999px;padding:6px 14px;white-space:nowrap;box-shadow:0 4px 14px rgba(31,170,89,.25);position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:5}.cdmini b{color:#f5c451;font-weight:900;font-size:14px;letter-spacing:.3px}.cdmini .cdlbl{font-size:10px;font-weight:800;color:rgba(255,255,255,.85);text-transform:uppercase;letter-spacing:.5px}@media(max-width:760px){.cdmini{font-size:10px;padding:4px 9px;top:10px}.cdmini b{font-size:11px}.cdmini .cdlbl{font-size:8px}}.nav{position:relative}</style></head><body>
+.cdmini{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:800;color:#fff;background:linear-gradient(135deg,rgba(31,170,89,.25),rgba(20,121,74,.35));border:1px solid rgba(31,170,89,.55);border-radius:999px;padding:6px 14px;white-space:nowrap;box-shadow:0 4px 14px rgba(31,170,89,.25);position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:5}.cdmini b{color:#f5c451;font-weight:900;font-size:14px;letter-spacing:.3px}.cdmini .cdlbl{font-size:10px;font-weight:800;color:rgba(255,255,255,.85);text-transform:uppercase;letter-spacing:.5px}@media(max-width:760px){.cdmini{font-size:10px;padding:4px 9px;top:10px}.cdmini b{font-size:11px}.cdmini .cdlbl{font-size:8px}}.nav{position:relative}
+
+
+/* HERO-CENTER-LANDING v5 2026-06-13 */
+@media(max-width:820px){
+ .hero{justify-items:center!important;}
+ .hero>.card{justify-self:center!important;align-self:start!important;width:100%!important;max-width:380px!important;margin-left:auto!important;margin-right:auto!important;}
+ .hero>.copy{text-align:center!important;width:100%!important;max-width:420px!important;margin-left:auto!important;margin-right:auto!important;}
+ .copy .hlogo{display:block!important;margin-left:auto!important;margin-right:auto!important;}
+ .feats{justify-content:center!important;}
+}
+
+</style></head><body>
 <div class="bg">
  <div class="glow g1"></div><div class="glow g2"></div><div class="glow g3"></div>
  <div class="sweep"></div><div class="pitch"></div>
