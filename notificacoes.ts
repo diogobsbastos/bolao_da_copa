@@ -10,7 +10,7 @@ import { pool } from "./db.js";
 import { usuarioDaReq } from "./auth.js";
 import { NAV_CSS, NAV_JS, sideHtml } from "./ui.js";
 import { timePT } from "./jogos_placar.js";
-import { enviarEmail, htmlEmail, emailConfigurado } from "./email.js";
+import { enviarEmail, htmlEmail, htmlLancamento, emailConfigurado } from "./email.js";
 
 async function admOk(req: FastifyRequest): Promise<boolean> {
   const t = req.headers["x-admin-token"];
@@ -300,6 +300,34 @@ export async function rotasNotificacoes(app: FastifyInstance) {
     return { ok: true, ...r };
   });
 
+  app.post("/admin/email/lancamento", async (req, reply) => {
+    if (!(await admOk(req))) return reply.code(401).send({ erro: "nao autorizado" });
+    if (!(await emailConfigurado())) return reply.code(400).send({ erro: "gmail nao configurado" });
+    const b = (req.body || {}) as any;
+    const base = (await getCfg("base_url_publica")) || "https://oracle-vipworks.duckdns.org/bolao-copa26";
+    let regra: any = { exato: 10, vencedor_saldo: 7, vencedor: 5, gol_time: 1 };
+    try { const rv = await getCfg("pontos_regra"); if (rv) regra = { ...regra, ...JSON.parse(rv) }; } catch {}
+    let pacotes: any = {}; try { pacotes = JSON.parse(await getCfg("pacotes") || "{}"); } catch {}
+    let pote = 0;
+    try { pote = Number(((await pool.query("SELECT (SELECT COALESCE(SUM(valor),0) FROM depositos WHERE creditado=true) + (SELECT COALESCE(SUM(valor),0) FROM patrocinadores WHERE status='ativo') AS p")).rows[0] as any)?.p || 0); } catch {}
+    const html = htmlLancamento(base, pote, regra, pacotes);
+    const assunto = "⚽ A Copa começou — o Bolão Copa 26 está valendo!";
+    // modo teste: envia para 1 endereço
+    if (b.to) {
+      const res = await enviarEmail(String(b.to).trim(), assunto, html);
+      return res.ok ? { ok: true, modo: "teste", to: b.to } : reply.code(502).send({ ok: false, erro: res.erro });
+    }
+    // broadcast: todos os jogadores com email (em segundo plano, com throttle)
+    let emails: string[] = [];
+    try { emails = ((await pool.query("SELECT email FROM usuarios WHERE email LIKE '%@%' AND papel IS DISTINCT FROM 'admin'")).rows as any[]).map((r) => r.email); } catch {}
+    (async () => {
+      let ok = 0;
+      for (const em of emails) { try { const r = await enviarEmail(em, assunto, html); if (r.ok) ok++; } catch {} await new Promise((rr) => setTimeout(rr, 700)); }
+      console.log("[email] lancamento enviado:", ok, "/", emails.length);
+    })();
+    return { ok: true, modo: "broadcast", enviando: emails.length };
+  });
+
   app.post("/admin/email/teste", async (req, reply) => {
     if (!(await admOk(req))) return reply.code(401).send({ erro: "nao autorizado" });
     if (!(await emailConfigurado())) return reply.code(400).send({ erro: "gmail nao configurado (config gmail_user/gmail_app_pass)" });
@@ -317,7 +345,12 @@ export async function rotasNotificacoes(app: FastifyInstance) {
     if (!u) return reply.code(400).send({ erro: "use logado como admin (Bearer) pra receber o teste" });
     await notificar(u.id, "teste", "🔔 Teste de notificacao", "Se voce esta vendo isso, o canal funciona. " + new Date().toLocaleTimeString("pt-BR", { timeZone: "America/Sao_Paulo" }));
     await enviarPendentesWebpush().catch(() => {});
-    return { ok: true };
+    const b = (req.body || {}) as any;
+    let emailRes: any = null;
+    if (b.email && u.email && await emailConfigurado()) {
+      emailRes = await enviarEmail(u.email, "✅ Teste — Bolão Copa 26", htmlEmail("Funcionou!", "Este é um teste do canal de e-mail do Bolão Copa 26. Se chegou bonito assim, está tudo certo. " + new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }), "Ir pro Bolão", (await getCfg("base_url_publica")) + "/"));
+    }
+    return { ok: true, email: emailRes ? emailRes.ok : null, to: u.email };
   });
 }
 
@@ -451,8 +484,8 @@ function enviar(){var tit=document.getElementById("f-tit").value.trim(),txt=docu
   if(d&&d.ok){toast("Enviado pra "+d.usuarios+" jogador(es)!");document.getElementById("f-tit").value="";document.getElementById("f-txt").value="";carregar();}
   else toast((d&&d.erro)||"erro ao enviar",1);
  }).catch(function(){b.disabled=false;toast("erro de rede",1);});}
-function teste(){fetch(nb()+"/admin/notificacoes/teste",{method:"POST",headers:H()}).then(function(r){return r.json();}).then(function(d){
- if(d&&d.ok)toast("Teste enviado! Confira o sino e o push.");else toast((d&&d.erro)||"erro",1);}).catch(function(){toast("erro de rede",1);});}
+function teste(){var email=document.getElementById("f-email")&&document.getElementById("f-email").checked;fetch(nb()+"/admin/notificacoes/teste",{method:"POST",headers:H(),body:JSON.stringify({email:email})}).then(function(r){return r.json();}).then(function(d){
+ if(d&&d.ok){var ex=(d.email===true)?" E-mail enviado pra voce tambem!":(d.email===false?" (e-mail falhou)":"");toast("Teste enviado! Confira o sino"+(email?", o push e o e-mail.":" e o push.")+ex);}else toast((d&&d.erro)||"erro",1);}).catch(function(){toast("erro de rede",1);});}
 carregar();setInterval(carregar,30000);
 </script>
 </body></html>`;
