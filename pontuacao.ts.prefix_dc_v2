@@ -47,10 +47,9 @@ export async function regraAtual(): Promise<Regra> {
 // Apura UM jogo (precisa de resultado real em jogos.resultado_casa/visitante).
 // Idempotente: jogos.apurado trava re-apuracao; palpites_bolao.creditado trava re-credito de token.
 export async function apurarJogo(jogoId: number): Promise<{ ok: boolean; jogo: number; palpites: number; creditados: number; tokens: number; motivo?: string }> {
-  const j = (await pool.query("SELECT id, inicio, selecao_casa AS casa, selecao_visitante AS visitante, resultado_casa AS rc, resultado_visitante AS rv, resultado_pendente AS rpend FROM jogos WHERE id=$1", [jogoId])).rows[0] as any;
+  const j = (await pool.query("SELECT id, inicio, selecao_casa AS casa, selecao_visitante AS visitante, resultado_casa AS rc, resultado_visitante AS rv FROM jogos WHERE id=$1", [jogoId])).rows[0] as any;
   if (!j) return { ok: false, jogo: jogoId, palpites: 0, creditados: 0, tokens: 0, motivo: "jogo nao existe" };
   if (j.rc == null || j.rv == null) return { ok: false, jogo: jogoId, palpites: 0, creditados: 0, tokens: 0, motivo: "sem resultado real" };
-  if (j.rpend != null) return { ok: true, jogo: jogoId, palpites: 0, creditados: 0, tokens: 0, motivo: "aguardando_double_check" };
 
   // TRAVA — saida CEDO sem nenhuma mutacao no banco.
   // Permite ligar/desligar a qualquer momento sem corromper estado.

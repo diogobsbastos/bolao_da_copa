@@ -328,26 +328,24 @@ async function processarResultadoJogo(j: { id: number; selecao_casa: string; sel
   if (casaLado(al(j.selecao_casa), homeNome)) { rc = hs; rv = ascore; }
   else if (casaLado(al(j.selecao_visitante), homeNome)) { rc = ascore; rv = hs; }
   else return { jogo: j.id, estado: "orientacao nao casou" };
-  // ESTRATEGIA ANTI-ERRO v2: 1o grab COMMITA placar (UI mostra FINAL) + bloqueia apuracao. 20min depois, 2o grab confirma. Se divergir, atualiza.
+  // ESTRATEGIA ANTI-ERRO: 1o grab vira pendente. 20min depois, 2o grab. Se divergir, usa LATEST.
   let pendRaw: any = null;
   try { pendRaw = (await pool.query("SELECT resultado_pendente FROM jogos WHERE id=$1", [j.id])).rows[0]?.resultado_pendente; } catch {}
   if (!pendRaw) {
-    // 1o grab: COMMITA placar (status=final, resultado_casa/visitante setados) + marca pendente pra bloquear apuracao
-    try { await pool.query("UPDATE jogos SET resultado_casa=$2, resultado_visitante=$3, resultado_em=now(), status='final', resultado_pendente=$4::jsonb WHERE id=$1 AND resultado_casa IS NULL", [j.id, rc, rv, JSON.stringify({ rc, rv, em: new Date().toISOString() })]); } catch {}
-    await coletarGolsDoJogo(g, j.id).catch(() => {});
-    console.log("[resultados] jogo", j.id, "1o grab COMMITADO", rc + "-" + rv, "(apuracao bloqueada 20min)");
-    return { jogo: j.id, estado: "1o-grab-commitado", placar: rc + "-" + rv };
+    try { await pool.query("UPDATE jogos SET resultado_pendente=$1::jsonb WHERE id=$2 AND resultado_pendente IS NULL AND resultado_casa IS NULL", [JSON.stringify({ rc, rv, em: new Date().toISOString() }), j.id]); } catch {}
+    console.log("[resultados] jogo", j.id, "1o grab pendente", rc + "-" + rv, "(aguarda 20min)");
+    return { jogo: j.id, estado: "pendente-1o-grab", placar: rc + "-" + rv };
   }
   const pendObj: any = typeof pendRaw === "string" ? JSON.parse(pendRaw) : pendRaw;
   const pendEm = new Date(pendObj?.em || 0).getTime();
   if (Date.now() - pendEm < 20 * 60 * 1000) return { jogo: j.id, estado: "aguardando-20min", placar: rc + "-" + rv };
-  // 20min passou — usa LATEST e libera apuracao
+  // 20min passou — usa LATEST (placar recem buscado vence)
   const divergiu = (pendObj.rc !== rc || pendObj.rv !== rv);
-  await pool.query("UPDATE jogos SET resultado_casa=$2, resultado_visitante=$3, resultado_em=now(), status='final', resultado_pendente=NULL WHERE id=$1", [j.id, rc, rv]);
-  if (divergiu) { await coletarGolsDoJogo(g, j.id).catch(() => {}); }
+  await pool.query("UPDATE jogos SET resultado_casa=$2, resultado_visitante=$3, resultado_em=now(), status='final', resultado_pendente=NULL WHERE id=$1 AND resultado_casa IS NULL", [j.id, rc, rv]);
+  await coletarGolsDoJogo(g, j.id).catch(() => {});
   const ap = await apurarJogo(j.id);
-  if (divergiu) console.log("[resultados] jogo", j.id, "DIVERGENCIA 1o:", pendObj.rc + "-" + pendObj.rv, "2o:", rc + "-" + rv, "(atualizei pro 2o)");
-  console.log("[resultados] jogo", j.id, "APURADO apos double-check", rc + "-" + rv, "tokens", ap.tokens);
+  if (divergiu) console.log("[resultados] jogo", j.id, "DIVERGENCIA 1o:", pendObj.rc + "-" + pendObj.rv, "2o:", rc + "-" + rv, "(usei 2o)");
+  console.log("[resultados] jogo", j.id, "FINAL apos double-check", rc + "-" + rv, "tokens", ap.tokens);
   return { jogo: j.id, estado: "final", placar: rc + "-" + rv, tokens: ap.tokens };
 }
 
