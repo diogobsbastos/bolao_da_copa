@@ -431,12 +431,19 @@ export async function rotasJogar(app: FastifyInstance) {
     let art: any[] = [];
     try {
       const rows = (await pool.query(`
-        SELECT COALESCE(jg.nome, e->>'nome') AS nome, jg.selecao, jg.figurinha,
-               count(*)::int AS gols
-          FROM jogos j CROSS JOIN LATERAL jsonb_array_elements(COALESCE(j.gols_evt,'[]'::jsonb)) e
-          LEFT JOIN jogadores jg ON jg.id = NULLIF(e->>'jogador_id','')::int
-         WHERE e->>'tipo'='gol' AND COALESCE(jg.nome, e->>'nome') <> ''
-         GROUP BY COALESCE(jg.nome, e->>'nome'), jg.selecao, jg.figurinha
+        WITH ev AS (
+          SELECT NULLIF(e->>'nome','') AS nome, NULLIF(e->>'jogador_id','')::int AS jid,
+                 CASE WHEN e->>'lado'='casa' THEN j.selecao_casa WHEN e->>'lado'='visitante' THEN j.selecao_visitante END AS selecao
+            FROM jogos j CROSS JOIN LATERAL jsonb_array_elements(COALESCE(j.gols_evt,'[]'::jsonb)) e
+           WHERE e->>'tipo'='gol'
+        )
+        SELECT COALESCE(jg.nome, ev.nome) AS nome, ev.selecao,
+               max(COALESCE(jg.figurinha, fz.figurinha)) AS figurinha, count(*)::int AS gols
+          FROM ev
+          LEFT JOIN jogadores jg ON jg.id = ev.jid
+          LEFT JOIN LATERAL (SELECT figurinha FROM jogadores j3 WHERE j3.figurinha IS NOT NULL AND ev.nome IS NOT NULL AND lower(j3.nome)=lower(ev.nome) LIMIT 1) fz ON true
+         WHERE COALESCE(jg.nome, ev.nome) IS NOT NULL AND COALESCE(jg.nome, ev.nome) <> ''
+         GROUP BY COALESCE(jg.nome, ev.nome), ev.selecao
          ORDER BY gols DESC, nome
          LIMIT 60`)).rows as any[];
       art = rows.map((r) => { const t = timePT(r.selecao); return { nome: r.nome, sel: t.pt, iso: t.iso, fig: r.figurinha || "", gols: Number(r.gols), ass: 0 }; });
